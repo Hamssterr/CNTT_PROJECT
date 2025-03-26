@@ -1,5 +1,6 @@
 import User from "../model/user.model.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { generateToken } from "../lib/utils.js";
 
 export const signup = async (req, res) => {
@@ -63,11 +64,15 @@ export const signup = async (req, res) => {
 
     // Send response
     res.status(201).json({
-      _id: newUser._id,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      email: newUser.email,
-      role: newUser.role,
+      success: true,
+      message: "User created successfully",
+      data: {
+        _id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        role: newUser.role,
+      },
     });
   } catch (error) {
     console.error("Error in signup controller:", error.message);
@@ -111,6 +116,7 @@ export const login = async (req, res) => {
     // Return response
     res.status(200).json({
       success: true,
+      message: "Login successfully",
       data: {
         _id: user._id,
         firstName: user.firstName,
@@ -142,5 +148,44 @@ export const logout = (req, res) => {
   } catch (error) {
     console.error("Error in logout controller:", error.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const checkAuth = (req, res) => {
+  try {
+    res.status(200).json(req.user);
+  } catch (error) {
+    console.log("Error in checkAuth controller: ", error.message);
+    res.status(400).json({ message: "Internal server error" });
+  }
+}
+
+export const verifyToken = async (req, res, next) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) {
+      return res.status(401).json({ success: false, message: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in /me:", error.message);
+    res.status(401).json({ success: false, message: "Invalid token" });
   }
 };
