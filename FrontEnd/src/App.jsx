@@ -35,7 +35,7 @@ const App = () => {
           path="/student/dashboard"
           element={
             <ProtectedRoute role="student">
-              <StudentDashboard />
+              <Student   />
             </ProtectedRoute>
           }
         />

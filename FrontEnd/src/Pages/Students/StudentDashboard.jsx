@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppContext } from "../../context/AppContext";
+import Loading from '../../Components/Loading'
 
 const StudentDashboard = () => {
   const { backendUrl, isLoggedIn, logout } = useContext(AppContext); // Sử dụng logout từ context
@@ -59,7 +60,7 @@ const StudentDashboard = () => {
   };
 
   if (!studentData) {
-    return <div className="text-center text-2xl">Loading...</div>;
+    return <Loading/>;
   }
 
   return (
