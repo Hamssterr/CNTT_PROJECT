@@ -1,8 +1,9 @@
 import React from "react";
-import Navbar from "../../Components/Navbar";
-import Sidebar from "../../Components/SideBar";
+
+import StudentNavbar from "../../Components/Student/Navbar";
 import CourseCard from "../../Components/Cource/CourseCard";
 import image from "../../assets/html-css-pro.png"
+import StudentSidebar from "../../Components/Student/SideBar";
 
 const courses = [
   {
@@ -45,27 +46,51 @@ const courses = [
     price: "69.99",
     image: image,
   },
+  {
+    title: "Python Data Science Basics",
+    description:
+      "Explore data analysis and visualization with Python, Pandas, and Matplotlib.",
+    instructor: "Michael Lee",
+    price: "69.99",
+    image: image,
+  },
+  {
+    title: "Python Data Science Basics",
+    description:
+      "Explore data analysis and visualization with Python, Pandas, and Matplotlib.",
+    instructor: "Michael Lee",
+    price: "69.99",
+    image: image,
+  },
+  {
+    title: "Python Data Science Basics",
+    description:
+      "Explore data analysis and visualization with Python, Pandas, and Matplotlib.",
+    instructor: "Michael Lee",
+    price: "69.99",
+    image: image,
+  },
 ];
 
 export const HomeStudent = () => {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navbar cố định ở trên cùng */}
-      <Navbar />
+      <StudentNavbar />
 
       {/* Container chính với Sidebar và Main Content */}
       <div className="flex flex-1">
-        <Sidebar />
+        <StudentSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-6 md:ml-30">
+        <main className="flex-1 p-5 md:ml-30">
           <h1 className="text-3xl font-bold mb-4">Welcome to Home</h1>
           <p className="text-lg">
             This is the main content area. You can add your courses, blogs, or
             any other content here.
           </p>
           {/* Ví dụ thêm nội dung */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-7">
             {courses.map((course, index) => (
               <CourseCard
                 key={index}
@@ -82,3 +107,6 @@ export const HomeStudent = () => {
     </div>
   );
 };
+
+
+export default HomeStudent;

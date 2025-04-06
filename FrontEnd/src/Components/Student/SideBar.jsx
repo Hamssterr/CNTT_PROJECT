@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Route, BookOpen, Megaphone } from "lucide-react";
+import { Home, Route, BookOpen, Megaphone, Calendar  } from "lucide-react";
 
 const Sidebar = () => {
   return (
@@ -20,6 +20,11 @@ const Sidebar = () => {
         <div className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-100 transition cursor-pointer group">
           <BookOpen size={28} className="text-gray-600 group-hover:text-gray-800" />
           <span className="text-xs text-gray-600 mt-2 group-hover:text-gray-800">Blogs</span>
+        </div>
+
+        <div className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-100 transition cursor-pointer group">
+          <Calendar  size={28} className="text-gray-600 group-hover:text-gray-800" />
+          <span className="text-xs text-gray-600 mt-2 group-hover:text-gray-800">Time Table</span>
         </div>
       </div>
 

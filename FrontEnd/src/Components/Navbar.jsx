@@ -1,7 +1,11 @@
 import React from "react";
 import { Search, UserPlus, LogIn } from "lucide-react"; // Import biểu tượng từ Lucide
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/Logo.png";
+import { AppContext } from "../context/AppContext";
+
+
+import Loading from "./Loading";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -11,9 +15,10 @@ const Navbar = () => {
       {/* Logo */}
       <div className="flex-shrink-0 flex">
         <img className="h-12 w-12 rounded-sm" src={logo} alt="Logo" />
-        <span className=" flex justify-center text-center pl-5 pt-2 text-2xl font-bold">Hello</span>
+        <span className=" hidden md:flex justify-center text-center pl-5 pt-2 text-2xl font-bold">
+          Hello
+        </span>
       </div>
-      
 
       {/* Search bar */}
       <div className="flex-grow mx-4 min-w-0 max-w-md ">
@@ -30,7 +35,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Login-Signup Form */}
+      {/* Login-Signup Form and User Menu */}
       <div className="flex items-center space-x-3 flex-shrink-0">
         <button
           className="flex items-center space-x-2 shadow-sm bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition text-base"

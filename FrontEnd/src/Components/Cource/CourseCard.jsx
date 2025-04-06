@@ -1,41 +1,34 @@
-import React from 'react';
+import React from "react";
 
 const CourseCard = ({ title, description, instructor, price, image }) => {
   return (
-    <div className="max-w-sm rounded-lg overflow-hidden shadow-lg m-4 bg-white hover:shadow-xl transition-shadow duration-300">
+    <div className="w-full rounded-xl overflow-hidden shadow-md  bg-white transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg">
       {/* Course Image */}
-      <img 
-        className="w-full h-48 object-cover" 
-        src={image} 
-        alt={title} 
-      />
-      
+      <div className="w-full h-[130px] sm:h-[130px] md:h-[130px] lg:h-[130px] overflow-hidden">
+        <img className="w-full h-full object-cover" src={image} alt={title} />
+      </div>
+
       {/* Card Content */}
-      <div className="px-6 py-4">
+      <div className="p-4">
         {/* Course Title */}
-        <div className="font-bold text-xl mb-2 text-gray-800">{title}</div>
-        
+        <h3 className="font-bold text-lg mb-2 text-gray-900">{title}</h3>
+
         {/* Course Description */}
-        <p className="text-gray-600 text-base line-clamp-3">
-          {description}
-        </p>
+        <p className="text-gray-700 text-sm line-clamp-2">{description}</p>
       </div>
 
       {/* Card Footer */}
-      <div className="px-6 pt-4 pb-2">
+      <div className="px-4 pb-4">
         {/* Instructor */}
         <div className="flex items-center mb-3">
-          <span className="inline-block bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-full">
+          <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
             {instructor}
           </span>
         </div>
 
-        {/* Price */}
+        {/* Price & Enroll Button */}
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold text-green-600">${price}</span>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
-            Enroll Now
-          </button>
         </div>
       </div>
     </div>
@@ -43,3 +36,4 @@ const CourseCard = ({ title, description, instructor, price, image }) => {
 };
 
 export default CourseCard;
+
