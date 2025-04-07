@@ -5,6 +5,8 @@ import { AppContext } from "../../../context/AppContext";
 import { Search, ChevronUp, Pencil, UserPlus, Trash2 } from "lucide-react";
 import Loading from "../../Loading";
 import image from "../../../assets/3.jpg";
+import AddUserModal from "./AddUserModal";
+import DeleteUserModal from "./DeleteUserModal";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -28,6 +30,13 @@ const SortableTable = () => {
   const { backendUrl } = useContext(AppContext);
   const [userData, setUserData] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Update user
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // Delete User
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,12 +74,44 @@ const SortableTable = () => {
     fetchingUserData();
   }, [backendUrl]);
 
-  const handleUpdate = () => {
-    console.log("Updated");
+  const handleUpdate = (user) => {
+    setIsEditMode(true);
+    setSelectedUser(user);
+    setFormData({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
+      password: "",
+      role: user.role || "",
+    });
+    setShowForm(true);
   };
 
-  const handleDelete = () => {
-    console.log("Deleted!");
+  const handleDelete = (user) => {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+
+      const { data } = await axios.delete(
+        `${backendUrl}/api/admin/deleteUser/${selectedUser._id}`
+      );
+
+      if (data.success) {
+        toast.success("Deleted successfully");
+        fetchingUserData();
+      } else {
+        toast.error(data.message || "Delete operation failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -81,7 +122,9 @@ const SortableTable = () => {
       password: "",
       role: "",
     });
-  }
+    setIsEditMode(false);
+    setSelectedUser(null);
+  };
 
   const handleOnSubmit = async (e) => {
     e.preventDefault();
@@ -90,23 +133,34 @@ const SortableTable = () => {
       setLoading(true);
       axios.defaults.withCredentials = true;
 
-      const { data } = await axios.post(
-        `${backendUrl}/api/admin/createNewUser`,
-        formData
-      );
+      let response;
+      if (isEditMode && selectedUser) {
+        response = await axios.put(
+          `${backendUrl}/api/admin/updateUser/${selectedUser._id}`,
+          formData
+        );
+      } else {
+        response = await axios.post(
+          `${backendUrl}/api/admin/createNewUser`,
+          formData
+        );
+      }
+
+      const { data } = response;
 
       if (data.success) {
-        toast.success("Added successfully");
+        toast.success(
+          isEditMode ? "Updated successfully" : "Added successfully"
+        );
         fetchingUserData();
-
         resetForm();
-
         setShowForm(false);
+        setIsEditMode(false);
+        setSelectedUser(null);
       } else {
-        toast.error(data.message || "Failed to add memeber");
+        toast.error(data.message || "Operation failed");
       }
     } catch (error) {
-      console.error("Create error:", error.response?.data);
       toast.error(
         error.response?.data?.message ||
           "Something went wrong. Please try again."
@@ -118,91 +172,25 @@ const SortableTable = () => {
 
   return (
     <div className="w-full h-full bg-white rounded-lg shadow-md border border-gray-200 relative">
-      {/* Modal Form */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/30 bg-opacity-40 z-40 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative z-50">
-            <h3 className="text-lg font-semibold mb-4 text-center">
-              Add New Member
-            </h3>
-            <form onSubmit={handleOnSubmit} className="flex flex-col gap-4">
-              <input
-                type="text"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
-                className="border p-2 rounded-md w-full"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-                className="border p-2 rounded-md w-full"
-                required
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="border p-2 rounded-md w-full"
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                className="border p-2 rounded-md w-full"
-                required
-              />
+      {/* Add user modal */}
+      <AddUserModal
+        show={showForm}
+        onClose={() => {
+          setShowForm(false);
+          resetForm();
+        }}
+        onSubmit={handleOnSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        loading={loading}
+        isEditMode={isEditMode}
+      />
 
-              <select
-                value={formData.role}
-                onChange={(e) =>
-                  setFormData({ ...formData, role: e.target.value })
-                }
-                className="border p-2 rounded-md w-full"
-                required
-              >
-                <option value="">Select Role</option>
-                <option value="student">Student</option>
-                <option value="parent">Parent</option>
-                <option value="finance">Finance</option>
-              </select>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false); 
-                    resetForm();
-                  } }
-                  className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 transition"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <DeleteUserModal
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+      />
 
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
@@ -329,13 +317,13 @@ const SortableTable = () => {
                     </td>
                     <td className={classes}>
                       <button
-                        onClick={handleUpdate}
+                        onClick={() => handleUpdate(user)}
                         className="text-gray-600 hover:text-blue-600 transition"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
-                        onClick={handleDelete}
+                        onClick={() => handleDelete(user)}
                         className="pl-2 text-red-600 hover:text-blue-600 transition"
                       >
                         <Trash2 size={16} />

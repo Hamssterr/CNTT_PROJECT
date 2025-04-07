@@ -16,10 +16,7 @@ const UserManagement = () => {
           <h1 className="text-3xl font-bold mb-4">
             Welcome to User-management
           </h1>
-          <p className="text-lg">
-            This is the main content area. You can add your courses, blogs, or
-            any other content here.
-          </p>
+        
           {/* Ví dụ thêm nội dung */}
           <div className=" mt-6">
             <UserTableList />
