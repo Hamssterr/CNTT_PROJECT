@@ -7,12 +7,12 @@ const router = express.Router();
 
 router.get('/', getAllCourse);
 
-router.post('/', cloudinaryFileUploader.single('courseImage'), createCourse);
+router.post('/', cloudinaryFileUploader.single('thumbnail'), createCourse);
 
 router.get('/:id', getCourseById);
 
 router.delete('/:id', deleteCourseById);
 
-router.put('/:id', cloudinaryFileUploader.single('courseImage'), updateCourseById);
+router.put('/:id', cloudinaryFileUploader.single('thumbnail'), updateCourseById);
 
 export default router;

@@ -1,74 +1,74 @@
 import Course from "../model/course.model.js";
+import mongoose from "mongoose";
+
 
 export const createCourse = async (req, res) => {
   try {
-    const body = req.body;
-    body.courseImage = req.file ? req.file?.path : null;
-    const course = new Course(body);
-    await course.save();
+    const {
+      title,
+      description,
+      instructor,
+      category,
+      level,
+      duration,
+      price,
+      currency,
+      status,
+      content,
+      maxEnrollment,
+    } = req.body;
 
-    res.status(200).json({
-      message: "Course is created",
+    const thumbnailUrl = req.file?.path;
+
+    const newCourse = new Course({
+      title,
+      description,
+      instructor: instructor ? JSON.parse(instructor) : {},
+      category,
+      level,
+      duration: duration ? JSON.parse(duration) : {},
+      price,
+      currency,
+      status,
+      content: content ? JSON.parse(content) : [],
+      thumbnail: thumbnailUrl,
+      maxEnrollment,
+    });
+
+    await newCourse.save();
+
+    res.status(201).json({
+      message: "Course created",
       success: true,
-      course,
+      course: newCourse,
     });
   } catch (error) {
-    console.error("Error in create Course: ", error.message);
-    res.status(500).json({
-      message: "Internal server error",
+    console.error("Error creating Course", error);
+    res.status(400).json({
+      message: "Failed to create Course",
       success: false,
     });
   }
 };
+
 
 export const getAllCourse = async (req, res) => {
   try {
-    let { page, limit, search } = req.query;
+    const courses = await Course.find().sort({createdAt: -1});
 
-    page = parseInt(page) || 1;
-    limit = parseInt(limit) || 5;
-
-    const skip = (page - 1) * limit;
-
-    let searchCriteria = {};
-    if (search) {
-      searchCriteria = {
-        title: {
-          $regex: search,
-          $options: "i",
-        },
-      };
-    }
-
-    const totalCourse = await Course.countDocuments(searchCriteria);
-
-    const course = await Course.find(searchCriteria)
-      .skip(skip)
-      .limit(limit)
-      .sort({ updateAt: -1 });
-
-    const totalPages = Math.ceil(totalCourse / limit);
     res.status(200).json({
-      message: "All Course",
       success: true,
-      data: {
-        Course: course,
-        pagination: {
-            totalCourse,
-            currentPage: page,
-            totalPages,
-            pageSize: limit
-        }
-      }
-    });
+      message: "Fetched all courses",
+      courses
+    })
   } catch (error) {
-    console.error("Error in get all Course", error.message);
+    console.log("Error fetching courses", error);
     res.status(500).json({
-      message: "False to get course",
       success: false,
-    });
+      message: "Failed to fetch courses"
+    })    
   }
-};
+}
 
 export const getCourseById = async (req, res) => {
   try {
@@ -92,7 +92,22 @@ export const getCourseById = async (req, res) => {
 export const deleteCourseById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: "Invalid course ID",
+        success: false,
+      });
+    }
+
     const course = await Course.findByIdAndDelete({ _id: id });
+
+    if (!course) {
+      return res.status(404).json({
+        message: "Course not found",
+        success: false,
+      });
+    }
 
     res.status(200).json({
       message: "Course deleted",
@@ -110,38 +125,45 @@ export const deleteCourseById = async (req, res) => {
 
 export const updateCourseById = async (req, res) => {
   try {
-    const { courseImage, title, description, instructor } = req.body;
     const { id } = req.params;
 
-    let updateData = {
-      courseImage,
-      title,
-      description,
-      instructor,
-    };
+    //  Kiểm tra ID có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid course ID" });
+    }
 
+    const updateData = { ...req.body };
+
+    //  Nếu có file thumbnail mới thì cập nhật
     if (req.file) {
-      updateData.courseImage = req.file.path;
+      updateData.thumbnail = req.file.path;
     }
 
-    const updateCourse = await Course.findByIdAndUpdate(id, updateData);
+    updateData.updatedAt = new Date();
 
-    if (!updateCourse) {
-      res.status(500).json({
-        message: "Course is not found",
-      });
+    //  parse JSON fields nếu cần
+    if (updateData.instructor && typeof updateData.instructor === "string") {
+      updateData.instructor = JSON.parse(updateData.instructor);
     }
 
-    res.status(200).json({
-      message: "Course is updated",
-      success: true,
-      data: updateCourse,
-    });
-  } catch (error) {
-    console.error("Error in update Course", error.message);
-    res.status(500).json({
-      message: "Error in update Course",
-      success: false,
-    });
+    if (updateData.duration && typeof updateData.duration === "string") {
+      updateData.duration = JSON.parse(updateData.duration);
+    }
+
+    if (updateData.content && typeof updateData.content === "string") {
+      updateData.content = JSON.parse(updateData.content);
+    }
+
+    //  Tiến hành cập nhật
+    const updatedCourse = await Course.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (!updatedCourse) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    res.status(200).json({ success: true, course: updatedCourse });
+  } catch (err) {
+    console.error("Update Course Error:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
