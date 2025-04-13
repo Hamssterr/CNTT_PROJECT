@@ -6,7 +6,11 @@ const CourseSchema = new mongoose.Schema({
   instructor: { id: String, name: String },
   category: String,
   level: String,
-  duration: { totalHours: Number, startDate: Date, endDate: Date },
+  duration: {
+    totalHours: Number,
+    startDate: Date,
+    endDate: Date,
+  },
   price: Number,
   currency: String,
   status: String,
@@ -33,6 +37,10 @@ const CourseSchema = new mongoose.Schema({
     },
   ],
   maxEnrollment: Number,
+  schedule: {
+    daysOfWeek: [String],
+    shift: String,
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

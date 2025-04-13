@@ -2,6 +2,9 @@ import express from 'express'
 import { verifyAdmin } from '../middleware/verifyAdmin.js';
 import { getDataAdmin, getDataUsers, createNewUser, updateUser, deleteUser } from '../controller/admin.controller.js';
 
+import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById } from '../controller/course.controller.js'
+import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
+
 const router = express.Router();
 
 router.get("/dashboard", verifyAdmin, getDataAdmin);
@@ -13,5 +16,18 @@ router.post("/createNewUser", verifyAdmin, createNewUser);
 router.put("/updateUser/:id", verifyAdmin, updateUser);
 
 router.delete("/deleteUser/:id", verifyAdmin, deleteUser);
+
+
+// Course
+
+router.get('/getCourse', verifyAdmin,getAllCourse);
+
+router.post('/createCourse', verifyAdmin, cloudinaryFileUploader.single('thumbnail'), createCourse);
+
+router.get('/getCourseById/:id', getCourseById);
+
+router.delete('/deleteCourse/:id', verifyAdmin, deleteCourseById);
+
+router.put('/updateCourse/:id', verifyAdmin, cloudinaryFileUploader.single('thumbnail'), updateCourseById);
 
 export default router;

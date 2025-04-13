@@ -16,6 +16,7 @@ export const createCourse = async (req, res) => {
       status,
       content,
       maxEnrollment,
+      schedule,
     } = req.body;
 
     const thumbnailUrl = req.file?.path;
@@ -27,12 +28,13 @@ export const createCourse = async (req, res) => {
       category,
       level,
       duration: duration ? JSON.parse(duration) : {},
-      price,
+      price: Number(price),
       currency,
       status,
       content: content ? JSON.parse(content) : [],
+      schedule: schedule ? JSON.parse(schedule) : { daysOfWeek: [], shift: "" },
       thumbnail: thumbnailUrl,
-      maxEnrollment,
+      maxEnrollment: Number(maxEnrollment),
     });
 
     await newCourse.save();
@@ -152,6 +154,10 @@ export const updateCourseById = async (req, res) => {
 
     if (updateData.content && typeof updateData.content === "string") {
       updateData.content = JSON.parse(updateData.content);
+    }
+
+    if (updateData.schedule && typeof updateData.schedule === "string") {
+      updateData.schedule = JSON.parse(updateData.schedule);
     }
 
     //  Tiến hành cập nhật
