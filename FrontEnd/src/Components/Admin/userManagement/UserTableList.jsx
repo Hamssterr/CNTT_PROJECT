@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { AppContext } from "../../../context/AppContext";
 import { Search, ChevronUp, Pencil, UserPlus, Trash2 } from "lucide-react";
 import Loading from "../../Loading";
-import image from "../../../assets/3.jpg";
 import AddUserModal from "./AddUserModal";
 import DeleteUserModal from "./DeleteUserModal";
 
@@ -24,15 +23,18 @@ const TABLE_HEAD = [
   "Update & Delete",
 ];
 
-const SortableTable = () => {
+const UserTableList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
   const { backendUrl } = useContext(AppContext);
   const [userData, setUserData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Update user
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Get user in table
   const [selectedUser, setSelectedUser] = useState(null);
 
   // Delete User
@@ -201,6 +203,7 @@ const SortableTable = () => {
               See information about all members
             </p>
           </div>
+          
           <div className="flex flex-col sm:flex-row gap-2">
             <button className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition">
               View all
@@ -214,6 +217,7 @@ const SortableTable = () => {
             </button>
           </div>
         </div>
+
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex gap-2 w-full md:w-auto">
             {TABS.map(({ label, value }) => (
@@ -264,6 +268,7 @@ const SortableTable = () => {
                 ))}
               </tr>
             </thead>
+
             <tbody>
               {currentItems.map((user, index) => {
                 const isLast = index === userData.length - 1;
@@ -274,7 +279,7 @@ const SortableTable = () => {
                     <td className={classes}>
                       <div className="flex items-center gap-3">
                         <img
-                          src={user.img || image}
+                          src={user.img || 'https://res.cloudinary.com/df9ibpz4g/image/upload/v1743752097/uploads/3.png'}
                           alt={user.name}
                           className="w-10 h-10 rounded-full object-cover"
                         />
@@ -289,6 +294,7 @@ const SortableTable = () => {
                         </div>
                       </div>
                     </td>
+
                     <td className={classes}>
                       <div className="flex flex-col">
                         <span className="text-sm text-gray-800 font-medium">
@@ -299,6 +305,7 @@ const SortableTable = () => {
                         </span>
                       </div>
                     </td>
+
                     <td className={classes}>
                       <span
                         className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
@@ -310,11 +317,13 @@ const SortableTable = () => {
                         {user.online ? "online" : "offline"}
                       </span>
                     </td>
+
                     <td className={classes}>
                       <span className="text-sm text-gray-800">
                         {user.role || "Unknown"}
                       </span>
                     </td>
+
                     <td className={classes}>
                       <button
                         onClick={() => handleUpdate(user)}
@@ -333,15 +342,18 @@ const SortableTable = () => {
                 );
               })}
             </tbody>
+            
           </table>
         </div>
       )}
 
       {/* Footer */}
       <div className="flex items-center justify-between p-4 border-t border-gray-200">
+
         <span className="text-sm text-gray-600">
           Page {currentPage} of {totalPages}
         </span>
+        
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -350,6 +362,7 @@ const SortableTable = () => {
           >
             Previous
           </button>
+          
           <button
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
@@ -365,4 +378,4 @@ const SortableTable = () => {
   );
 };
 
-export default SortableTable;
+export default UserTableList;
