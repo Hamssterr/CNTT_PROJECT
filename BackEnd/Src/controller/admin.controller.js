@@ -189,12 +189,18 @@ export const updateUser = async (req, res) => {
       // Kiểm tra mật khẩu mới có giống với mật khẩu cũ không
       const isMatch = await bcrypt.compare(password, existingUser.password);
       if (isMatch) {
-        return res.status(400).json({ message: "New password cannot be the same as the old password" });
+        return res
+          .status(400)
+          .json({
+            message: "New password cannot be the same as the old password",
+          });
       }
 
       // Kiểm tra độ dài mật khẩu
       if (password.length < 6) {
-        return res.status(400).json({ message: "Password must be at least 6 characters" });
+        return res
+          .status(400)
+          .json({ message: "Password must be at least 6 characters" });
       }
 
       // Mã hóa mật khẩu mới
@@ -227,16 +233,39 @@ export const deleteUser = async (req, res) => {
 
   try {
     const user = await User.findByIdAndDelete(userId);
-    if(!user){
-      return res.status(400).json({message: "User not found"})
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
     }
 
     res.status(200).json({
       message: "User deleted successfully",
       success: true,
-    })
+    });
   } catch (error) {
     console.error("Error in deleteUser controller:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
+
+export const getInstructors = async (req, res) => {
+  try {
+
+    const instructors = await User.find({ role: "teacher" }).select(
+      "_id firstName lastName"
+    );
+
+    res.status(200).json({
+      success: true,
+      instructors: instructors.map((instructor) => ({
+        _id: instructor._id,
+        name: `${instructor.firstName} ${instructor.lastName}`, 
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching instructors:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch instructors",
+    });
+  }
+};

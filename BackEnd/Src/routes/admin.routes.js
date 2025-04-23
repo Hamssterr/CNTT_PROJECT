@@ -1,6 +1,6 @@
 import express from 'express'
 import { verifyAdmin } from '../middleware/verifyAdmin.js';
-import { getDataAdmin, getDataUsers, createNewUser, updateUser, deleteUser } from '../controller/admin.controller.js';
+import { getDataAdmin, getDataUsers, createNewUser, updateUser, deleteUser, getInstructors } from '../controller/admin.controller.js';
 
 import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById } from '../controller/course.controller.js'
 import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
@@ -29,5 +29,11 @@ router.get('/getCourseById/:id', getCourseById);
 router.delete('/deleteCourse/:id', verifyAdmin, deleteCourseById);
 
 router.put('/updateCourse/:id', verifyAdmin, cloudinaryFileUploader.single('thumbnail'), updateCourseById);
+
+
+// get Instructors 
+
+router.get('/getInstructors', verifyAdmin, getInstructors);
+
 
 export default router;

@@ -5,11 +5,11 @@ import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
 
 const router = express.Router();
 
-router.get('/', getAllCourse);
+router.get('/getAllCourse', getAllCourse);
 
 router.post('/', cloudinaryFileUploader.single('thumbnail'), createCourse);
 
-router.get('/:id', getCourseById);
+router.get('/getCourse/:id', getCourseById);
 
 router.delete('/:id', deleteCourseById);
 

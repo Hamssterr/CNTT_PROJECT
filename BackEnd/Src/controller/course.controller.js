@@ -17,6 +17,7 @@ export const createCourse = async (req, res) => {
       content,
       maxEnrollment,
       schedule,
+      target,
     } = req.body;
 
     const thumbnailUrl = req.file?.path;
@@ -33,6 +34,7 @@ export const createCourse = async (req, res) => {
       status,
       content: content ? JSON.parse(content) : [],
       schedule: schedule ? JSON.parse(schedule) : { daysOfWeek: [], shift: "" },
+      target: target ? JSON.parse(target) : [],
       thumbnail: thumbnailUrl,
       maxEnrollment: Number(maxEnrollment),
     });
@@ -52,7 +54,6 @@ export const createCourse = async (req, res) => {
     });
   }
 };
-
 
 export const getAllCourse = async (req, res) => {
   try {
@@ -159,6 +160,10 @@ export const updateCourseById = async (req, res) => {
     if (updateData.schedule && typeof updateData.schedule === "string") {
       updateData.schedule = JSON.parse(updateData.schedule);
     }
+
+    if (updateData.target && typeof updateData.target === "string") {
+      updateData.target = JSON.parse(updateData.target);
+    }    
 
     //  Tiến hành cập nhật
     const updatedCourse = await Course.findByIdAndUpdate(id, updateData, { new: true });
