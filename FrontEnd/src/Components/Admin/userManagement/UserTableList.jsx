@@ -245,7 +245,7 @@ const UserTableList = () => {
 
       {/* Table Body */}
       {loading ? (
-        <div className="p-6 text-center text-blue-600 font-semibold">
+        <div className="flex justify-center items-center h-64 bg-gray-100/50">
           <Loading />
         </div>
       ) : (

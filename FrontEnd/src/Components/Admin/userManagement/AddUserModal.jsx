@@ -72,6 +72,7 @@ const AddUserModal = ({
             <option value="">Select Role</option>
             <option value="student">Student</option>
             <option value="parent">Parent</option>
+            <option value="teacher">Teacher</option>
             <option value="finance">Finance</option>
           </select>
 

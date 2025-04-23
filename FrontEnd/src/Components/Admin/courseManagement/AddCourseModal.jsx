@@ -9,8 +9,11 @@ const AddCourseModal = ({
   loading,
   isEditMode = false,
   handleSubmit,
+  instructors = [],
 }) => {
   if (!show) return null;
+
+  
 
   const handleInputChange = (e, field, subField = null) => {
     const value = e.target.type === "file" ? e.target.files[0] : e.target.value;
@@ -30,7 +33,18 @@ const AddCourseModal = ({
     }
   };
 
-  // Handle daysOfWeek checkboxes
+  const handleInstructorChange = (e) => {
+    const selectedId = e.target.value;
+    const selectedInstructor = instructors.find((instructor) => instructor._id === selectedId);
+    setFormData({
+      ...formData, instructor: {
+        id: selectedInstructor?._id || "",
+        name: selectedInstructor?.name || ""
+      }
+    })
+  }
+
+
   const handleDaysOfWeekChange = (day) => {
     const currentDays = formData.schedule?.daysOfWeek || [];
     if (currentDays.includes(day)) {
@@ -51,6 +65,20 @@ const AddCourseModal = ({
       });
     }
   };
+
+  const addTarget = () => {
+    setFormData({
+      ...formData,
+      target: [...(formData.target || []), {id: `target_${Date.now()}`, description: "" }]
+    })
+  }
+
+  const updateTarget = (index, value) => {
+    const updatedTargets = [...(formData.target || [])];
+    updatedTargets[index].description = value;
+    setFormData({ ...formData, target: updatedTargets });
+  };
+  
 
   const addSection = () => {
     setFormData({
@@ -97,7 +125,9 @@ const AddCourseModal = ({
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Title
+            </label>
             <input
               type="text"
               placeholder="Course Title"
@@ -110,7 +140,9 @@ const AddCourseModal = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
             <textarea
               placeholder="Course Description"
               value={formData.description || ""}
@@ -120,31 +152,56 @@ const AddCourseModal = ({
             />
           </div>
 
+          {/* Targets */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Targets
+            </label>
+            <button
+              type="button"
+              onClick={addTarget}
+              className="mb-4 px-3 py-1 text-sm text-white bg-purple-600 rounded-md hover:bg-purple-700"
+            >
+              Add Target
+            </button>
+            {(formData.target || []).map((target, index) => (
+              <div key={target.id} className="border p-2 mb-2 rounded-md">
+                <input
+                  type="text"
+                  placeholder="Target Description"
+                  value={target.description}
+                  onChange={(e) => updateTarget(index, e.target.value)}
+                  className="border p-2 rounded-md w-full"
+                />
+              </div>
+            ))}
+          </div>
+
           {/* Instructor */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Instructor</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Instructor ID"
-                value={formData.instructor?.id || ""}
-                onChange={(e) => handleInputChange(e, "instructor", "id")}
-                className="border p-2 rounded-md w-full"
-              />
-              <input
-                type="text"
-                placeholder="Instructor Name"
-                value={formData.instructor?.name || ""}
-                onChange={(e) => handleInputChange(e, "instructor", "name")}
-                className="border p-2 rounded-md w-full"
-                required
-              />
-            </div>
+            <label className="block text-sm font-medium text-gray-700">
+              Instructor
+            </label>
+            <select
+              value={formData.instructor?.id || ""}
+              onChange={handleInstructorChange}
+              className="border p-2 rounded-md w-full"
+              required
+            >
+              <option value="">Select Instructor</option>
+              {instructors.map((instructor) => (
+                <option key={instructor._id} value={instructor._id}>
+                  {instructor.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Category
+            </label>
             <select
               value={formData.category || ""}
               onChange={(e) => handleInputChange(e, "category")}
@@ -158,7 +215,9 @@ const AddCourseModal = ({
 
           {/* Level */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Level</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Level
+            </label>
             <select
               value={formData.level || ""}
               onChange={(e) => handleInputChange(e, "level")}
@@ -173,7 +232,9 @@ const AddCourseModal = ({
 
           {/* Duration */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Duration</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Duration
+            </label>
             <div className="flex gap-2">
               <input
                 type="number"
@@ -187,7 +248,9 @@ const AddCourseModal = ({
                 type="date"
                 value={
                   formData.duration?.startDate
-                    ? new Date(formData.duration.startDate).toISOString().split("T")[0]
+                    ? new Date(formData.duration.startDate)
+                        .toISOString()
+                        .split("T")[0]
                     : ""
                 }
                 onChange={(e) => handleInputChange(e, "duration", "startDate")}
@@ -197,7 +260,9 @@ const AddCourseModal = ({
                 type="date"
                 value={
                   formData.duration?.endDate
-                    ? new Date(formData.duration.endDate).toISOString().split("T")[0]
+                    ? new Date(formData.duration.endDate)
+                        .toISOString()
+                        .split("T")[0]
                     : ""
                 }
                 onChange={(e) => handleInputChange(e, "duration", "endDate")}
@@ -209,7 +274,9 @@ const AddCourseModal = ({
           {/* Price & Currency */}
           <div className="flex gap-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Price</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Price
+              </label>
               <input
                 type="number"
                 placeholder="Price"
@@ -220,7 +287,9 @@ const AddCourseModal = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Currency</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Currency
+              </label>
               <input
                 type="text"
                 placeholder="Currency (e.g., VND)"
@@ -233,7 +302,9 @@ const AddCourseModal = ({
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
             <select
               value={formData.status || ""}
               onChange={(e) => handleInputChange(e, "status")}
@@ -249,25 +320,31 @@ const AddCourseModal = ({
 
           {/* Thumbnail */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Thumbnail</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Thumbnail
+            </label>
             <input
               type="file"
               accept="image/*"
               onChange={(e) => handleInputChange(e, "thumbnail")}
               className="border p-2 rounded-md w-full"
             />
-            {isEditMode && formData.thumbnail && typeof formData.thumbnail === "string" && (
-              <img
-                src={formData.thumbnail}
-                alt="Current Thumbnail"
-                className="mt-2 w-20 h-20 object-cover rounded"
-              />
-            )}
+            {isEditMode &&
+              formData.thumbnail &&
+              typeof formData.thumbnail === "string" && (
+                <img
+                  src={formData.thumbnail}
+                  alt="Current Thumbnail"
+                  className="mt-2 w-20 h-20 object-cover rounded"
+                />
+              )}
           </div>
 
           {/* Max Enrollment */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Max Enrollment</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Max Enrollment
+            </label>
             <input
               type="number"
               placeholder="Max Enrollment"
@@ -280,27 +357,41 @@ const AddCourseModal = ({
 
           {/* Schedule */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Schedule</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Schedule
+            </label>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Days of Week</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Days of Week
+              </label>
               <div className="flex flex-wrap gap-2">
-                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(
-                  (day) => (
-                    <label key={day} className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={formData.schedule?.daysOfWeek?.includes(day) || false}
-                        onChange={() => handleDaysOfWeekChange(day)}
-                        className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                      />
-                      {day}
-                    </label>
-                  )
-                )}
+                {[
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday",
+                ].map((day) => (
+                  <label key={day} className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={
+                        formData.schedule?.daysOfWeek?.includes(day) || false
+                      }
+                      onChange={() => handleDaysOfWeekChange(day)}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                    />
+                    {day}
+                  </label>
+                ))}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Time Slot</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Time Slot
+              </label>
               <select
                 value={formData.schedule?.shift || ""}
                 onChange={(e) =>
@@ -321,7 +412,9 @@ const AddCourseModal = ({
 
           {/* Content */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Content
+            </label>
             <button
               type="button"
               onClick={addSection}
@@ -330,12 +423,17 @@ const AddCourseModal = ({
               Add Section
             </button>
             {(formData.content || []).map((section, sectionIndex) => (
-              <div key={section.sectionId} className="border p-4 mb-4 rounded-md">
+              <div
+                key={section.sectionId}
+                className="border p-4 mb-4 rounded-md"
+              >
                 <input
                   type="text"
                   placeholder="Section Title"
                   value={section.title || ""}
-                  onChange={(e) => updateSection(sectionIndex, "title", e.target.value)}
+                  onChange={(e) =>
+                    updateSection(sectionIndex, "title", e.target.value)
+                  }
                   className="border p-2 rounded-md w-full mb-2"
                 />
                 <button
@@ -346,13 +444,21 @@ const AddCourseModal = ({
                   Add Lesson
                 </button>
                 {(section.lessons || []).map((lesson, lessonIndex) => (
-                  <div key={lesson.lessonId} className="ml-4 border-l-2 pl-4 mb-2">
+                  <div
+                    key={lesson.lessonId}
+                    className="ml-4 border-l-2 pl-4 mb-2"
+                  >
                     <input
                       type="text"
                       placeholder="Lesson Title"
                       value={lesson.title || ""}
                       onChange={(e) =>
-                        updateLesson(sectionIndex, lessonIndex, "title", e.target.value)
+                        updateLesson(
+                          sectionIndex,
+                          lessonIndex,
+                          "title",
+                          e.target.value
+                        )
                       }
                       className="border p-2 rounded-md w-full mb-2"
                     />
@@ -361,7 +467,12 @@ const AddCourseModal = ({
                       placeholder="Video URL"
                       value={lesson.videoUrl || ""}
                       onChange={(e) =>
-                        updateLesson(sectionIndex, lessonIndex, "videoUrl", e.target.value)
+                        updateLesson(
+                          sectionIndex,
+                          lessonIndex,
+                          "videoUrl",
+                          e.target.value
+                        )
                       }
                       className="border p-2 rounded-md w-full mb-2"
                     />
@@ -370,7 +481,12 @@ const AddCourseModal = ({
                       placeholder="Duration (minutes)"
                       value={lesson.durationMinutes || ""}
                       onChange={(e) =>
-                        updateLesson(sectionIndex, lessonIndex, "durationMinutes", e.target.value)
+                        updateLesson(
+                          sectionIndex,
+                          lessonIndex,
+                          "durationMinutes",
+                          e.target.value
+                        )
                       }
                       className="border p-2 rounded-md w-full"
                       min="0"

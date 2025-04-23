@@ -1,8 +1,19 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../../context/AppContext";
 
-const CourseCard = ({ title, description, instructor, price, image }) => {
+const CourseCard = ({id, title, description, instructor, price, image }) => {
+
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/getCourse/${id}`);
+  }
+
   return (
-    <div className="w-full rounded-xl overflow-hidden shadow-md  bg-white transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg">
+    <div 
+    onClick={handleClick}
+    className="w-full rounded-xl overflow-hidden shadow-md  bg-white transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg">
       {/* Course Image */}
       <div className="w-full h-[130px] sm:h-[130px] md:h-[130px] lg:h-[130px] overflow-hidden">
         <img className="w-full h-full object-cover" src={image} alt={title} />

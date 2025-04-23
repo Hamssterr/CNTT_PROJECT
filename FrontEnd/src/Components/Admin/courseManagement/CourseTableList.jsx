@@ -9,10 +9,8 @@ import DeleteCourseModal from "./DeleteCourseModal";
 
 const TABS = [
   { label: "All", value: "all" },
-  { label: "Admin", value: "admin" },
-  { label: "Finance", value: "finance" },
-  { label: "Student", value: "student" },
-  { label: "Parent", value: "parent" },
+  { label: "Course", value: "course" },
+  { label: "Add new student", value: "newStudent" },
 ];
 
 const TABLE_HEAD = ["Image", "Title", "Status", "Create At", "Update & Delete"];
@@ -22,6 +20,8 @@ const CourseTableList = () => {
   const itemsPerPage = 5;
   const { backendUrl } = useContext(AppContext);
   const [courseData, setCourseData] = useState([]);
+  const [instructors, setInstructors] = useState([]); 
+
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -33,6 +33,7 @@ const CourseTableList = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    target: [],
     instructor: { id: "", name: "" },
     category: "",
     level: "",
@@ -73,11 +74,29 @@ const CourseTableList = () => {
     }
   };
 
+  const fetchingInstructors = async () => {
+    try {
+      axios.defaults.withCredentials = true;
+
+      const {data} = await axios.get(`${backendUrl}/api/admin/getInstructors`);
+
+      if(data.success){
+        setInstructors(data.instructors)
+      }else{
+        setInstructors([]);
+        toast.error(data.message || "No instructors found")
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to load instructors")
+    }
+  }
+
   const handleEditCourse = (course) => {
     // Điền dữ liệu khóa học vào formData
     setFormData({
       title: course.title || "",
       description: course.description || "",
+      target: Array.isArray(course.target) ? course.target : [],
       instructor: course.instructor || { id: "", name: "" },
       category: course.category || "",
       level: course.level || "",
@@ -146,7 +165,8 @@ const CourseTableList = () => {
           key === "instructor" ||
           key === "duration" ||
           key === "content" ||
-          key === "schedule"
+          key === "schedule" || 
+          key === "target"
         ) {
           submissionData.append(key, JSON.stringify(value)); // Stringify nested objects/arrays
         } else if (key === "thumbnail" && value && typeof value !== "string") {
@@ -229,6 +249,7 @@ const CourseTableList = () => {
 
   useEffect(() => {
     fetchingCourseData();
+    fetchingInstructors();
   }, [backendUrl]);
 
   return (
@@ -246,6 +267,7 @@ const CourseTableList = () => {
         setFormData={setFormData}
         loading={loading}
         isEditMode={isEditMode}
+        instructors={instructors}
       />
 
       <DeleteCourseModal
@@ -257,8 +279,10 @@ const CourseTableList = () => {
         onConfirm={handleDeleteCourse}
       />
 
+        {/* Header */}
       <div className="p-5 border-b border-gray-200">
         <div className="flex items-center justify-between mb-6">
+          
           <div>
             <h5 className="text-xl font-bold text-gray-800">Course list</h5>
             <p className="text-sm text-gray-600 mt-1">
@@ -308,9 +332,10 @@ const CourseTableList = () => {
         </div>
       </div>
 
+            {/* Data table */}
       {loading ? (
         <div className="flex justify-center items-center h-64 bg-gray-100/50">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <Loading/>
         </div>
       ) : (
         <div className="overflow-x-auto px-0">
@@ -404,6 +429,8 @@ const CourseTableList = () => {
           </table>
         </div>
       )}
+
+
       {/* Footer */}
       <div className="flex items-center justify-between p-4 border-t border-gray-200">
         <span className="text-sm text-gray-600">
