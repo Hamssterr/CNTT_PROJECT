@@ -9,10 +9,11 @@ import DeleteUserModal from "./DeleteUserModal";
 
 const TABS = [
   { label: "All", value: "all" },
-  { label: "Admin", value: "unmonitored" },
+  { label: "Admin", value: "admin" },
   { label: "Finance", value: "finance" },
   { label: "Student", value: "student" },
   { label: "Parent", value: "parent" },
+  {label: "Teacher", value: "teacher"}
 ];
 
 const TABLE_HEAD = [
@@ -29,7 +30,10 @@ const UserTableList = () => {
   
   const { backendUrl } = useContext(AppContext);
   const [userData, setUserData] = useState([]);
+  const [filterUsers, setFilterUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Update user
   const [isEditMode, setIsEditMode] = useState(false);
@@ -49,11 +53,6 @@ const UserTableList = () => {
     role: "",
   });
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = userData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(userData.length / itemsPerPage);
-
   const fetchingUserData = async () => {
     try {
       setLoading(true);
@@ -62,6 +61,7 @@ const UserTableList = () => {
       const { data } = await axios.get(`${backendUrl}/api/admin/getDataUsers`);
       if (data.success) {
         setUserData(data.data);
+        setFilterUsers(data.data);
       } else {
         toast.error(data.message);
       }
@@ -72,9 +72,39 @@ const UserTableList = () => {
     }
   };
 
+  // Fetch data user
   useEffect(() => {
     fetchingUserData();
   }, [backendUrl]);
+
+  // Filter user
+  useEffect(() => {
+    let filtered = userData;
+
+    // Filter tab
+    if (activeTab !== "all") {
+      filtered = userData.filter((user) => user.role === activeTab);
+    }
+
+    // Filter search
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter(
+        (user) =>
+          user.firstName?.toLowerCase().includes(query) ||
+          user.lastName?.toLowerCase().includes(query) ||
+          user.email?.toLowerCase().includes(query)
+      );
+    }
+    setFilterUsers(filtered);
+    setCurrentPage(1);
+  }, [activeTab, userData, searchQuery]);
+
+  // Page split
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filterUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filterUsers.length / itemsPerPage);
 
   const handleUpdate = (user) => {
     setIsEditMode(true);
@@ -223,6 +253,7 @@ const UserTableList = () => {
             {TABS.map(({ label, value }) => (
               <button
                 key={value}
+                onClick={() => setActiveTab(value)}
                 className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition"
               >
                 {label}
@@ -233,6 +264,8 @@ const UserTableList = () => {
             <input
               type="text"
               placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Search
@@ -247,6 +280,10 @@ const UserTableList = () => {
       {loading ? (
         <div className="flex justify-center items-center h-64 bg-gray-100/50">
           <Loading />
+        </div>
+      ) : currentItems.length === 0 ? (
+        <div className=" p-4 text-center text-gray-500">
+          No matching members found
         </div>
       ) : (
         <div className="overflow-x-auto px-0">
@@ -271,7 +308,7 @@ const UserTableList = () => {
 
             <tbody>
               {currentItems.map((user, index) => {
-                const isLast = index === userData.length - 1;
+                const isLast = index === filterUsers.length - 1;
                 const classes = isLast ? "p-4" : "p-4 border-b border-gray-100";
 
                 return (

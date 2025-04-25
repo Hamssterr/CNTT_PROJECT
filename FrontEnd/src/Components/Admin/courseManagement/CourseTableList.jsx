@@ -13,21 +13,23 @@ const TABS = [
   { label: "Add new student", value: "newStudent" },
 ];
 
-const TABLE_HEAD = ["Image", "Title", "Status", "Create At", "Update & Delete"];
+const TABLE_HEAD = ["Image", "Title", "Teacher","Status", "Create At", "Update & Delete"];
 
 const CourseTableList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const { backendUrl } = useContext(AppContext);
   const [courseData, setCourseData] = useState([]);
-  const [instructors, setInstructors] = useState([]); 
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [instructors, setInstructors] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); 
-  const [courseToDelete, setCourseToDelete] = useState(null); 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Initialize formData with schedule field
   const [formData, setFormData] = useState({
@@ -47,13 +49,6 @@ const CourseTableList = () => {
     schedule: { daysOfWeek: [], shift: "" },
   });
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = Array.isArray(courseData)
-    ? courseData.slice(indexOfFirstItem, indexOfLastItem)
-    : [];
-  const totalPages = Math.ceil(courseData.length / itemsPerPage);
-
   const fetchingCourseData = async () => {
     try {
       setLoading(true);
@@ -61,6 +56,7 @@ const CourseTableList = () => {
       const { data } = await axios.get(`${backendUrl}/api/admin/getCourse`);
       if (data.success && Array.isArray(data.courses)) {
         setCourseData(data.courses);
+        setFilteredCourses(data.courses);
       } else {
         setCourseData([]);
         toast.error(data.message || "No data received");
@@ -78,18 +74,46 @@ const CourseTableList = () => {
     try {
       axios.defaults.withCredentials = true;
 
-      const {data} = await axios.get(`${backendUrl}/api/admin/getInstructors`);
+      const { data } = await axios.get(
+        `${backendUrl}/api/admin/getInstructors`
+      );
 
-      if(data.success){
-        setInstructors(data.instructors)
-      }else{
+      if (data.success) {
+        setInstructors(data.instructors);
+      } else {
         setInstructors([]);
-        toast.error(data.message || "No instructors found")
+        toast.error(data.message || "No instructors found");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to load instructors")
+      toast.error(
+        error.response?.data?.message || "Failed to load instructors"
+      );
     }
-  }
+  };
+
+  useEffect(() => {
+    let filtered = courseData;
+
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.trim().toLowerCase();
+      filtered = courseData.filter(
+        (course) =>
+          course.title?.toLowerCase().includes(query) ||
+          course.instructor?.name?.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredCourses(filtered);
+    setCurrentPage(1);
+  }, [searchQuery, courseData]);
+
+  // Page split
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = Array.isArray(filteredCourses)
+    ? filteredCourses.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
 
   const handleEditCourse = (course) => {
     // Điền dữ liệu khóa học vào formData
@@ -119,37 +143,40 @@ const CourseTableList = () => {
   };
 
   const handleDeleteCourse = async () => {
-    if(!courseToDelete) return;
+    if (!courseToDelete) return;
 
     try {
       setLoading(true);
 
       axios.defaults.withCredentials = true;
 
-      const response = await axios.delete(`${backendUrl}/api/admin/deleteCourse/${courseToDelete._id}`)
+      const response = await axios.delete(
+        `${backendUrl}/api/admin/deleteCourse/${courseToDelete._id}`
+      );
 
-      const {data} = response;
+      const { data } = response;
 
-      if(data.success){
+      if (data.success) {
         toast.success("Course deleted successfully");
         await fetchingCourseData();
-      }else{
+      } else {
         toast.error(data.message || "Failed to delete course");
       }
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Something went wrong. Please try again."
+        error.response?.data?.message ||
+          "Something went wrong. Please try again."
       );
-    } finally{
+    } finally {
       setLoading(false);
-      setCourseToDelete(null)
+      setCourseToDelete(null);
     }
-  }
+  };
 
   const openDeleteModal = (course) => {
     setCourseToDelete(course);
     setShowDeleteModal(true);
-  }
+  };
 
   const handleOnSubmit = async (e) => {
     e.preventDefault();
@@ -165,7 +192,7 @@ const CourseTableList = () => {
           key === "instructor" ||
           key === "duration" ||
           key === "content" ||
-          key === "schedule" || 
+          key === "schedule" ||
           key === "target"
         ) {
           submissionData.append(key, JSON.stringify(value)); // Stringify nested objects/arrays
@@ -279,10 +306,9 @@ const CourseTableList = () => {
         onConfirm={handleDeleteCourse}
       />
 
-        {/* Header */}
+      {/* Header */}
       <div className="p-5 border-b border-gray-200">
         <div className="flex items-center justify-between mb-6">
-          
           <div>
             <h5 className="text-xl font-bold text-gray-800">Course list</h5>
             <p className="text-sm text-gray-600 mt-1">
@@ -321,6 +347,8 @@ const CourseTableList = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search"
               className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -332,10 +360,14 @@ const CourseTableList = () => {
         </div>
       </div>
 
-            {/* Data table */}
+      {/* Data table */}
       {loading ? (
         <div className="flex justify-center items-center h-64 bg-gray-100/50">
-          <Loading/>
+          <Loading />
+        </div>
+      ) : currentItems.length === 0 ? (
+        <div className=" p-4 text-center text-gray-500">
+          No matching courses found
         </div>
       ) : (
         <div className="overflow-x-auto px-0">
@@ -378,7 +410,7 @@ const CourseTableList = () => {
                   return (
                     <tr
                       key={course._id}
-                      className="hover:bg-gray-50 transition"
+                      className="hover:bg-gray-50 transition-all duration-200"
                     >
                       <td className={classes}>
                         <div className="flex items-center gap-3">
@@ -393,6 +425,12 @@ const CourseTableList = () => {
                       <td className={classes}>
                         <span className="text-sm font-medium text-gray-800">
                           {course.title}
+                        </span>
+                      </td>
+
+                      <td className={classes}>
+                        <span className="text-sm text-gray-700">
+                          {course.instructor.name}
                         </span>
                       </td>
 
@@ -415,7 +453,8 @@ const CourseTableList = () => {
                         >
                           <Pencil size={16} />
                         </button>
-                        <button className="pl-2 text-red-600 hover:text-red-800 transition"
+                        <button
+                          className="pl-2 text-red-600 hover:text-red-800 transition"
                           onClick={() => openDeleteModal(course)}
                         >
                           <Trash2 size={16} />
@@ -429,7 +468,6 @@ const CourseTableList = () => {
           </table>
         </div>
       )}
-
 
       {/* Footer */}
       <div className="flex items-center justify-between p-4 border-t border-gray-200">
