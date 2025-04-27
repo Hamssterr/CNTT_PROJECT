@@ -2,10 +2,11 @@ import { React, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "../../../context/AppContext";
-import { Search, ChevronUp, Pencil, UserPlus, Trash2 } from "lucide-react";
+import { Search, ChevronUp, Pencil, UserPlus, Trash2, Eye } from "lucide-react";
 import Loading from "../../Loading";
 import AddUserModal from "./AddUserModal";
 import DeleteUserModal from "./DeleteUserModal";
+import ViewUserModal from "./ViewUserModal";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -34,6 +35,8 @@ const UserTableList = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedUserForView, setSelectedUserForView] = useState(null);
 
   // Update user
   const [isEditMode, setIsEditMode] = useState(false);
@@ -51,6 +54,20 @@ const UserTableList = () => {
     email: "",
     password: "",
     role: "",
+    phoneNumber: "",
+    address: {
+      houseNumber: "",
+      street: "",
+      ward: "",
+      district: "",
+      city: "",
+      province: "",
+      country: "Vietnam",
+    },
+    degree: [{ name: "", institution: "", year: "", major: "" }],
+    experience: [
+      { position: "", company: "", startDate: "", endDate: "", description: "" },
+    ],
   });
 
   const fetchingUserData = async () => {
@@ -106,16 +123,49 @@ const UserTableList = () => {
   const currentItems = filterUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filterUsers.length / itemsPerPage);
 
+  const handleView = (user) => {
+    setSelectedUserForView(user);
+    setShowViewModal(true);
+  };
+
   const handleUpdate = (user) => {
     setIsEditMode(true);
     setSelectedUser(user);
-    setFormData({
+    const updatedFormData = {
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       email: user.email || "",
       password: "",
       role: user.role || "",
-    });
+      phoneNumber: user.phoneNumber || "",
+      address: user.address || {
+        houseNumber: "",
+        street: "",
+        ward: "",
+        district: "",
+        city: "",
+        province: "",
+        country: "Vietnam",
+      },
+      degree:
+        user.degree && user.degree.length > 0
+          ? user.degree
+          : [{ name: "", institution: "", year: "", major: "" }],
+      experience:
+        user.experience && user.experience.length > 0
+          ? user.experience
+          : [
+              {
+                position: "",
+                company: "",
+                startDate: "",
+                endDate: "",
+                description: "",
+              },
+            ],
+    };
+
+    setFormData(updatedFormData);
     setShowForm(true);
   };
 
@@ -146,6 +196,7 @@ const UserTableList = () => {
     }
   };
 
+
   const resetForm = () => {
     setFormData({
       firstName: "",
@@ -153,6 +204,20 @@ const UserTableList = () => {
       email: "",
       password: "",
       role: "",
+      phoneNumber: "",
+      address: {
+        houseNumber: "",
+        street: "",
+        ward: "",
+        district: "",
+        city: "",
+        province: "",
+        country: "Vietnam",
+      },
+      degree: [{ name: "", institution: "", year: "", major: "" }],
+      experience: [
+        { position: "", company: "", startDate: "", endDate: "", description: "" },
+      ],
     });
     setIsEditMode(false);
     setSelectedUser(null);
@@ -173,7 +238,7 @@ const UserTableList = () => {
         );
       } else {
         response = await axios.post(
-          `${backendUrl}/api/admin/createNewUser`,
+          `${backendUrl}/api/admin/createEmployee`,
           formData
         );
       }
@@ -224,6 +289,12 @@ const UserTableList = () => {
         onConfirm={confirmDelete}
       />
 
+      <ViewUserModal
+        show={showViewModal}
+        onClose={() => setShowViewModal(false)}
+        user={selectedUserForView}
+      />
+
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-6">
@@ -233,7 +304,7 @@ const UserTableList = () => {
               See information about all members
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-2">
             <button className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition">
               View all
@@ -316,7 +387,10 @@ const UserTableList = () => {
                     <td className={classes}>
                       <div className="flex items-center gap-3">
                         <img
-                          src={user.img || 'https://res.cloudinary.com/df9ibpz4g/image/upload/v1743752097/uploads/3.png'}
+                          src={
+                            user.img ||
+                            "https://res.cloudinary.com/df9ibpz4g/image/upload/v1743752097/uploads/3.png"
+                          }
                           alt={user.name}
                           className="w-10 h-10 rounded-full object-cover"
                         />
@@ -362,35 +436,41 @@ const UserTableList = () => {
                     </td>
 
                     <td className={classes}>
-                      <button
-                        onClick={() => handleUpdate(user)}
-                        className="text-gray-600 hover:text-blue-600 transition"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user)}
-                        className="pl-2 text-red-600 hover:text-blue-600 transition"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleView(user)}
+                          className="p-2 rounded hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleUpdate(user)}
+                          className="p-2 rounded hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition"
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="p-2 rounded hover:bg-red-100 text-red-600 hover:text-red-700 transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
-            
           </table>
         </div>
       )}
 
       {/* Footer */}
       <div className="flex items-center justify-between p-4 border-t border-gray-200">
-
         <span className="text-sm text-gray-600">
           Page {currentPage} of {totalPages}
         </span>
-        
+
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -399,7 +479,7 @@ const UserTableList = () => {
           >
             Previous
           </button>
-          
+
           <button
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))

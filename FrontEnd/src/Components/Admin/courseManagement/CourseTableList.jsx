@@ -9,8 +9,8 @@ import DeleteCourseModal from "./DeleteCourseModal";
 
 const TABS = [
   { label: "All", value: "all" },
-  { label: "Course", value: "course" },
-  { label: "Add new student", value: "newStudent" },
+  // { label: "Course", value: "course" },
+  { label: "Newest", value: "newStudent" },
 ];
 
 const TABLE_HEAD = ["Image", "Title", "Teacher","Status", "Create At", "Update & Delete"];
@@ -91,6 +91,49 @@ const CourseTableList = () => {
     }
   };
 
+  // Logic tự động Active dựa trên startDate (chạy 1 lần khi tải dữ liệu)
+  useEffect(() => {
+    const updateCourseStatus = async () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const coursesToUpdate = courseData.filter((course) => {
+        const startDate = new Date(course.duration?.startDate);
+        startDate.setHours(0, 0, 0, 0);
+        return (
+          course.status === "Inactive" &&
+          startDate <= today &&
+          !isNaN(startDate.getTime())
+        );
+      });
+
+      // Gửi yêu cầu cập nhật cho từng khóa học cần thay đổi
+      for (const course of coursesToUpdate) {
+        try {
+          await axios.put(
+            `${backendUrl}/api/admin/updateCourse/${course._id}`,
+            { status: "Active" },
+            { withCredentials: true }
+          );
+        } catch (error) {
+          console.error(
+            `Failed to update status for course ${course._id}:`,
+            error
+          );
+        }
+      }
+      // Sau khi cập nhật, lấy lại dữ liệu từ server thay vì cập nhật state trực tiếp
+      if (coursesToUpdate.length > 0) {
+        await fetchingCourseData();
+      }
+    };
+
+    if (courseData.length > 0) {
+      updateCourseStatus();
+    }
+  }, [backendUrl]);
+
+  // filter course 
   useEffect(() => {
     let filtered = courseData;
 
@@ -107,6 +150,7 @@ const CourseTableList = () => {
     setCurrentPage(1);
   }, [searchQuery, courseData]);
 
+
   // Page split
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -114,6 +158,42 @@ const CourseTableList = () => {
     ? filteredCourses.slice(indexOfFirstItem, indexOfLastItem)
     : [];
   const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+
+  const handleToggleStatus = async (course) => {
+    const newStatus = course.status === "Active" ? "Inactive" : "Active";
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+
+      const response = await axios.put(
+        `${backendUrl}/api/admin/updateCourse/${course._id}`,
+        { status: newStatus },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const { data } = response;
+      if (data.success) {
+        toast.success(
+          newStatus === "Active"
+            ? "Active course successfully"
+            : "UnActive course successfully"
+        );
+        await fetchingCourseData(); // Cập nhật lại danh sách khóa học
+      } else {
+        toast.error(data.message || "Can not update status course");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Error. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEditCourse = (course) => {
     // Điền dữ liệu khóa học vào formData
@@ -430,19 +510,32 @@ const CourseTableList = () => {
 
                       <td className={classes}>
                         <span className="text-sm text-gray-700">
-                          {course.instructor.name}
+                          {course.instructor.name || "None"}
                         </span>
                       </td>
 
                       <td className={classes}>
-                        <span className="text-sm text-gray-700">
-                          {course.status}
-                        </span>
+                        <button
+                          onClick={() => handleToggleStatus(course)}
+                          className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-200 ${
+                            course.status === "Active"
+                              ? "bg-green-100 text-green-800 hover:bg-green-200"
+                              : "bg-red-100 text-red-800 hover:bg-red-200"
+                          }`}
+                        >
+                          {course.status === "Active" ? "Active" : "InActive"}
+                        </button>
                       </td>
 
                       <td className={classes}>
                         <span className="text-sm text-gray-600">
-                          {new Date(course.createdAt).toLocaleDateString()}
+                        {course.createdAt
+                          ? new Date(course.createdAt).toLocaleDateString("vi-VN", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            })
+                          : "No Date"}
                         </span>
                       </td>
 
