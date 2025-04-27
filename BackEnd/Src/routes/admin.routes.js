@@ -1,6 +1,7 @@
 import express from 'express'
 import { verifyAdmin } from '../middleware/verifyAdmin.js';
-import { getDataAdmin, getDataUsers, createNewUser, updateUser, deleteUser, getInstructors } from '../controller/admin.controller.js';
+import { getDataAdmin, getDataUsers, createNewUser, updateUser, deleteUser, getInstructors, 
+    createEmployeeAccount, createParentAccount, createStudentAccount } from '../controller/admin.controller.js';
 
 import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById } from '../controller/course.controller.js'
 import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
@@ -17,6 +18,11 @@ router.put("/updateUser/:id", verifyAdmin, updateUser);
 
 router.delete("/deleteUser/:id", verifyAdmin, deleteUser);
 
+router.post("/createEmployee", verifyAdmin, createEmployeeAccount)
+
+router.post("/createParentAccount", verifyAdmin, createParentAccount);
+
+router.post("/createStudentAccount", verifyAdmin, createStudentAccount);
 
 // Course
 
