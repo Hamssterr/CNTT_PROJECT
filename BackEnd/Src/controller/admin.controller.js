@@ -135,94 +135,234 @@ export const createNewUser = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-  const userId = req.params.id;
-  const { firstName, lastName, email, role, password } = req.body;
-
   try {
-    // Tìm user hiện tại
-    const existingUser = await User.findById(userId);
-    if (!existingUser) {
-      return res.status(404).json({ message: "User not found" });
+    const { id } = req.params;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      role,
+      address,
+      degree,
+      experience,
+      parentPhoneNumber,
+      isAdultStudent,
+    } = req.body;
+
+    // Tìm user cần cập nhật
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    // Nếu có email mới
-    if (email && email !== existingUser.email) {
+    // Validation: Kiểm tra email không trùng (nếu email thay đổi)
+    if (email && email !== user.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json({ message: "Invalid email format" });
-      }
-
-      const normalizedEmail = email.toLowerCase();
-      const emailInUse = await User.findOne({
-        email: normalizedEmail,
-        _id: { $ne: userId },
-      });
-      if (emailInUse) {
-        return res.status(400).json({ message: "Email is already in use" });
-      }
-
-      existingUser.email = normalizedEmail;
-    }
-
-    // Nếu có role mới
-    if (role) {
-      const validRoles = [
-        "parent",
-        "student",
-        "teacher",
-        "consultant",
-        "admin",
-        "finance",
-      ];
-      if (!validRoles.includes(role)) {
-        return res.status(400).json({ message: "Invalid role" });
-      }
-      existingUser.role = role;
-    }
-
-    // Cập nhật các trường khác nếu có
-    if (firstName) existingUser.firstName = firstName;
-    if (lastName) existingUser.lastName = lastName;
-
-    // Nếu có mật khẩu mới, mã hóa và cập nhật
-    if (password) {
-      // Kiểm tra mật khẩu mới có giống với mật khẩu cũ không
-      const isMatch = await bcrypt.compare(password, existingUser.password);
-      if (isMatch) {
         return res.status(400).json({
-          message: "New password cannot be the same as the old password",
+          success: false,
+          message: "Invalid email format",
         });
       }
 
-      // Kiểm tra độ dài mật khẩu
-      if (password.length < 6) {
-        return res
-          .status(400)
-          .json({ message: "Password must be at least 6 characters" });
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists",
+        });
       }
-
-      // Mã hóa mật khẩu mới
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      existingUser.password = hashedPassword;
+      user.email = email;
     }
 
-    await existingUser.save();
+    // Validation phone number (nếu có thay đổi)
+    if (phoneNumber && phoneNumber !== user.phoneNumber) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phoneNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Phone number must be 10 digits",
+        });
+      }
+      user.phoneNumber = phoneNumber;
+    }
+
+    // Cập nhật các trường cơ bản
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.role = role || user.role;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    // Xử lý cho employee (admin, finance, teacher)
+    const employeeRoles = ["admin", "finance", "teacher"];
+    if (employeeRoles.includes(user.role)) {
+      user.degree = degree || user.degree;
+      user.experience = experience || user.experience;
+      user.address = undefined; // Employee không cần address
+      user.parents = []; // Employee không cần parents
+      user.isAdultStudent = undefined; // Employee không cần isAdultStudent
+    }
+
+    // Xử lý cho parent
+    if (user.role === "parent") {
+      if (!address || !address.ward || !address.city) {
+        return res.status(400).json({
+          success: false,
+          message: "Ward/Commune and City are required for parents",
+        });
+      }
+      user.address = address;
+      user.degree = undefined; // Parent không cần degree
+      user.experience = undefined; // Parent không cần experience
+      user.parents = []; // Parent không cần parents
+      user.isAdultStudent = undefined; // Parent không cần isAdultStudent
+    }
+
+    // Xử lý cho student
+    if (user.role === "student") {
+      const newIsAdultStudent = isAdultStudent !== undefined ? isAdultStudent : user.isAdultStudent;
+      user.isAdultStudent = newIsAdultStudent;
+      user.degree = undefined; // Student không cần degree
+      user.experience = undefined; // Student không cần experience
+      user.children = []; // Student không có children
+
+      if (!newIsAdultStudent) {
+        // Kiểm tra parentPhoneNumber nếu không phải adult student
+        if (!parentPhoneNumber) {
+          return res.status(400).json({
+            success: false,
+            message: "Parent phone number is required for non-adult students",
+          });
+        }
+
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(parentPhoneNumber)) {
+          return res.status(400).json({
+            success: false,
+            message: "Parent phone number must be 10 digits",
+          });
+        }
+
+        // Tìm parent mới
+        const parent = await User.findOne({ phoneNumber: parentPhoneNumber, role: "parent" });
+        if (!parent) {
+          return res.status(400).json({
+            success: false,
+            message: "Parent with this phone number does not exist",
+          });
+        }
+
+        // Xóa student khỏi danh sách children của parent cũ (nếu có)
+        if (user.parents && user.parents.length > 0) {
+          const oldParentId = user.parents[0].id;
+          await User.updateOne(
+            { _id: oldParentId },
+            {
+              $pull: {
+                children: { id: user._id },
+              },
+            }
+          );
+        }
+
+        // Cập nhật thông tin parent mới cho student
+        user.parents = [
+          {
+            id: parent._id,
+            firstName: parent.firstName,
+            lastName: parent.lastName,
+          },
+        ];
+
+        // Thêm student vào danh sách children của parent mới
+        await User.updateOne(
+          { _id: parent._id },
+          {
+            $addToSet: {
+              children: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+              },
+            },
+          }
+        );
+
+        user.address = undefined; // Non-adult student không cần address
+      } else {
+        // Adult student
+        if (!address || !address.ward || !address.city) {
+          return res.status(400).json({
+            success: false,
+            message: "Ward/Commune and City are required for adult students",
+          });
+        }
+
+        // Nếu chuyển từ non-adult sang adult, xóa liên kết parent
+        if (!user.isAdultStudent && newIsAdultStudent) {
+          if (user.parents && user.parents.length > 0) {
+            const oldParentId = user.parents[0].id;
+            await User.updateOne(
+              { _id: oldParentId },
+              {
+                $pull: {
+                  children: { id: user._id },
+                },
+              }
+            );
+          }
+          user.parents = [];
+        }
+
+        user.address = address;
+      }
+    }
+
+    // Xử lý cho consultant
+    if (user.role === "consultant") {
+      user.address = undefined;
+      user.parents = [];
+      user.isAdultStudent = undefined;
+      user.degree = undefined;
+      user.experience = undefined;
+    }
+
+    // Lưu user
+    await user.save();
+
+    // Log để kiểm tra dữ liệu sau khi cập nhật
+    console.log("Updated user:", user);
 
     res.status(200).json({
       success: true,
       message: "User updated successfully",
       data: {
-        _id: existingUser._id,
-        firstName: existingUser.firstName,
-        lastName: existingUser.lastName,
-        email: existingUser.email,
-        role: existingUser.role,
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        parents: user.parents,
+        isAdultStudent: user.isAdultStudent,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error) {
-    console.error("Error in updateUser controller:", error.message);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({
+      success: false,
+      message: "Error updating user",
+      error: error.message,
+    });
   }
 };
 
@@ -437,16 +577,7 @@ export const createEmployeeAccount = async (req, res) => {
 
 export const createParentAccount = async (req, res) => {
   try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      phoneNumber,
-      address,
-      children, 
-      role,
-    } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, address, role } = req.body;
 
     // Validate basic
     if (!firstName || !lastName || !email || !password) {
@@ -460,7 +591,7 @@ export const createParentAccount = async (req, res) => {
     if (role !== "parent") {
       return res.status(400).json({
         success: false,
-        message: "This function use for parent role",
+        message: "This function is for parent role",
       });
     }
 
@@ -469,19 +600,7 @@ export const createParentAccount = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists ",
-      });
-    }
-
-    // Check Address
-    if (
-      address &&
-      (address.ward || address.city) &&
-      (!address.ward || !address.city)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Ward/Commune and City are required if you enter an address",
+        message: "Email already exists",
       });
     }
 
@@ -490,90 +609,54 @@ export const createParentAccount = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Email not acept",
+        message: "Invalid email format",
       });
     }
 
-    // Validation phone number
-    if (phoneNumber) {
-      const phoneRegex = /^\d{10}$/;
-      if (!phoneRegex.test(phoneNumber)) {
-        return res.status(400).json({
-          success: false,
-          message: "Phone number must be 10 number",
-        });
-      }
+    // Validation phone number (bắt buộc)
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must be 10 digits",
+      });
     }
 
-    // Validation cho children (danh sách học sinh)
-    let childrenData = [];
-    if (children && children.length > 0) {
-      // Kiểm tra xem các ID học sinh có tồn tại và có role là "student" không
-      const students = await User.find({
-        _id: { $in: children },
-        role: "student",
+    // Validation address (bắt buộc)
+    if (!address || !address.ward || !address.city) {
+      return res.status(400).json({
+        success: false,
+        message: "Address with Ward/Commune and City is required",
       });
-
-      if (students.length !== children.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Một số ID học sinh không tồn tại hoặc không phải học sinh",
-        });
-      }
-
-      // Kiểm tra xem phụ huynh có đang liên kết với chính mình không
-      if (children.includes(email)) {
-        return res.status(400).json({
-          success: false,
-          message: "Phụ huynh không thể liên kết với chính mình",
-        });
-      }
-
-      // Chuẩn bị dữ liệu cho trường children (bao gồm id, firstName, lastName)
-      childrenData = students.map((student) => ({
-        id: student._id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-      }));
     }
 
     // Password encryption
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create Employee
+    // Create Parent
     const newParent = new User({
       firstName,
       lastName,
       email,
       password: hashedPassword,
       role,
-      phoneNumber: phoneNumber || undefined,
-      address: address || undefined,
-      children: childrenData || [],
+      phoneNumber,
+      address,
+      children: [], // Mặc định là mảng rỗng
     });
 
     await newParent.save();
 
-    // Cập nhật danh sách parents của các học sinh (nếu có)
-    if (children && children.length > 0) {
-      await User.updateMany(
-        { _id: { $in: children } },
-        {
-          $addToSet: {
-            parents: {
-              id: newParent._id,
-              firstName: newParent.firstName,
-              lastName: newParent.lastName,
-            },
-          },
-        }
-      );
-    }
-
     res.status(201).json({
       success: true,
-      message: "Create parent account successfully",
+      message: "Parent account created successfully",
       user: {
         _id: newParent._id,
         firstName: newParent.firstName,
@@ -589,7 +672,7 @@ export const createParentAccount = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error with create parent account",
+      message: "Error creating parent account",
       error: error.message,
     });
   }
@@ -603,9 +686,10 @@ export const createStudentAccount = async (req, res) => {
       email,
       password,
       phoneNumber,
-      address,
-      parents, 
       role,
+      parentPhoneNumber,
+      isAdultStudent,
+      address,
     } = req.body;
 
     // Validate basic
@@ -620,7 +704,7 @@ export const createStudentAccount = async (req, res) => {
     if (role !== "student") {
       return res.status(400).json({
         success: false,
-        message: "This function use for student role",
+        message: "This function is for student role",
       });
     }
 
@@ -629,19 +713,7 @@ export const createStudentAccount = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists ",
-      });
-    }
-
-    // Check Address
-    if (
-      address &&
-      (address.ward || address.city) &&
-      (!address.ward || !address.city)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Ward/Commune and City are required if you enter an address",
+        message: "Email already exists",
       });
     }
 
@@ -650,77 +722,91 @@ export const createStudentAccount = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Email not acept",
+        message: "Invalid email format",
       });
     }
 
-    // Validation phone number
-    if (phoneNumber) {
-      const phoneRegex = /^\d{10}$/;
-      if (!phoneRegex.test(phoneNumber)) {
+    // Validation phone number (bắt buộc cho mọi student)
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must be 10 digits",
+      });
+    }
+
+    // Validation address nếu isAdultStudent là true
+    if (isAdultStudent) {
+      if (!address || !address.ward || !address.city) {
         return res.status(400).json({
           success: false,
-          message: "Phone number must be 10 number",
+          message: "Ward/Commune and City are required for adult students",
         });
       }
     }
 
-    // Validation cho parents (danh sách phụ huynh)
-    let parentsData = [];
-    if (parents && parents.length > 0) {
-      // Kiểm tra xem các ID phụ huynh có tồn tại và có role là "parent" không
-      const parentUsers = await User.find({
-        _id: { $in: parents },
+    // Validation parentPhoneNumber (nếu có và không phải adult student)
+    let parentData = null;
+    if (!isAdultStudent && parentPhoneNumber) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(parentPhoneNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Parent phone number must be 10 digits",
+        });
+      }
+
+      const parent = await User.findOne({
+        phoneNumber: parentPhoneNumber,
         role: "parent",
       });
 
-      if (parentUsers.length !== parents.length) {
+      if (!parent) {
         return res.status(400).json({
           success: false,
-          message: "Một số ID phụ huynh không tồn tại hoặc không phải phụ huynh",
+          message: "Parent not found with the provided phone number",
         });
       }
 
-      // Kiểm tra xem học sinh có đang liên kết với chính mình không
-      if (parents.includes(email)) {
-        return res.status(400).json({
-          success: false,
-          message: "Học sinh không thể liên kết với chính mình",
-        });
-      }
-
-      // Chuẩn bị dữ liệu cho trường parents (bao gồm id, firstName, lastName)
-      parentsData = parentUsers.map((parent) => ({
+      parentData = {
         id: parent._id,
         firstName: parent.firstName,
         lastName: parent.lastName,
-      }));
+      };
     }
 
     // Password encryption
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create Employee
+    // Create Student
     const newStudent = new User({
       firstName,
       lastName,
       email,
       password: hashedPassword,
       role,
-      phoneNumber: phoneNumber || undefined,
-      address: address || undefined,
-      parents: parentsData || [], // Nếu không có parents thì để mảng rỗng
-      degree: [], // Đặt mặc định là mảng rỗng vì học sinh không cần degree
-      experience: [], // Đặt mặc định là mảng rỗng vì học sinh không cần experience
-      children: []
+      phoneNumber,
+      address: isAdultStudent ? address : undefined, // Chỉ lưu address nếu là adult student
+      parents: parentData ? [parentData] : [],
+      degree: [],
+      experience: [],
+      children: [],
+      isAdultStudent: isAdultStudent || false,
     });
 
     await newStudent.save();
 
-    if (parents && parents.length > 0) {
-      await User.updateMany(
-        { _id: { $in: parents } },
+    // Cập nhật danh sách children của phụ huynh (nếu có)
+    if (parentData) {
+      await User.updateOne(
+        { _id: parentData.id },
         {
           $addToSet: {
             children: {
@@ -733,9 +819,12 @@ export const createStudentAccount = async (req, res) => {
       );
     }
 
+    // Log để kiểm tra dữ liệu lưu vào database
+    console.log("New student created:", newStudent);
+
     res.status(201).json({
       success: true,
-      message: "Create student account successfully",
+      message: "Student account created successfully",
       user: {
         _id: newStudent._id,
         firstName: newStudent.firstName,
@@ -743,16 +832,67 @@ export const createStudentAccount = async (req, res) => {
         email: newStudent.email,
         role: newStudent.role,
         phoneNumber: newStudent.phoneNumber,
-        address: newStudent.address,
+        address: newStudent.address, // Đảm bảo address được trả về
         parents: newStudent.parents,
+        isAdultStudent: newStudent.isAdultStudent,
         createdAt: newStudent.createdAt,
       },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error with create student account",
+      message: "Error creating student account",
       error: error.message,
     });
   }
-}
+};
+
+
+// Api get student and parent data
+export const getUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId)
+      .populate("parents.id", "firstName lastName phoneNumber email") // Populate thông tin parent
+      .populate("children.id", "firstName lastName phoneNumber"); // Populate thông tin children
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user",
+      error: error.message,
+    });
+  }
+};
+
+// Api get phone number of parent
+export const checkParent = async (req, res) => {
+  try {
+    const { phoneNumber } = req.params;
+
+    // Kiểm tra parent tồn tại
+    const parent = await User.findOne({ phoneNumber, role: "parent" });
+
+    res.status(200).json({
+      success: true,
+      exists: !!parent, // true nếu parent tồn tại, false nếu không
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error checking parent",
+      error: error.message,
+    });
+  }
+};
