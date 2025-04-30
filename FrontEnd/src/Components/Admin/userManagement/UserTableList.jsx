@@ -4,9 +4,13 @@ import { toast } from "react-toastify";
 import { AppContext } from "../../../context/AppContext";
 import { Search, ChevronUp, Pencil, UserPlus, Trash2, Eye } from "lucide-react";
 import Loading from "../../Loading";
-import AddUserModal from "./AddUserModal";
-import DeleteUserModal from "./DeleteUserModal";
-import ViewUserModal from "./ViewUserModal";
+import AddEmployeeModal from "./EmployeeModal/AddEmployeeModal";
+import AddUserModal from "./UserModal/AddUserModal";
+import EditUserModal from "./UserModal/EditUserModal";
+import EditEmployeeModal from "./EmployeeModal/EditEmployeeModal"
+import DeleteUserModal from "./DeleteModal";
+import ViewEmployeeModal from "./EmployeeModal/ViewEmployeeModal";
+import ViewUserModal from "./UserModal/ViewUserModal";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -14,7 +18,7 @@ const TABS = [
   { label: "Finance", value: "finance" },
   { label: "Student", value: "student" },
   { label: "Parent", value: "parent" },
-  {label: "Teacher", value: "teacher"}
+  { label: "Teacher", value: "teacher" },
 ];
 
 const TABLE_HEAD = [
@@ -28,26 +32,28 @@ const TABLE_HEAD = [
 const UserTableList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const { backendUrl } = useContext(AppContext);
   const [userData, setUserData] = useState([]);
   const [filterUsers, setFilterUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showViewModal, setShowViewModal] = useState(false);
+  const [showViewEmployeeModal, setShowViewEmployeeModal] = useState(false);
+  const [showViewUserModal, setShowViewUserModal] = useState(false);
   const [selectedUserForView, setSelectedUserForView] = useState(null);
 
   // Update user
   const [isEditMode, setIsEditMode] = useState(false);
-
-  // Get user in table
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Delete User
+  // Modal states
+  const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false); 
+  const [showEditEmployeeModal, setShowEditEmployeeModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false); 
+  const [showAddUserModal, setShowAddUserModal] = useState(false); 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -66,9 +72,19 @@ const UserTableList = () => {
     },
     degree: [{ name: "", institution: "", year: "", major: "" }],
     experience: [
-      { position: "", company: "", startDate: "", endDate: "", description: "" },
+      {
+        position: "",
+        company: "",
+        startDate: "",
+        endDate: "",
+        description: "",
+      },
     ],
+    parentPhoneNumber: "",
   });
+
+  // Danh sách các role thuộc nhóm "employee"
+  const employeeRoles = ["teacher", "finance", "admin"];
 
   const fetchingUserData = async () => {
     try {
@@ -123,14 +139,59 @@ const UserTableList = () => {
   const currentItems = filterUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filterUsers.length / itemsPerPage);
 
-  const handleView = (user) => {
-    setSelectedUserForView(user);
-    setShowViewModal(true);
+  const handleView = async (user) => {
+    try {
+      let enrichedUser = { ...user };
+
+      // Nếu là student, lấy thông tin chi tiết của parent (nếu cần)
+      if (user.role === "student" && user.parents && user.parents.length > 0) {
+        const parentPromises = user.parents.map(async (parent) => {
+          if (!parent.phoneNumber || !parent.email) {
+            const response = await axios.get(
+              `${backendUrl}/api/admin/getUser/${parent.id}`
+            );
+            return response.data.data;
+          }
+          return parent;
+        });
+        const detailedParents = await Promise.all(parentPromises);
+        enrichedUser = { ...user, parents: detailedParents };
+      }
+
+      // Nếu là parent, lấy thông tin chi tiết của children (nếu cần)
+      if (user.role === "parent" && user.children && user.children.length > 0) {
+        const childPromises = user.children.map(async (child) => {
+          if (!child.phoneNumber) {
+            const response = await axios.get(
+              `${backendUrl}/api/admin/getUser/${child.id}`
+            );
+            return response.data.data;
+          }
+          return child;
+        });
+        const detailedChildren = await Promise.all(childPromises);
+        enrichedUser = { ...user, children: detailedChildren };
+      }
+
+      setSelectedUserForView(enrichedUser);
+      if (employeeRoles.includes(user.role)) {
+        setShowViewEmployeeModal(true);
+        setShowViewUserModal(false);
+      } else {
+        setShowViewUserModal(true);
+        setShowViewEmployeeModal(false);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to load user details"
+      );
+    }
   };
 
   const handleUpdate = (user) => {
     setIsEditMode(true);
     setSelectedUser(user);
+
     const updatedFormData = {
       firstName: user.firstName || "",
       lastName: user.lastName || "",
@@ -163,10 +224,20 @@ const UserTableList = () => {
                 description: "",
               },
             ],
+      parentPhoneNumber: user.parentPhoneNumber || "",
     };
 
     setFormData(updatedFormData);
-    setShowForm(true);
+
+    if (employeeRoles.includes(user.role)) {
+      setShowEditEmployeeModal(true);
+      setShowEditUserModal(false);
+      setShowAddUserModal(false);
+    } else {
+      setShowEditUserModal(true);
+      setShowEditEmployeeModal(false);
+      setShowAddUserModal(false);
+    }
   };
 
   const handleDelete = (user) => {
@@ -196,7 +267,6 @@ const UserTableList = () => {
     }
   };
 
-
   const resetForm = () => {
     setFormData({
       firstName: "",
@@ -216,14 +286,21 @@ const UserTableList = () => {
       },
       degree: [{ name: "", institution: "", year: "", major: "" }],
       experience: [
-        { position: "", company: "", startDate: "", endDate: "", description: "" },
+        {
+          position: "",
+          company: "",
+          startDate: "",
+          endDate: "",
+          description: "",
+        },
       ],
+      parentPhoneNumber: "",
     });
     setIsEditMode(false);
     setSelectedUser(null);
   };
 
-  const handleOnSubmit = async (e) => {
+  const handleOnSubmit = async (e, updatedFormData = formData) => {
     e.preventDefault();
 
     try {
@@ -232,15 +309,97 @@ const UserTableList = () => {
 
       let response;
       if (isEditMode && selectedUser) {
+        // Xử lý cập nhật user hoặc employee
+        let dataToSubmit;
+
+        if (employeeRoles.includes(updatedFormData.role)) {
+          // Cập nhật employee (admin, finance, teacher)
+          dataToSubmit = {
+            firstName: updatedFormData.firstName,
+            lastName: updatedFormData.lastName,
+            email: updatedFormData.email,
+            password: updatedFormData.password || undefined,
+            phoneNumber: updatedFormData.phoneNumber,
+            role: updatedFormData.role,
+            degree: updatedFormData.degree,
+            experience: updatedFormData.experience,
+          };
+        } else {
+          // Cập nhật user (parent, student, consultant)
+          dataToSubmit = {
+            firstName: updatedFormData.firstName,
+            lastName: updatedFormData.lastName,
+            email: updatedFormData.email,
+            password: updatedFormData.password || undefined,
+            phoneNumber: updatedFormData.phoneNumber,
+            role: updatedFormData.role,
+            ...(updatedFormData.role === "parent" && { address: updatedFormData.address }),
+            ...(updatedFormData.role === "student" && {
+              isAdultStudent: updatedFormData.isAdultStudent,
+              ...(updatedFormData.isAdultStudent && { address: updatedFormData.address }),
+              ...(!updatedFormData.isAdultStudent &&
+                updatedFormData.parentPhoneNumber && {
+                  parentPhoneNumber: updatedFormData.parentPhoneNumber,
+                }),
+            }),
+            ...(updatedFormData.role === "consultant" && {
+              address: undefined,
+              parentPhoneNumber: undefined,
+              isAdultStudent: undefined,
+            }),
+          };
+        }
+
+        // Thêm logging để kiểm tra dữ liệu gửi đi
+        console.log("Data to submit for update:", dataToSubmit);
+
         response = await axios.put(
           `${backendUrl}/api/admin/updateUser/${selectedUser._id}`,
-          formData
+          dataToSubmit
         );
       } else {
-        response = await axios.post(
-          `${backendUrl}/api/admin/createEmployee`,
-          formData
-        );
+        // Tạo user mới
+        const dataToSubmit = {
+          firstName: updatedFormData.firstName,
+          lastName: updatedFormData.lastName,
+          email: updatedFormData.email,
+          password: updatedFormData.password,
+          phoneNumber: updatedFormData.phoneNumber,
+          role: updatedFormData.role,
+          ...(employeeRoles.includes(updatedFormData.role) && {
+            degree: updatedFormData.degree,
+            experience: updatedFormData.experience,
+          }),
+          ...(updatedFormData.role === "parent" && { address: updatedFormData.address }),
+          ...(updatedFormData.role === "student" && {
+            isAdultStudent: updatedFormData.isAdultStudent,
+            ...(updatedFormData.isAdultStudent && { address: updatedFormData.address }),
+            ...(!updatedFormData.isAdultStudent &&
+              updatedFormData.parentPhoneNumber && {
+                parentPhoneNumber: updatedFormData.parentPhoneNumber,
+              }),
+          }),
+        };
+
+        // Thêm logging để kiểm tra dữ liệu gửi đi
+        console.log("Data to submit for create:", dataToSubmit);
+
+        if (employeeRoles.includes(updatedFormData.role)) {
+          response = await axios.post(
+            `${backendUrl}/api/admin/createEmployee`,
+            dataToSubmit
+          );
+        } else if (updatedFormData.role === "parent") {
+          response = await axios.post(
+            `${backendUrl}/api/admin/createParentAccount`,
+            dataToSubmit
+          );
+        } else if (updatedFormData.role === "student") {
+          response = await axios.post(
+            `${backendUrl}/api/admin/createStudentAccount`,
+            dataToSubmit
+          );
+        }
       }
 
       const { data } = response;
@@ -249,9 +408,12 @@ const UserTableList = () => {
         toast.success(
           isEditMode ? "Updated successfully" : "Added successfully"
         );
-        fetchingUserData();
+        await fetchingUserData();
         resetForm();
-        setShowForm(false);
+        setShowAddEmployeeModal(false);
+        setShowEditEmployeeModal(false);
+        setShowEditUserModal(false);
+        setShowAddUserModal(false);
         setIsEditMode(false);
         setSelectedUser(null);
       } else {
@@ -269,11 +431,38 @@ const UserTableList = () => {
 
   return (
     <div className="w-full h-full bg-white rounded-lg shadow-md border border-gray-200 relative">
-      {/* Add user modal */}
-      <AddUserModal
-        show={showForm}
+      {/* AddEmployeeModal cho employee */}
+      <AddEmployeeModal
+        show={showAddEmployeeModal}
         onClose={() => {
-          setShowForm(false);
+          setShowAddEmployeeModal(false);
+          resetForm();
+        }}
+        onSubmit={handleOnSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        loading={loading}
+        // isEditMode={isEditMode}
+      />
+
+      <EditEmployeeModal
+        show={showEditEmployeeModal}
+        onClose={() => {
+          setShowEditEmployeeModal(false);
+          resetForm();
+        }}
+        onSubmit={handleOnSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        loading={loading}
+         isEditMode={isEditMode}
+      />
+
+      {/* EditUserModal cho các role không phải employee */}
+      <EditUserModal
+        show={showEditUserModal}
+        onClose={() => {
+          setShowEditUserModal(false);
           resetForm();
         }}
         onSubmit={handleOnSubmit}
@@ -283,15 +472,34 @@ const UserTableList = () => {
         isEditMode={isEditMode}
       />
 
+      {/* AddUserModal cho tạo student và parent */}
+      <AddUserModal
+        show={showAddUserModal}
+        onClose={() => {
+          setShowAddUserModal(false);
+          resetForm();
+        }}
+        onSubmit={handleOnSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        loading={loading}
+      />
+
       <DeleteUserModal
         show={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={confirmDelete}
       />
 
+      <ViewEmployeeModal
+        show={showViewEmployeeModal}
+        onClose={() => setShowViewEmployeeModal(false)}
+        user={selectedUserForView}
+      />
+
       <ViewUserModal
-        show={showViewModal}
-        onClose={() => setShowViewModal(false)}
+        show={showViewUserModal}
+        onClose={() => setShowViewUserModal(false)}
         user={selectedUserForView}
       />
 
@@ -306,15 +514,27 @@ const UserTableList = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <button className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition">
-              View all
+            <button
+              onClick={() => {
+                setIsEditMode(false);
+                resetForm();
+                setShowAddUserModal(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-orange-400 rounded-md hover:bg-orange-700 transition"
+            >
+              <UserPlus size={16} />
+              Add User
             </button>
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setIsEditMode(false);
+                resetForm();
+                setShowAddEmployeeModal(true);
+              }}
               className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
             >
               <UserPlus size={16} />
-              Add member
+              Add Employee
             </button>
           </div>
         </div>

@@ -1,13 +1,12 @@
 import React from "react";
 
-const AddUserModal = ({
+const AddEmployeeModal = ({
   show,
   onClose,
-  onFormSubmit,
+  onSubmit,
   formData,
   setFormData,
   loading,
-  isEditMode = false,
 }) => {
   // Thêm degree mới
   const addDegree = () => {
@@ -128,18 +127,17 @@ const AddUserModal = ({
       experience: formattedExperiences,
     };
 
-    // Gọi onFormSubmit với dữ liệu đã cập nhật
-    onFormSubmit(e, updatedFormData);
+    // Gọi onSubmit với dữ liệu đã cập nhật
+    onSubmit(e, updatedFormData);
   };
 
-  // Kiểm tra show ở cuối
   if (!show) return null;
 
   return (
     <div className="fixed inset-0 bg-black/30 bg-opacity-40 z-40 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl relative z-50 max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4 text-center">
-          {isEditMode ? "Update Employee" : "Add New Employee"}
+          Add New Employee
         </h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Basic Info */}
@@ -153,6 +151,7 @@ const AddUserModal = ({
               }
               className="border p-2 rounded-md w-full"
               required
+              autoComplete="given-name"
             />
             <input
               type="text"
@@ -163,6 +162,7 @@ const AddUserModal = ({
               }
               className="border p-2 rounded-md w-full"
               required
+              autoComplete="family-name"
             />
           </div>
 
@@ -175,21 +175,19 @@ const AddUserModal = ({
             }
             className="border p-2 rounded-md w-full"
             required
+            autoComplete="email"
           />
 
           <input
             type="password"
-            placeholder={
-              isEditMode
-                ? "New Password (leave blank to keep current)"
-                : "Password"
-            }
+            placeholder="Password"
             value={formData.password}
             onChange={(e) =>
               setFormData({ ...formData, password: e.target.value })
             }
             className="border p-2 rounded-md w-full"
-            required={!isEditMode}
+            required
+            autoComplete="new-password"
           />
 
           <input
@@ -200,6 +198,7 @@ const AddUserModal = ({
               setFormData({ ...formData, phoneNumber: e.target.value })
             }
             className="border p-2 rounded-md w-full"
+            autoComplete="tel"
           />
 
           <select
@@ -231,6 +230,7 @@ const AddUserModal = ({
                   })
                 }
                 className="border p-2 rounded-md w-full"
+                autoComplete="address-line1"
               />
               <input
                 type="text"
@@ -243,6 +243,7 @@ const AddUserModal = ({
                   })
                 }
                 className="border p-2 rounded-md w-full"
+                autoComplete="address-line2"
               />
               <input
                 type="text"
@@ -255,6 +256,7 @@ const AddUserModal = ({
                   })
                 }
                 className="border p-2 rounded-md w-full"
+                autoComplete="address-level4"
               />
               <input
                 type="text"
@@ -267,6 +269,7 @@ const AddUserModal = ({
                   })
                 }
                 className="border p-2 rounded-md w-full"
+                autoComplete="address-level3"
               />
               <input
                 type="text"
@@ -279,6 +282,7 @@ const AddUserModal = ({
                   })
                 }
                 className="border p-2 rounded-md w-full"
+                autoComplete="address-level2"
               />
               <input
                 type="text"
@@ -291,6 +295,7 @@ const AddUserModal = ({
                   })
                 }
                 className="border p-2 rounded-md w-full"
+                autoComplete="address-level1"
               />
               <input
                 type="text"
@@ -303,6 +308,7 @@ const AddUserModal = ({
                   })
                 }
                 className="border p-2 rounded-md w-full"
+                autoComplete="country-name"
               />
             </div>
           </div>
@@ -322,6 +328,7 @@ const AddUserModal = ({
                   onChange={(e) => updateDegree(index, "name", e.target.value)}
                   className="border p-2 rounded-md w-full"
                   required
+                  autoComplete="off"
                 />
                 <input
                   type="text"
@@ -332,6 +339,7 @@ const AddUserModal = ({
                   }
                   className="border p-2 rounded-md w-full"
                   required
+                  autoComplete="off"
                 />
                 <input
                   type="number"
@@ -340,6 +348,7 @@ const AddUserModal = ({
                   onChange={(e) => updateDegree(index, "year", e.target.value)}
                   className="border p-2 rounded-md w-full"
                   required
+                  autoComplete="off"
                 />
                 <input
                   type="text"
@@ -347,6 +356,7 @@ const AddUserModal = ({
                   value={degree.major}
                   onChange={(e) => updateDegree(index, "major", e.target.value)}
                   className="border p-2 rounded-md w-full"
+                  autoComplete="off"
                 />
                 <button
                   type="button"
@@ -384,6 +394,7 @@ const AddUserModal = ({
                   }
                   className="border p-2 rounded-md w-full"
                   required
+                  autoComplete="off"
                 />
                 <input
                   type="text"
@@ -394,6 +405,7 @@ const AddUserModal = ({
                   }
                   className="border p-2 rounded-md w-full"
                   required
+                  autoComplete="organization"
                 />
                 <input
                   type="date"
@@ -408,6 +420,7 @@ const AddUserModal = ({
                   }
                   className="border p-2 rounded-md w-full"
                   required
+                  autoComplete="off"
                 />
                 <input
                   type="date"
@@ -421,6 +434,7 @@ const AddUserModal = ({
                     updateExperience(index, "endDate", e.target.value)
                   }
                   className="border p-2 rounded-md w-full"
+                  autoComplete="off"
                 />
                 <textarea
                   placeholder="Description (Optional)"
@@ -430,6 +444,7 @@ const AddUserModal = ({
                   }
                   className="border p-2 rounded-md w-full col-span-2"
                   rows="3"
+                  autoComplete="off"
                 />
                 <button
                   type="button"
@@ -473,4 +488,4 @@ const AddUserModal = ({
   );
 };
 
-export default AddUserModal;
+export default AddEmployeeModal;
