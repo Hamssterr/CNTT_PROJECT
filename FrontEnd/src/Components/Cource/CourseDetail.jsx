@@ -11,11 +11,13 @@ import {
   Users,
   ArrowLeft,
   Clock2,
-} from "lucide-react"; // Add all required
+  X, 
+} from "lucide-react";
 import { toast } from "react-toastify";
 import Navbar from "../Navbar";
 import SideBar from "../SideBar";
 import Loading from "../Loading";
+import CourseRegisterForm from "./CourseRegisterForm";
 
 const CourseDetail = () => {
   const { id } = useParams();
@@ -24,20 +26,50 @@ const CourseDetail = () => {
   const [expandedSections, setExpandedSections] = useState({});
   const navigate = useNavigate();
 
-  // Fetch course data
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [registerData, setRegisterData] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+  });
+
+  const handleRegisterChange = (e) => {
+    const { name, value } = e.target;
+    setRegisterData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${backendUrl}/api/course/register`, {
+        courseId: id,
+        ...registerData,
+      });
+  
+      if (res.data.success) {
+        toast.success("Register successfull!");
+        setShowRegisterForm(false);
+        setRegisterData({ email: "", name: "", phoneNumber: "" });
+      } else {
+        toast.error(res.data.message || "Register Error.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("Internal error.");
+    }
+  };
+
   const fetchCourseData = async () => {
     try {
-      const response = await axios.get(
-        `${backendUrl}/api/course/getCourse/${id}`
-      );
+      const response = await axios.get(`${backendUrl}/api/course/getCourse/${id}`);
       if (response.data.success) {
         setCourse(response.data.data);
       } else {
-        toast.error(response.data.message || "Không thể tải khóa học.");
+        toast.error(response.data.message || "Can not found the course.");
       }
     } catch (error) {
       console.error("Failed to fetch course: ", error);
-      toast.error("Không thể tải khóa học. Vui lòng thử lại.");
+      toast.error("Can not found the course. Please try again.");
     }
   };
 
@@ -45,7 +77,6 @@ const CourseDetail = () => {
     fetchCourseData();
   }, [backendUrl, id]);
 
-  // Toggle section expansion
   const toggleSection = (sectionId) => {
     setExpandedSections((prev) => ({
       ...prev,
@@ -53,7 +84,6 @@ const CourseDetail = () => {
     }));
   };
 
-  // Format duration (e.g., 3.43 hours to "03 giờ 26 phút")
   const formatDuration = (hours) => {
     const totalMinutes = Math.round(hours * 60);
     const h = Math.floor(totalMinutes / 60);
@@ -61,7 +91,7 @@ const CourseDetail = () => {
 
     let result = "";
     if (h > 0) {
-      result += `${h.toString().padStart(2)} hour${h > 1 ? "s" : ""}`;
+      result += `${h.toString().padStart(2)} hour${h > 1 ? "s" : ""} `;
     }
     if (m > 0) {
       result += `${m.toString().padStart(2, "0")} minute${m > 1 ? "s" : ""}`;
@@ -76,16 +106,10 @@ const CourseDetail = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar cố định ở trên cùng */}
       <Navbar />
-
-      {/* Container chính với Sidebar và Main Content */}
       <div className="flex flex-1">
         <SideBar />
-
-        {/* Main Content */}
         <main className="flex-1 p-5 md:ml-30">
-          {/* Nút Back */}
           <button
             onClick={() => navigate("/")}
             className="mb-4 text-sm text-blue-600 hover:text-blue-700 flex items-center gap-2 transition-colors"
@@ -94,23 +118,18 @@ const CourseDetail = () => {
             <span className="font-medium">Back</span>
           </button>
 
-          {/* Nội dung khóa học */}
           <div className="flex flex-col md:flex-row gap-6">
             {/* Left Section */}
             <div className="flex-1">
-              {/* Course Title */}
               <h1 className="text-3xl font-bold text-gray-800 mb-4">
                 {course.title || "None"}
               </h1>
-
-              {/* Instructor Tag */}
               <div className="flex items-center mb-4">
                 <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
                   {course.instructor?.name || "Không xác định"}
                 </span>
               </div>
 
-              {/* Course Benefits */}
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-700 mb-3">
                   What will you get from this course?
@@ -125,22 +144,21 @@ const CourseDetail = () => {
                   </li>
                 </ul>
               </div>
-              {/* Course Target */}
+
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-700 mb-3">
                   The target you can get in this course?
                 </h2>
                 <ul className="space-y-2">
                   {course.target?.map((item, index) => (
-                    <li key={index} className=" flex items-start gap-2">
+                    <li key={index} className="flex items-start gap-2">
                       <span className="text-red-500">✓</span>
-                      <span className=" text-gray-600">{item.description}</span>
+                      <span className="text-gray-600">{item.description}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Curriculum */}
               <div>
                 <h2 className="text-xl font-semibold text-gray-700 mb-4">
                   COURSE CONTENT
@@ -200,10 +218,9 @@ const CourseDetail = () => {
               </div>
             </div>
 
-            {/* Right Section: Course Details Card */}
+            {/* Right Section */}
             <div className="md:w-80 w-full">
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                {/* Course Image */}
                 <div className="relative">
                   <img
                     src={course.thumbnail || "None"}
@@ -217,7 +234,6 @@ const CourseDetail = () => {
                   </div>
                 </div>
 
-                {/* Course Details */}
                 <div className="p-4">
                   <h4 className="text-lg font-semibold text-gray-800 mb-2">
                     OPEN REGISTRATION
@@ -251,7 +267,6 @@ const CourseDetail = () => {
                                 ) || 0),
                               0
                             ) || 0;
-
                           return `${totalMinutes} minute${
                             totalMinutes !== 1 ? "s" : ""
                           }`;
@@ -279,29 +294,40 @@ const CourseDetail = () => {
                           : "Học lịch mở, mở lịch"}
                       </span>
                     </div>
-                    <div className=" flex items-center gap-2">
-                      <Clock2 size={16} className=" text-gray-500" />
+                    <div className="flex items-center gap-2">
+                      <Clock2 size={16} className="text-gray-500" />
                       <span>
                         {course.schedule?.daysOfWeek?.length > 0
                           ? `Time: ${course.schedule.shift}`
                           : ""}
                       </span>
                     </div>
-                    {/* Giá khóa học */}
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-semibold text-green-600">
                         {course.price === 0
-                          ? "Miễn phí"
+                          ? "Free"
                           : `${course.price} ${course.currency || "VND"}`}
                       </span>
                     </div>
                   </div>
+
+                  {/* Register Button */}
                   <button
-                    onClick={() => toast.success("Đăng ký thành công!")}
+                    onClick={() => setShowRegisterForm(true)}
                     className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
                   >
                     REGISTER FOR COURSE
                   </button>
+
+                  {/* Register Form */}
+                  {showRegisterForm && (
+                    <CourseRegisterForm
+                      registerData={registerData}
+                      handleChange={handleRegisterChange}
+                      handleSubmit={handleRegisterSubmit}
+                      onClose={() => setShowRegisterForm(false)}
+                    />
+                  )}
                 </div>
               </div>
             </div>
