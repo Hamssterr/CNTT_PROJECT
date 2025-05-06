@@ -1,4 +1,5 @@
 import Course from "../model/course.model.js";
+import RegisterCourse from "../model/registerCourse.model.js";
 import mongoose from "mongoose";
 
 
@@ -178,3 +179,48 @@ export const updateCourseById = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const registerCourse = async (req, res) => {
+  const { courseId, name, email, phoneNumber } = req.body;
+
+  try {
+    const newRegistration = new RegisterCourse({ courseId, name, email, phoneNumber });
+    await newRegistration.save();
+
+    res.status(200).json({ success: true, message: "Registration successful!" });
+  } catch (err) {
+    console.error("Error registering:", err);
+    res.status(500).json({ success: false, message: "Server error. Try again." });
+  }
+}
+
+export const registrations = async (req, res) => {
+  try {
+    const registrations = await RegisterCourse.find()
+      .populate("courseId", "title") // Lấy tên khóa học
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: registrations,
+    });
+  } catch (err) {
+    console.error("Error fetching registrations:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+}
+
+export const getRegistration = async (req, res) => {
+  try {
+    const registration = await RegisterCourse.findById(req.params.id).populate("courseId");
+
+    if (!registration) {
+      return res.status(404).json({ success: false, message: "Registration not found" });
+    }
+
+    res.json({ success: true, data: registration });
+  } catch (err) {
+    console.error("Error fetching registration:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+}

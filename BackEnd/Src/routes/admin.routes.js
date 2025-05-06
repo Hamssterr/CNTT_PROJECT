@@ -3,7 +3,7 @@ import { verifyAdmin } from '../middleware/verifyAdmin.js';
 import { getDataAdmin, getDataUsers, createNewUser, updateUser, deleteUser, getInstructors, 
     createEmployeeAccount, createParentAccount, createStudentAccount, getUser, checkParent } from '../controller/admin.controller.js';
 
-import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById } from '../controller/course.controller.js'
+import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById, registrations, getRegistration } from '../controller/course.controller.js'
 import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
 
 const router = express.Router();
@@ -45,5 +45,9 @@ router.put('/updateCourse/:id', verifyAdmin, cloudinaryFileUploader.single('thum
 
 router.get('/getInstructors', verifyAdmin, getInstructors);
 
+// get registrations for register course
+router.get("/registrations", verifyAdmin, registrations)
+
+router.get("/:id", verifyAdmin, getRegistration)
 
 export default router;
