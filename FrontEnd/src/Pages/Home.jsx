@@ -14,7 +14,7 @@ const Home = () => {
 
   const fetchCourseData = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/api/course/getAllCourse`);
+      const response = await axios.get(`${backendUrl}/api/course/getAllCourseForPublicRoute`);
       setCourse(response.data.courses);
     } catch (error) {
       console.error("Failed to fetch courses:", error);

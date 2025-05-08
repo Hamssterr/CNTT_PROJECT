@@ -8,11 +8,6 @@ const ViewUserModal = ({ show, onClose, user }) => {
 
   if (!show || !user) return null;
 
-  // Debug: Kiểm tra giá trị của isAdultStudent và address
-  console.log("User data:", user);
-  console.log("isAdultStudent:", user.isAdultStudent);
-  console.log("Address:", user.address);
-
   return (
     <div className="fixed inset-0 bg-black/30 bg-opacity-40 z-40 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl relative z-50 max-h-[90vh] overflow-y-auto">

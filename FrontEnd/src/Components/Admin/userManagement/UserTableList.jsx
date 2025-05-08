@@ -84,7 +84,7 @@ const UserTableList = () => {
   });
 
   // Danh sách các role thuộc nhóm "employee"
-  const employeeRoles = ["teacher", "finance", "admin"];
+  const employeeRoles = ["teacher", "finance", "admin", "consultant"];
 
   const fetchingUserData = async () => {
     try {
