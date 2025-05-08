@@ -8,6 +8,7 @@ import Loading from "./Components/Loading";
 import StudentRoutes from "./routes/StudentRoutes";
 import AdminRoutes from "./routes/adminRoutes";
 import PublicRoutes from "./routes/PublicRoutes";
+import ConsultantRoutes from "./routes/ConsultantRoutes";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -26,13 +27,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         {PublicRoutes.map((route, index) => (
-          <Route
-            key={index}
-            path={route.path}
-            element={
-              route.element
-            }
-          />
+          <Route key={index} path={route.path} element={route.element} />
         ))}
 
         {AdminRoutes.map((route, index) => (
@@ -45,8 +40,18 @@ const App = () => {
           />
         ))}
 
+        {ConsultantRoutes.map((route, index) => (
+          <Route
+            key={index}
+            path={route.path}
+            element={
+              <ProtectedRoute role={route.role}>{route.element}</ProtectedRoute>
+            }
+          />
+        ))}
+
         {StudentRoutes.map((route, index) => (
-          <Route 
+          <Route
             key={index}
             path={route.path}
             element={

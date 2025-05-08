@@ -1,0 +1,103 @@
+.myOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 300ms ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Changed from flex-start to center */
+  z-index: 50;
+}
+
+.myOverlay.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+
+.myOverlay.ReactModal__Overlay--before-close {
+  opacity: 0;
+}
+
+.myModal {
+  background: #fff;
+  border-radius: 0.5rem;
+  margin: 0; /* Remove margin-top */
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 300ms ease-in-out;
+  width: 100%;
+  max-width: 600px; /* Increased from 500px */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.myModal.ReactModal__Content--after-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.myModal.ReactModal__Content--before-close {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Custom Calendar Styles */
+.custom-calendar {
+  /* Make calendar fill container */
+  flex: 1;
+  min-height: 0;
+}
+
+.custom-calendar .rbc-toolbar {
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.custom-calendar .rbc-toolbar button {
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 8px 16px;
+  margin: 0 4px;
+  border-radius: 6px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.custom-calendar .rbc-toolbar button:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.custom-calendar .rbc-toolbar button.rbc-active {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.custom-calendar .rbc-toolbar button.rbc-active:hover {
+  background-color: #2563eb;
+}
+
+.custom-calendar .rbc-header {
+  padding: 10px;
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.custom-calendar .rbc-event {
+  background-color: #3b82f6;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.custom-calendar .rbc-today {
+  background-color: #eff6ff;
+}
+
+.custom-calendar .rbc-off-range-bg {
+  background-color: #f9fafb;
+}

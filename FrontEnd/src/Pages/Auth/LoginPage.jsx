@@ -43,6 +43,8 @@ const Login = () => {
           navigate("/student/dashboard");
         } else if (role === "admin") {
           navigate("/admin/dashboard");
+        } else if (role === "consultant") {
+          navigate("/consultant/dashboard");
         } else {
           toast.error("Unsupported role");
           navigate("/");
@@ -54,7 +56,10 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Login error:", error.response?.data);
-      toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
     }
   };
 
@@ -65,7 +70,10 @@ const Login = () => {
           <h1 className="text-5xl font-bold text-center">Welcome</h1>
           <h2 className="text-center text-2xl mb-6">Login</h2>
 
-          <form onSubmit={onSubmitHandler} className="gap-2 p-3 w-full flex flex-col">
+          <form
+            onSubmit={onSubmitHandler}
+            className="gap-2 p-3 w-full flex flex-col"
+          >
             <div className="flex flex-col text-2xl text-left gap-1 pb-6">
               <span>Email</span>
               <input
