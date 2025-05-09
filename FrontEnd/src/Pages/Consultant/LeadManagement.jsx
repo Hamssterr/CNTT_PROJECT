@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../../Components/Consultant/Navbar";
 import Sidebar from "../../Components/Consultant/Sidebar";
 import Footer from "../../Components/Footer";
 import "../../public/ModalStyle.css";
+import axios from "axios";
 import {
   Search,
   Phone,
@@ -14,6 +15,8 @@ import {
 } from "lucide-react";
 import Modal from "react-modal";
 import Swal from "sweetalert2";
+import { useContext } from "react";
+import { AppContext } from "../../context/AppContext";
 
 Modal.setAppElement("#root");
 
@@ -43,46 +46,41 @@ function LeadManagement() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [addNew, setAddNew] = useState(false);
+  const [leadsData, setLeadsData] = useState([]);
+  const { backendUrl } = useContext(AppContext);
 
-  // Sample data
-  const [leadsData] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      studentName: "James Smith",
-      phone: "0123456789",
-      email: "john@example.com",
-      course: "Advanced English Conversation",
-      registrationDate: "2024-05-08",
-      status: "Contacted",
-    },
-    {
-      id: 2,
-      name: "Mary Johnson",
-      studentName: "Mike Johnson",
-      phone: "0987654321",
-      email: "mary@example.com",
-      course: "Basic Office Computing",
-      registrationDate: "2024-05-07",
-      status: "Not Responding",
-    },
-    {
-      id: 3,
-      name: "David Wilson",
-      studentName: "Daniel Wilson",
-      phone: "0123498765",
-      email: "david@example.com",
-      course: "Advanced Excel Course",
-      registrationDate: "2024-05-06",
-      status: "Pending",
-    },
-  ]);
-
+  // Add this after the customModalStyles object and before the LeadManagement function
   const availableCourses = [
-    { id: 1, name: "Advanced English Conversation" },
-    { id: 2, name: "Basic Office Computing" },
-    { id: 3, name: "Advanced Excel Course" },
+    { id: 1, name: "Web Development" },
+    { id: 2, name: "Mobile App Development" },
+    { id: 3, name: "Data Science" },
+    { id: 4, name: "Machine Learning" },
+    { id: 5, name: "Cloud Computing" },
+    { id: 6, name: "DevOps" },
+    { id: 7, name: "Cyber Security" },
+    { id: 8, name: "UI/UX Design" },
   ];
+  // Fetch leads data
+  const fetchLeads = async () => {
+    try {
+      const response = await axios.get(
+        `${backendUrl}/api/consultant/getLeadUsers`
+      );
+      if (response.data.success) {
+        setLeadsData(response.data.leadUsers);
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch leads data",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
 
   const handleAdd = () => {
     setSelectedLead({
@@ -93,15 +91,60 @@ function LeadManagement() {
       course: "",
       registrationDate: new Date().toISOString().split("T")[0],
       status: "Pending",
+      paymentStatus: "Unpaid",
     });
     setAddNew(true);
     setShowModal(true);
   };
 
   const handleEdit = (lead) => {
-    setSelectedLead(lead);
+    setSelectedLead({
+      ...lead,
+      registrationDate: new Date(lead.registrationDate)
+        .toISOString()
+        .split("T")[0],
+    });
     setAddNew(false);
     setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      if (addNew) {
+        const response = await axios.post(
+          `${backendUrl}/api/consultant/addNewLeadUser`,
+          selectedLead
+        );
+        if (response.data.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "Lead added successfully",
+          });
+          fetchLeads();
+        }
+      } else {
+        const response = await axios.put(
+          `${backendUrl}/api/consultant/updateLeadUser/${selectedLead._id}`,
+          selectedLead
+        );
+        if (response.data.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "Lead updated successfully",
+          });
+          fetchLeads();
+        }
+      }
+      handleClose();
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.message || "Operation failed",
+      });
+    }
   };
 
   const handleClose = () => {
@@ -109,8 +152,8 @@ function LeadManagement() {
     setSelectedLead(null);
   };
 
-  const handleDelete = (lead) => {
-    Swal.fire({
+  const handleDelete = async (lead) => {
+    const result = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
@@ -118,29 +161,29 @@ function LeadManagement() {
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
-      showClass: {
-        popup: "animate__animated animate__fadeIn",
-      },
-      hideClass: {
-        popup: "animate__animated animate__fadeOut",
-      },
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Here you would typically make an API call to delete the lead
-        // For now, we'll just show a success message
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.delete(
+          `${backendUrl}/api/consultant/deleteLeadUser/${lead._id}`
+        );
+        if (response.data.success) {
+          Swal.fire({
+            title: "Deleted!",
+            text: "Lead has been deleted.",
+            icon: "success",
+          });
+          fetchLeads();
+        }
+      } catch (error) {
         Swal.fire({
-          title: "Deleted!",
-          text: "Lead has been deleted.",
-          icon: "success",
-          showClass: {
-            popup: "animate__animated animate__fadeIn",
-          },
-          hideClass: {
-            popup: "animate__animated animate__fadeOut",
-          },
+          icon: "error",
+          title: "Error",
+          text: "Failed to delete lead",
         });
       }
-    });
+    }
   };
 
   const filteredLeads = leadsData.filter((lead) => {
@@ -154,6 +197,129 @@ function LeadManagement() {
       lead.status.toLowerCase().includes(searchTerm)
     );
   });
+
+  const renderModalBody = () => (
+    <div className="px-6 py-4">
+      {selectedLead && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-600">
+              Name *
+            </label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedLead.name}
+              onChange={(e) =>
+                setSelectedLead({
+                  ...selectedLead,
+                  name: e.target.value,
+                })
+              }
+              placeholder="Enter name"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-600">
+              Student's Name *
+            </label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedLead.studentName}
+              onChange={(e) =>
+                setSelectedLead({
+                  ...selectedLead,
+                  studentName: e.target.value,
+                })
+              }
+              placeholder="Enter student's name"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-600">
+              Phone *
+            </label>
+            <input
+              type="tel"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedLead.phone}
+              onChange={(e) =>
+                setSelectedLead({
+                  ...selectedLead,
+                  phone: e.target.value,
+                })
+              }
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-600">
+              Email *
+            </label>
+            <input
+              type="email"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedLead.email}
+              onChange={(e) =>
+                setSelectedLead({
+                  ...selectedLead,
+                  email: e.target.value,
+                })
+              }
+              placeholder="Enter email"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-600">
+              Course *
+            </label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedLead.course}
+              onChange={(e) =>
+                setSelectedLead({
+                  ...selectedLead,
+                  course: e.target.value,
+                })
+              }
+            >
+              <option value="">Select a course</option>
+              {availableCourses.map((course) => (
+                <option key={course.id} value={course.name}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-600">
+              Status
+            </label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedLead.status}
+              onChange={(e) =>
+                setSelectedLead({
+                  ...selectedLead,
+                  status: e.target.value,
+                })
+              }
+            >
+              <option value="Pending">Pending</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Not Responding">Not Responding</option>
+            </select>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div>
@@ -288,127 +454,8 @@ function LeadManagement() {
                 </div>
               </div>
 
-              {/* Modal Body - Keep the rest of your modal content the same */}
-              <div className="px-6 py-4">
-                {selectedLead && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-600">
-                        Name *
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={selectedLead.name}
-                        onChange={(e) =>
-                          setSelectedLead({
-                            ...selectedLead,
-                            name: e.target.value,
-                          })
-                        }
-                        placeholder="Enter name"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-600">
-                        Student's Name *
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={selectedLead.studentName}
-                        onChange={(e) =>
-                          setSelectedLead({
-                            ...selectedLead,
-                            studentName: e.target.value,
-                          })
-                        }
-                        placeholder="Enter student's name"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-600">
-                        Phone *
-                      </label>
-                      <input
-                        type="tel"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={selectedLead.phone}
-                        onChange={(e) =>
-                          setSelectedLead({
-                            ...selectedLead,
-                            phone: e.target.value,
-                          })
-                        }
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-600">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={selectedLead.email}
-                        onChange={(e) =>
-                          setSelectedLead({
-                            ...selectedLead,
-                            email: e.target.value,
-                          })
-                        }
-                        placeholder="Enter email"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-600">
-                        Course *
-                      </label>
-                      <select
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={selectedLead.course}
-                        onChange={(e) =>
-                          setSelectedLead({
-                            ...selectedLead,
-                            course: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select a course</option>
-                        {availableCourses.map((course) => (
-                          <option key={course.id} value={course.name}>
-                            {course.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-gray-600">
-                        Status
-                      </label>
-                      <select
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={selectedLead.status}
-                        onChange={(e) =>
-                          setSelectedLead({
-                            ...selectedLead,
-                            status: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Contacted">Contacted</option>
-                        <option value="Not Responding">Not Responding</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Modal Body */}
+              {renderModalBody()}
 
               {/* Modal Footer */}
               <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
@@ -420,10 +467,7 @@ function LeadManagement() {
                 </button>
                 <button
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  onClick={() => {
-                    // Handle save logic here
-                    handleClose();
-                  }}
+                  onClick={handleSave}
                 >
                   {addNew ? "Add Lead" : "Update Lead"}
                 </button>

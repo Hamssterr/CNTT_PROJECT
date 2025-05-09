@@ -11,6 +11,7 @@ import studentRoutes from "./routes/student.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import teacherRoutes from "./routes/teacher.routes.js"
+import consultantRouter from "./routes/consultant.routes.js";
 
 dotenv.config();
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api/student", studentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/teacher", teacherRoutes);
+app.use("/api/consultant", consultantRouter);
 
 // Middleware xử lý lỗi chung
 app.use((err, req, res, next) => {
