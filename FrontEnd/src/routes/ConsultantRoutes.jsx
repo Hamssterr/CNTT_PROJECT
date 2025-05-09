@@ -1,4 +1,3 @@
-import React from "react";
 import DashBoard from "../Pages/Consultant/DashBoard";
 import LeadManagement from "../Pages/Consultant/LeadManagement";
 import ConsultationSchedule from "../Pages/Consultant/ConsultationSchedule";

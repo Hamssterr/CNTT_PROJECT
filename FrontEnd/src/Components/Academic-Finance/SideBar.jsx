@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Users, Calendar, BookOpen } from "lucide-react"; // Thay đổi icon
+import { Home, UserSquare } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
@@ -9,28 +9,40 @@ const Sidebar = () => {
   // Define sidebar items with corresponding paths
   const sidebarItems = [
     {
-      path: "/consultant/dashboard",
+      path: "/academic-finance/dashboard",
       icon: Home,
       label: "Dashboard",
       singleLine: true,
     },
     {
-      path: "/consultant/lead-management",
-      icon: Users, // Icon mới cho Lead Management
-      label: ["Lead", "Management"],
+      path: "/academic-finance/class-management",
+      icon: UserSquare,
+      label: ["Class", "Management"],
       singleLine: false,
     },
     {
-      path: "/consultant/schedule",
-      icon: Calendar, // Icon mới cho Schedule
-      label: "Schedule",
-      singleLine: true,
+      path: "/academic-finance/teacher-management",
+      icon: UserSquare,
+      label: ["Teacher", "Management"],
+      singleLine: false,
     },
     {
-      path: "/consultant/courses-classes",
-      icon: BookOpen, // Icon mới cho Courses
-      label: "Courses",
-      singleLine: true,
+      path: "/academic-finance/student-profile",
+      icon: UserSquare,
+      label: ["Student", "Profiles"],
+      singleLine: false,
+    },
+    {
+      path: "/academic-finance/report-attendance",
+      icon: UserSquare,
+      label: ["Report", "Attendance"],
+      singleLine: false,
+    },
+    {
+      path: "/academic-finance/payment-management",
+      icon: UserSquare,
+      label: ["Payment", "& Tuition"],
+      singleLine: false,
     },
   ];
 

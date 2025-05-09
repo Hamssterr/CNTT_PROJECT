@@ -45,6 +45,8 @@ const Login = () => {
           navigate("/admin/dashboard");
         } else if (role === "consultant") {
           navigate("/consultant/dashboard");
+        } else if (role === "finance") {
+          navigate("/academic-finance/dashboard");
         } else {
           toast.error("Unsupported role");
           navigate("/");

@@ -9,6 +9,7 @@ import StudentRoutes from "./routes/StudentRoutes";
 import AdminRoutes from "./routes/adminRoutes";
 import PublicRoutes from "./routes/PublicRoutes";
 import ConsultantRoutes from "./routes/ConsultantRoutes";
+import AcademicFinanceRoutes from "./routes/AcademicFinanceRoutes";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,16 @@ const App = () => {
         ))}
 
         {AdminRoutes.map((route, index) => (
+          <Route
+            key={index}
+            path={route.path}
+            element={
+              <ProtectedRoute role={route.role}>{route.element}</ProtectedRoute>
+            }
+          />
+        ))}
+
+        {AcademicFinanceRoutes.map((route, index) => (
           <Route
             key={index}
             path={route.path}
