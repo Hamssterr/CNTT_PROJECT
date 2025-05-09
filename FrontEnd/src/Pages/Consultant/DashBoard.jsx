@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { AppContext } from "../../context/AppContext";
 import Sidebar from "../../Components/Consultant/Sidebar";
 import Footer from "../../Components/Footer";
 import Navbar from "../../Components/Consultant/Navbar";
@@ -9,49 +10,92 @@ import {
   Users2,
   CalendarDays,
 } from "lucide-react";
+import axios from "axios";
 
 function DashBoard() {
-  // Sample data
-  const dashboardData = {
-    newLeadsToday: 5,
-    totalLeads: 150,
-    appointmentsToday: 8,
-    totalStudents: 120,
-    todayAppointments: [
-      {
-        time: "09:30 AM",
-        title: "Initial Consultation",
-        desc: "Meeting with potential student",
-      },
-      {
-        time: "02:00 PM",
-        title: "Follow-up Meeting",
-        desc: "Course registration discussion",
-      },
-      {
-        time: "04:30 PM",
-        title: "Academic Counseling",
-        desc: "Career path planning",
-      },
-    ],
-    recentLeads: [
-      {
-        name: "John Smith",
-        phone: "0123456789",
-        status: "Contacted",
-      },
-      {
-        name: "Mary Johnson",
-        phone: "0987654321",
-        status: "Not Responding",
-      },
-      {
-        name: "David Wilson",
-        phone: "0123498765",
-        status: "New",
-      },
-    ],
+  const { backendUrl } = useContext(AppContext);
+  const [dashboardData, setDashboardData] = useState({
+    newLeadsToday: 0,
+    totalLeads: 0,
+    appointmentsToday: 0,
+    totalStudents: 0,
+    todayAppointments: [],
+    recentLeads: [],
+  });
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch leads data
+      const leadsResponse = await axios.get(
+        `${backendUrl}/api/consultant/getLeadUsers`
+      );
+      const leads = leadsResponse.data.leadUsers;
+
+      // Get today's date at start of day
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Calculate new leads today
+      const newLeadsToday = leads.filter((lead) => {
+        const leadDate = new Date(lead.createdAt);
+        leadDate.setHours(0, 0, 0, 0);
+        return leadDate.getTime() === today.getTime();
+      }).length;
+
+      // Get total leads/students count
+      const totalLeads = leads.length;
+      const totalStudents = new Set(leads.map((lead) => lead.studentName)).size;
+
+      // Fetch consultation schedules
+      const schedulesResponse = await axios.get(
+        `${backendUrl}/api/consultant/getSchedules`
+      );
+      const schedules = schedulesResponse.data.schedules;
+
+      // Get today's appointments
+      const todayAppointments = schedules.filter((schedule) => {
+        const scheduleDate = new Date(schedule.start);
+        scheduleDate.setHours(0, 0, 0, 0);
+        return scheduleDate.getTime() === today.getTime();
+      });
+
+      // Get recent leads (created today)
+      const recentLeads = leads
+        .filter((lead) => {
+          const leadDate = new Date(lead.createdAt);
+          leadDate.setHours(0, 0, 0, 0);
+          return leadDate.getTime() === today.getTime();
+        })
+        .map((lead) => ({
+          name: lead.name,
+          phone: lead.phone,
+          status: lead.status,
+        }));
+
+      setDashboardData({
+        newLeadsToday,
+        totalLeads,
+        appointmentsToday: todayAppointments.length,
+        totalStudents,
+        todayAppointments: todayAppointments.map((apt) => ({
+          time: new Date(apt.start).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
+          title: apt.title,
+          desc: apt.desc,
+        })),
+        recentLeads,
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   return (
     <div>
@@ -61,7 +105,7 @@ function DashBoard() {
         <div className="flex-1 p-8 ml-30">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold text-gray-800">
+            <h1 className="text-2xl font-bold text-gray-800">
               Advisor Dashboard
             </h1>
           </div>
@@ -114,13 +158,27 @@ function DashBoard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {dashboardData.todayAppointments.map((apt, index) => (
-                        <tr key={index} className="border-b hover:bg-gray-100">
-                          <td className="py-2">{apt.time}</td>
-                          <td>{apt.title}</td>
-                          <td>{apt.desc}</td>
+                      {dashboardData.todayAppointments.length > 0 ? (
+                        dashboardData.todayAppointments.map((apt, index) => (
+                          <tr
+                            key={index}
+                            className="border-b hover:bg-gray-100"
+                          >
+                            <td className="py-2">{apt.time}</td>
+                            <td>{apt.title}</td>
+                            <td>{apt.desc}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan="3"
+                            className="py-4 text-center text-gray-500"
+                          >
+                            No appointments scheduled for today
+                          </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -137,58 +195,39 @@ function DashBoard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {dashboardData.recentLeads.map((lead, index) => (
-                        <tr key={index} className="border-b hover:bg-gray-100">
-                          <td className="py-2">{lead.name}</td>
-                          <td>{lead.phone}</td>
-                          <td>
-                            <span
-                              className={`${
-                                lead.status === "Contacted"
-                                  ? "text-blue-600"
-                                  : lead.status === "Not Responding"
-                                  ? "text-red-500"
-                                  : "text-yellow-500"
-                              }`}
-                            >
-                              {lead.status}
-                            </span>
+                      {dashboardData.recentLeads.length > 0 ? (
+                        dashboardData.recentLeads.map((lead, index) => (
+                          <tr
+                            key={index}
+                            className="border-b hover:bg-gray-100"
+                          >
+                            <td className="py-2">{lead.name}</td>
+                            <td>{lead.phone}</td>
+                            <td>
+                              <span
+                                className={`${
+                                  lead.status === "Contacted"
+                                    ? "text-blue-600"
+                                    : lead.status === "Not Responding"
+                                    ? "text-red-500"
+                                    : "text-yellow-500"
+                                }`}
+                              >
+                                {lead.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan="3"
+                            className="py-4 text-center text-gray-500"
+                          >
+                            No new leads today
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Available Courses Table */}
-                <div className="bg-white p-4 rounded-xl shadow">
-                  <h2 className="text-lg font-semibold mb-4">
-                    Available Courses
-                  </h2>
-                  <table className="w-full text-left">
-                    <thead className="text-sm font-semibold text-gray-600 border-b">
-                      <tr>
-                        <th className="py-2">Name</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b hover:bg-gray-100">
-                        <td className="py-2">Advanced English Conversation</td>
-                        <td>
-                          <span className="text-green-600">
-                            5 spots available
-                          </span>
-                        </td>
-                      </tr>
-                      <tr className="border-b hover:bg-gray-100">
-                        <td className="py-2">Basic Office Computing</td>
-                        <td>
-                          <span className="text-green-600">
-                            10 spots available
-                          </span>
-                        </td>
-                      </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

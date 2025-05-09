@@ -47,9 +47,8 @@ function LeadManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [addNew, setAddNew] = useState(false);
   const [leadsData, setLeadsData] = useState([]);
-  const { backendUrl } = useContext(AppContext);
+  const { leads, setLeads, backendUrl } = useContext(AppContext);
 
-  // Add this after the customModalStyles object and before the LeadManagement function
   const availableCourses = [
     { id: 1, name: "Web Development" },
     { id: 2, name: "Mobile App Development" },
@@ -60,6 +59,19 @@ function LeadManagement() {
     { id: 7, name: "Cyber Security" },
     { id: 8, name: "UI/UX Design" },
   ];
+
+  // Fetch courses data
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get("/api/courses");
+      if (response.data.success) {
+        setAvailableCourses(response.data.courses);
+      }
+    } catch (error) {
+      console.error("Failed to fetch courses:", error);
+    }
+  };
+
   // Fetch leads data
   const fetchLeads = async () => {
     try {
@@ -80,6 +92,7 @@ function LeadManagement() {
 
   useEffect(() => {
     fetchLeads();
+    fetchCourses();
   }, []);
 
   const handleAdd = () => {
@@ -109,6 +122,21 @@ function LeadManagement() {
   };
 
   const handleSave = async () => {
+    // Kiểm tra trùng số điện thoại hoặc email
+    const isDuplicate = leadsData.some(
+      (lead) =>
+        (lead.phone === selectedLead.phone || lead.email === selectedLead.email) &&
+        (addNew || lead._id !== selectedLead._id) // Cho phép cập nhật chính mình
+    );
+    if (isDuplicate) {
+      Swal.fire({
+        icon: "warning",
+        title: "Duplicate Entry",
+        text: "Phone number or email already exists!",
+      });
+      return;
+    }
+
     try {
       if (addNew) {
         const response = await axios.post(
@@ -169,12 +197,12 @@ function LeadManagement() {
           `${backendUrl}/api/consultant/deleteLeadUser/${lead._id}`
         );
         if (response.data.success) {
-          Swal.fire({
-            title: "Deleted!",
-            text: "Lead has been deleted.",
-            icon: "success",
-          });
-          fetchLeads();
+          // Update local state immediately
+          const updatedLeads = leadsData.filter((l) => l._id !== lead._id);
+          setLeadsData(updatedLeads); // Update leadsData state
+          setLeads(updatedLeads); // Update AppContext leads state
+
+          Swal.fire("Deleted!", "Lead has been deleted.", "success");
         }
       } catch (error) {
         Swal.fire({
@@ -371,7 +399,7 @@ function LeadManagement() {
               </thead>
               <tbody className="text-gray-600">
                 {filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="border-b hover:bg-gray-100">
+                  <tr key={lead._id} className="border-b hover:bg-gray-100">
                     <td className="py-3 px-4 text-center">{lead.name}</td>
                     <td className="py-3 px-4 text-center">
                       {lead.studentName}

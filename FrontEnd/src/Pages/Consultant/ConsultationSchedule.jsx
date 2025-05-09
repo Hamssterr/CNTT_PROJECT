@@ -10,6 +10,9 @@ import { Search, X } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "../../public/ModalStyle.css";
 import enUS from "date-fns/locale/en-US";
+import { useContext } from "react";
+import { AppContext } from "../../context/AppContext";
+import axios from "axios";
 
 const locales = {
   "en-US": enUS,
@@ -26,45 +29,55 @@ const localizer = dateFnsLocalizer({
 Modal.setAppElement("#root");
 
 function ConsultationSchedule() {
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: "Initial Consultation",
-      desc: "Meeting with new student",
-      start: new Date(2024, 4, 8, 9, 0),
-      end: new Date(2024, 4, 8, 10, 0),
-    },
-    {
-      id: 2,
-      title: "Follow-up Meeting",
-      desc: "Progress review",
-      start: new Date(2024, 4, 8, 14, 0),
-      end: new Date(2024, 4, 8, 15, 0),
-    },
-  ]);
+  const [events, setEvents] = useState([]);
+  const { schedules, setSchedules, backendUrl } = useContext(AppContext);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [view, setView] = useState("month");
   const [calendarHeight, setCalendarHeight] = useState(
     window.innerHeight - 250
-  ); // subtract header & padding
+  );
+
+  // Fetch schedules from backend
+  const fetchSchedules = async () => {
+    try {
+      const response = await axios.get(
+        `${backendUrl}/api/consultant/getSchedules`
+      );
+      if (response.data.success) {
+        const formattedEvents = response.data.schedules.map((schedule) => ({
+          ...schedule,
+          start: new Date(schedule.start),
+          end: new Date(schedule.end),
+        }));
+        setEvents(formattedEvents);
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to fetch schedules",
+      });
+    }
+  };
 
   useEffect(() => {
+    fetchSchedules();
     const handleResize = () => {
       setCalendarHeight(window.innerHeight - 250);
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Handle creating new event
+  // Handle creating new event
   const handleSelect = ({ start, end }) => {
     setSelectedEvent({
       title: "",
-      start,
-      end,
+      start: start || new Date(), // Đảm bảo start có giá trị mặc định
+      end: end || new Date(), // Đảm bảo end có giá trị mặc định
       desc: "",
     });
     setModalIsOpen(true);
@@ -72,41 +85,69 @@ function ConsultationSchedule() {
 
   // Handle editing existing event
   const handleEventSelect = (event) => {
-    setSelectedEvent(event);
+    setSelectedEvent({
+      ...event,
+      start: event.start ? new Date(event.start) : new Date(), // Đảm bảo start là kiểu Date
+      end: event.end ? new Date(event.end) : new Date(), // Đảm bảo end là kiểu Date
+    });
     setModalIsOpen(true);
   };
 
   // Handle save event
-  const handleSave = () => {
-    if (!selectedEvent.title) {
-      Swal.fire("Error", "Title is required", "error");
-      return;
-    }
+  const handleSave = async () => {
+    try {
+      // Kiểm tra dữ liệu trước khi gửi
+      if (!selectedEvent.title || !selectedEvent.start || !selectedEvent.end) {
+        Swal.fire("Error", "Please fill in all required fields", "error");
+        return;
+      }
 
-    if (selectedEvent.id) {
-      // Update existing event
-      setEvents(
-        events.map((event) =>
-          event.id === selectedEvent.id ? selectedEvent : event
-        )
-      );
-    } else {
-      // Create new event
-      setEvents([
-        ...events,
-        {
-          ...selectedEvent,
-          id: Date.now(),
-        },
-      ]);
+      // Chuẩn bị dữ liệu sự kiện
+      const eventData = {
+        title: selectedEvent.title,
+        start: selectedEvent.start,
+        end: selectedEvent.end,
+        desc: selectedEvent.desc || "",
+      };
+
+      if (selectedEvent._id) {
+        // Cập nhật sự kiện hiện có
+        const response = await axios.put(
+          `${backendUrl}/api/consultant/updateSchedule/${selectedEvent._id}`,
+          eventData
+        );
+        if (response.data.success) {
+          await fetchSchedules(); // Đồng bộ lại danh sách sự kiện
+          Swal.fire("Success", "Schedule updated successfully", "success");
+        } else {
+          throw new Error(response.data.message || "Failed to update schedule");
+        }
+      } else {
+        // Thêm sự kiện mới
+        const response = await axios.post(
+          `${backendUrl}/api/consultant/addSchedule`,
+          eventData
+        );
+        if (response.data.success) {
+          await fetchSchedules(); // Đồng bộ lại danh sách sự kiện
+          Swal.fire("Success", "Schedule added successfully", "success");
+        } else {
+          throw new Error(response.data.message || "Failed to add schedule");
+        }
+      }
+      closeModal(); // Đóng modal sau khi lưu thành công
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          error.response?.data?.message || error.message || "Operation failed",
+      });
     }
-    closeModal();
-    Swal.fire("Success", "Schedule saved successfully", "success");
   };
 
-  // Handle delete event
-  const handleDelete = () => {
-    Swal.fire({
+  const handleDelete = async () => {
+    const result = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
@@ -114,13 +155,28 @@ function ConsultationSchedule() {
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setEvents(events.filter((event) => event.id !== selectedEvent.id));
-        closeModal();
-        Swal.fire("Deleted!", "Schedule has been deleted.", "success");
-      }
     });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.delete(
+          `${backendUrl}/api/consultant/deleteSchedule/${selectedEvent._id}`
+        );
+        if (response.data.success) {
+          // Gọi lại fetchSchedules để đồng bộ dữ liệu mới nhất
+          await fetchSchedules();
+
+          Swal.fire("Deleted!", "Schedule has been deleted.", "success");
+          closeModal();
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to delete schedule",
+        });
+      }
+    }
   };
 
   const closeModal = () => {
@@ -129,8 +185,11 @@ function ConsultationSchedule() {
   };
 
   // Filter events based on search query
-  const filteredEvents = events.filter((event) =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredEvents = events.filter(
+    (event) =>
+      event &&
+      event.title &&
+      event.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -194,7 +253,8 @@ function ConsultationSchedule() {
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-800">
-                {selectedEvent?.id ? "Edit Schedule" : "Add New Schedule"}
+                {selectedEvent?._id ? "Edit Schedule" : "Add New Schedule"}{" "}
+                {/* Changed from .id to ._id */}
               </h2>
               <button
                 onClick={closeModal}
@@ -255,7 +315,14 @@ function ConsultationSchedule() {
                     </label>
                     <input
                       type="datetime-local"
-                      value={format(selectedEvent.start, "yyyy-MM-dd'T'HH:mm")}
+                      value={
+                        selectedEvent?.start
+                          ? format(
+                              new Date(selectedEvent.start),
+                              "yyyy-MM-dd'T'HH:mm"
+                            )
+                          : ""
+                      }
                       onChange={(e) =>
                         setSelectedEvent({
                           ...selectedEvent,
@@ -271,7 +338,11 @@ function ConsultationSchedule() {
                     </label>
                     <input
                       type="datetime-local"
-                      value={format(selectedEvent.end, "yyyy-MM-dd'T'HH:mm")}
+                      value={
+                        selectedEvent.end
+                          ? format(selectedEvent.end, "yyyy-MM-dd'T'HH:mm")
+                          : ""
+                      }
                       onChange={(e) =>
                         setSelectedEvent({
                           ...selectedEvent,
@@ -288,7 +359,7 @@ function ConsultationSchedule() {
 
           {/* Modal Footer */}
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
-            {selectedEvent?.id && (
+            {selectedEvent?._id && (
               <button
                 onClick={handleDelete}
                 className="px-4 py-2 bg-white border border-red-500 text-red-500 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
@@ -306,7 +377,7 @@ function ConsultationSchedule() {
               onClick={handleSave}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
-              {selectedEvent?.id ? "Update Schedule" : "Add Schedule"}
+              {selectedEvent?._id ? "Update Schedule" : "Add Schedule"}
             </button>
           </div>
         </div>
