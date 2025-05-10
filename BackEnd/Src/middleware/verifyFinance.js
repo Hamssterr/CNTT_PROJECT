@@ -18,11 +18,16 @@ export const verifyFinance = (req, res, next) => {
 
             const role = data.role;
 
-            if(role !== "fiance"){
-                return res.status(401).json({message: "This token has no access rights, you are not a Fianance"})
-            }else{
-                req.user = data;
-                next();
+            if (role !== "finance") {
+              return res
+                .status(401)
+                .json({
+                  message:
+                    "This token has no access rights, you are not a Fianance",
+                });
+            } else {
+              req.user = data;
+              next();
             }
         })
     } catch (error) {

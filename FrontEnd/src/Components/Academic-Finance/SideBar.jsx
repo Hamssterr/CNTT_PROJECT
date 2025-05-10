@@ -47,7 +47,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="h-full w-30 bg-transparent flex-col items-center pt-20 space-y-10 fixed top-0 left-0 md:inline-flex hidden">
+    <div className="h-full w-30 bg-transparent flex-col items-center pt-20 space-y-10 fixed top-0 left-0 md:inline-flex hidden overflow-y-auto max-h-screen">
       {/* Sidebar Items */}
       <div className="flex flex-col items-center space-y-8 mt-6 pr-7">
         {sidebarItems.map((item, index) => {

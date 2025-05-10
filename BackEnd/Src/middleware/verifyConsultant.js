@@ -21,22 +21,18 @@ export const verifyConsultant = (req, res, next) => {
 
       const role = data.role;
 
-      if (role !== "consultant") {
-        return res
-          .status(401)
-          .json({
-            message: "This token has no access rights, you are not a consultant",
-          });
+      if (role !== "consultant" && role !== "finance") {
+        return res.status(401).json({
+          message: "This token has no access rights, you are not a consultant",
+        });
       } else {
         req.user = data;
         next();
       }
     });
   } catch (error) {
-    return res
-          .status(401)
-          .json({
-            message: "Token decoding failed",
-          });
+    return res.status(401).json({
+      message: "Token decoding failed",
+    });
   }
 };
