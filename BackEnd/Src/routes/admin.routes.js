@@ -1,15 +1,44 @@
-import express from 'express'
-import { verifyAdmin } from '../middleware/verifyAdmin.js';
-import { getDataAdmin, getDataUsers, createNewUser, updateUser, deleteUser, getInstructors, 
-    createEmployeeAccount, createParentAccount, createStudentAccount, getUser, checkParent } from '../controller/admin.controller.js';
+import express from "express";
+import { verifyAdmin } from "../middleware/verifyAdmin.js";
+import {
+  getDataAdmin,
+  getDataUsers,
+  createNewUser,
+  updateUser,
+  deleteUser,
+  getInstructors,
+  createEmployeeAccount,
+  createParentAccount,
+  createStudentAccount,
+  getUser,
+  checkParent,
+} from "../controller/admin.controller.js";
 
-import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById, registrations, getRegistration } from '../controller/course.controller.js'
-import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
+import {
+  createCourse,
+  getAllCourse,
+  getCourseById,
+  deleteCourseById,
+  updateCourseById,
+  registrations,
+  getRegistration,
+} from "../controller/course.controller.js";
+
+import {
+  createBanner,
+  getBanner,
+  updateBanner,
+  deleteBanner,
+  getBannerById,
+} from "../controller/banner.controller.js";
+
+import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
 const router = express.Router();
 
 router.get("/dashboard", verifyAdmin, getDataAdmin);
 
+// User, employee, parent, student account
 router.get("/getDataUsers", verifyAdmin, getDataUsers);
 
 router.post("/createNewUser", verifyAdmin, createNewUser);
@@ -18,36 +47,61 @@ router.put("/updateUser/:id", verifyAdmin, updateUser);
 
 router.delete("/deleteUser/:id", verifyAdmin, deleteUser);
 
-router.post("/createEmployee", verifyAdmin, createEmployeeAccount)
+router.post("/createEmployee", verifyAdmin, createEmployeeAccount);
 
 router.post("/createParentAccount", verifyAdmin, createParentAccount);
 
 router.post("/createStudentAccount", verifyAdmin, createStudentAccount);
 
-router.get("/getUser/:id", verifyAdmin, getUser)
+router.get("/getUser/:id", verifyAdmin, getUser);
 
-router.get("/checkParent/:phoneNumber", verifyAdmin, checkParent)
+router.get("/checkParent/:phoneNumber", verifyAdmin, checkParent);
 
 // Course
 
-router.get('/getCourse', verifyAdmin,getAllCourse);
+router.get("/getCourse", verifyAdmin, getAllCourse);
 
-router.post('/createCourse', verifyAdmin, cloudinaryFileUploader.single('thumbnail'), createCourse);
+router.post(
+  "/createCourse",
+  verifyAdmin,
+  cloudinaryFileUploader.single("thumbnail"),
+  createCourse
+);
 
-router.get('/getCourseById/:id', getCourseById);
+router.get("/getCourseById/:id", getCourseById);
 
-router.delete('/deleteCourse/:id', verifyAdmin, deleteCourseById);
+router.delete("/deleteCourse/:id", verifyAdmin, deleteCourseById);
 
-router.put('/updateCourse/:id', verifyAdmin, cloudinaryFileUploader.single('thumbnail'), updateCourseById);
+router.put(
+  "/updateCourse/:id",
+  verifyAdmin,
+  cloudinaryFileUploader.single("thumbnail"),
+  updateCourseById
+);
 
+// get Instructors
 
-// get Instructors 
-
-router.get('/getInstructors', verifyAdmin, getInstructors);
+router.get("/getInstructors", verifyAdmin, getInstructors);
 
 // get registrations for register course
-router.get("/registrations", verifyAdmin, registrations)
+router.get("/registrations", verifyAdmin, registrations);
 
-router.get("/:id", verifyAdmin, getRegistration)
+router.get("/registrations/:id", verifyAdmin, getRegistration);
+
+// Banner of courses
+router.post(
+  "/createBanner",
+  verifyAdmin,
+  cloudinaryFileUploader.single("backgroundImage"),
+  createBanner
+);
+
+router.get("/getBanner", verifyAdmin, getBanner);
+
+router.get("/getBannerById/:id", verifyAdmin, getBannerById);
+
+router.put("/updateBanner/:id", verifyAdmin, cloudinaryFileUploader.single("backgroundImage") ,updateBanner);
+
+router.delete("/deleteBanner/:id", verifyAdmin, deleteBanner);
 
 export default router;

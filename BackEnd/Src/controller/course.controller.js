@@ -74,6 +74,24 @@ export const getAllCourse = async (req, res) => {
   }
 }
 
+export const getAllCourseForPublicRoute = async (req, res) => {
+  try {
+    const courses = await Course.find({ status: "Active" }).sort({createdAt: -1});
+
+    res.status(200).json({
+      success: true,
+      message: "Fetched all courses",
+      courses
+    })
+  } catch (error) {
+    console.log("Error fetching courses", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch courses"
+    })    
+  }
+}
+
 export const getCourseById = async (req, res) => {
   try {
     const { id } = req.params;

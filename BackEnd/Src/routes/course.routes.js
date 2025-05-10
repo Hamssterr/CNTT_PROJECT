@@ -1,11 +1,13 @@
 import express from 'express'
 
-import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById, registerCourse, registrations } from '../controller/course.controller.js'
+import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById, registerCourse, registrations, getAllCourseForPublicRoute } from '../controller/course.controller.js'
 import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
 
 const router = express.Router();
 
 router.get('/getAllCourse', getAllCourse);
+
+router.get('/getAllCourseForPublicRoute', getAllCourseForPublicRoute)
 
 router.post('/', cloudinaryFileUploader.single('thumbnail'), createCourse);
 
