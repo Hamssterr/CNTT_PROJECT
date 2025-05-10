@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 8080;
 
 // Cấu hình CORS
 const corsOptions = {
-  origin: "https://cntt-project-frontend.onrender.com",
+  origin: "http://localhost:5173",
   credentials: true,
   allowedHeaders: [
     "Content-Type",
