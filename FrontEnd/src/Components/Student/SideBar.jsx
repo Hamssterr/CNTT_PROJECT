@@ -12,7 +12,7 @@ const Sidebar = () => {
           <span className="text-xs text-orange-600 mt-2 group-hover:text-orange-700">Home</span>
         </div>
 
-        <div className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-100 transition cursor-pointer group">
+        {/* <div className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-100 transition cursor-pointer group">
           <Route size={28} className="text-gray-600 group-hover:text-gray-800" />
           <span className="text-xs text-gray-600 mt-2 group-hover:text-gray-800">Routes</span>
         </div>
@@ -25,7 +25,7 @@ const Sidebar = () => {
         <div className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-100 transition cursor-pointer group">
           <Wallet   size={28} className="text-gray-600 group-hover:text-gray-800" />
           <span className="text-xs text-gray-600 mt-2 group-hover:text-gray-800">Tuition</span>
-        </div>
+        </div> */}
       </div>
 
       {/* Floating Button */}
