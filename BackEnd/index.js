@@ -5,15 +5,15 @@ import helmet from 'helmet';
 import cors from 'cors';
 import bodyParser from "body-parser";
 
-import {connectDB} from "./lib/db.js";
-import authRoutes from "./routes/auth.routes.js";
-import studentRoutes from "./routes/student.routes.js";
-import adminRoutes from "./routes/admin.routes.js";
-import courseRoutes from "./routes/course.routes.js";
-import teacherRoutes from "./routes/teacher.routes.js"
-import consultantRouter from "./routes/consultant.routes.js";
-import financeRouter from "./routes/finance.routes.js";
-import bannerRoutes from "./routes/banner.routes.js"
+import {connectDB} from "./Src/lib/db.js"; // Import kết nối DB
+import authRoutes from "./Src/routes/auth.routes.js";
+import studentRoutes from "./Src/routes/student.routes.js";
+import adminRoutes from "./Src/routes/admin.routes.js";
+import courseRoutes from "./Src/routes/course.routes.js";
+import teacherRoutes from "./Src/routes/teacher.routes.js"
+import consultantRouter from "./Src/routes/consultant.routes.js";
+import financeRouter from "./Src/routes/finance.routes.js";
+import bannerRoutes from "./Src/routes/banner.routes.js"
 
 dotenv.config();
 const app = express();
