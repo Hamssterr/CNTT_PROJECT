@@ -8,7 +8,7 @@ export const AppProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const backendUrl = "http://localhost:8080";
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [leads, setLeads] = useState([]);
   const [schedules, setSchedules] = useState([]);
 

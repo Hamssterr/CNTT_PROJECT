@@ -21,13 +21,13 @@ const PORT = process.env.PORT || 8080;
 
 // Cấu hình CORS
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL,
   credentials: true,
   allowedHeaders: [
     "Content-Type",
     "Authorization",
     "Access-Control-Allow-Origin",
-    "Access-Control-Allow-Credentials", 
+    "Access-Control-Allow-Credentials",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   exposedHeaders: ["set-cookie"],
