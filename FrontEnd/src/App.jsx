@@ -6,7 +6,7 @@ import ProtectedRoute from "../src/Lib/ProtectedRoute";
 import Loading from "./Components/Loading";
 
 import StudentRoutes from "./routes/StudentRoutes";
-import AdminRoutes from "./routes/adminRoutes";
+import AdminRoutes from "./routes/AdminRoutes";
 import PublicRoutes from "./routes/PublicRoutes";
 import ConsultantRoutes from "./routes/ConsultantRoutes";
 import AcademicFinanceRoutes from "./routes/AcademicFinanceRoutes";
