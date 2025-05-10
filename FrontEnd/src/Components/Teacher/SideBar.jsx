@@ -16,40 +16,34 @@ const Sidebar = () => {
   // Define sidebar items with corresponding paths
   const sidebarItems = [
     {
-      path: "/academic-finance/dashboard",
-      icon: Home,
-      label: "Dashboard",
-      singleLine: true,
-    },
-    {
-      path: "/academic-finance/class-management",
+      path: "/academic-finance/schedule",
       icon: BookOpen,
-      label: ["Class", "Management"],
+      label: ["My", "Schedule"],
       singleLine: false,
     },
     {
-      path: "/academic-finance/teacher-management",
+      path: "/academic-finance/my-classes",
+      icon: BookOpen,
+      label: ["My", "Class"],
+      singleLine: false,
+    },
+    {
+      path: "/academic-finance/lecture-materials",
       icon: User,
-      label: ["Teacher", "Management"],
+      label: ["Lecture", "Material"],
       singleLine: false,
     },
     {
-      path: "/academic-finance/student-profile",
+      path: "/academic-finance/notification",
       icon: Users,
       label: ["Student", "Profiles"],
       singleLine: false,
     },
     {
-      path: "/academic-finance/report-attendance",
+      path: "/academic-finance/attendance",
       icon: ClipboardList,
-      label: ["Report", "Attendance"],
-      singleLine: false,
-    },
-    {
-      path: "/academic-finance/payment-management",
-      icon: DollarSign,
-      label: ["Payment", "& Tuition"],
-      singleLine: false,
+      label: "Attendance",
+      singleLine: true,
     },
   ];
 

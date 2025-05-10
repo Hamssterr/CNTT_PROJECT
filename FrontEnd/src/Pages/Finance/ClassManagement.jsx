@@ -14,6 +14,7 @@ const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const ClassManagement = () => {
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [courses, setCourses] = useState([]); // State to store courses
   const [searchQuery, setSearchQuery] = useState("");
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
@@ -59,9 +60,24 @@ const ClassManagement = () => {
     }
   };
 
+  // Fetch courses
+  const fetchCourses = async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/course/getAllCourse`);
+      if (data.success) {
+        setCourses(data.courses);
+      } else {
+        Swal.fire("Error", data.message || "Failed to fetch courses.", "error");
+      }
+    } catch (error) {
+      Swal.fire("Error", "Failed to fetch courses.", "error");
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
     fetchTeachers();
+    fetchCourses(); // Fetch courses when component mounts
   }, []);
 
   // Open modal for adding a new class
@@ -158,42 +174,6 @@ const ClassManagement = () => {
     }
   };
 
-  // Delete class
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This class will be permanently deleted!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const { data } = await axios.delete(`${backendUrl}/deleteClass/${id}`);
-        if (data.success) {
-          Swal.fire("Deleted!", "The class has been deleted.", "success");
-          fetchClasses();
-        } else {
-          Swal.fire(
-            "Error",
-            data.message || "Failed to delete class.",
-            "error"
-          );
-        }
-      } catch (error) {
-        Swal.fire("Error", "Failed to delete class.", "error");
-      }
-    }
-  };
-
-  // Filter classes based on search query
-  const filteredClasses = classes.filter((cls) =>
-    cls.className.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div>
       <NavBar />
@@ -247,54 +227,43 @@ const ClassManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredClasses.length > 0 ? (
-                  filteredClasses.map((cls) => (
-                    <tr key={cls._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                        {cls.className}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
-                        {cls.teacher}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
-                        {cls.students}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
-                        {new Date(cls.startDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
-                        {cls.classTime
-                          ? `${cls.classTime} ${cls.startTime} - ${cls.endTime}`
-                          : "Not scheduled"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(cls)}
-                            className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm flex items-center gap-1"
-                          >
-                            <Edit3 size={16} /> Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(cls._id)}
-                            className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm flex items-center gap-1"
-                          >
-                            <Trash2 size={16} /> Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-6 py-4 text-center text-gray-500"
-                    >
-                      No classes found.
+                {classes.map((cls) => (
+                  <tr key={cls._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {cls.className}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                      {cls.teacher}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                      {cls.students}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                      {new Date(cls.startDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                      {cls.classTime
+                        ? `${cls.classTime} ${cls.startTime} - ${cls.endTime}`
+                        : "Not scheduled"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(cls)}
+                          className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm flex items-center gap-1"
+                        >
+                          <Edit3 size={16} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(cls._id)}
+                          className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm flex items-center gap-1"
+                        >
+                          <Trash2 size={16} /> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>
@@ -304,8 +273,8 @@ const ClassManagement = () => {
             onRequestClose={closeModal}
             closeTimeoutMS={300}
             contentLabel="Add/Edit Class Modal"
-            className="myModal "
-            overlayClassName="myOverlay "
+            className="myModal"
+            overlayClassName="myOverlay"
             ariaHideApp={false}
           >
             <div className="relative bg-white rounded-lg shadow-lg max-w-4xl w-full mx-auto p-6">
@@ -328,8 +297,7 @@ const ClassManagement = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Class Name
                     </label>
-                    <input
-                      type="text"
+                    <select
                       className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       value={selectedClass.className}
                       onChange={(e) =>
@@ -338,9 +306,19 @@ const ClassManagement = () => {
                           className: e.target.value,
                         })
                       }
-                    />
+                    >
+                      <option value="" disabled>
+                        Select a course
+                      </option>
+                      {courses.map((course) => (
+                        <option key={course._id} value={course.title}>
+                          {course.title}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
+                  {/* Other fields remain unchanged */}
                   {/* Teacher */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
