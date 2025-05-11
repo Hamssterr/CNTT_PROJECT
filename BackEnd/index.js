@@ -51,7 +51,7 @@ app.use("/api/consultant", consultantRouter);
 app.use("/api/academic-finance", financeRouter);
 app.use("/api/banner", bannerRoutes);
 
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
     res.status(200).json({
         message: "Welcome to the API",
         status: "success",
@@ -60,8 +60,10 @@ app.get("/", (req, res) => {
 
 // Middleware xử lý lỗi chung
 app.use((err, req, res, next) => {
-    console.error("Unhandled error:", err.stack);
-    res.status(500).json({ message: "Something went wrong!" });
+  console.error("Unhandled error:", err.stack);
+  res
+    .status(500)
+    .json({ message: "Something went wrong!", error: err.message });
 });
 
 app.listen(PORT, () => {
