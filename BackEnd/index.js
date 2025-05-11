@@ -51,6 +51,13 @@ app.use("/api/consultant", consultantRouter);
 app.use("/api/academic-finance", financeRouter);
 app.use("/api/banner", bannerRoutes);
 
+app.get("/", (req, res) => {
+    res.status(200).json({
+        message: "Welcome to the API",
+        status: "success",
+    });
+});
+
 // Middleware xử lý lỗi chung
 app.use((err, req, res, next) => {
     console.error("Unhandled error:", err.stack);
