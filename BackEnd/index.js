@@ -51,7 +51,7 @@ app.use("/api/consultant", consultantRouter);
 app.use("/api/academic-finance", financeRouter);
 app.use("/api/banner", bannerRoutes);
 
-app.get("/api", (req, res) => {
+app.get("/", (req, res) => {
     res.status(200).json({
         message: "Welcome to the API",
         status: "success",
