@@ -1,5 +1,8 @@
 import React from "react";
 
+import AddressDisplay from "../inputForm/AddressDisplay";
+import PersonalDisplay from "../inputForm/PersonalDisplay";
+
 const ViewUserModal = ({ show, onClose, user }) => {
   const roleOptions = [
     { value: "parent", label: "Parent" },
@@ -11,56 +14,10 @@ const ViewUserModal = ({ show, onClose, user }) => {
   return (
     <div className="fixed inset-0 bg-black/30 bg-opacity-40 z-40 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl relative z-50 max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4 text-center">
-          User Details
-        </h3>
+        <h3 className="text-lg font-semibold mb-4 text-center">User Details</h3>
         <div className="flex flex-col gap-4">
-          {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="First Name"
-              value={user.firstName || ""}
-              readOnly
-              className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              value={user.lastName || ""}
-              readOnly
-              className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-            />
-          </div>
-
-          <input
-            type="email"
-            placeholder="Email"
-            value={user.email || ""}
-            readOnly
-            className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-          />
-
-          <input
-            type="text"
-            placeholder="Phone Number (10 digits)"
-            value={user.phoneNumber || ""}
-            readOnly
-            className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-          />
-
-          <select
-            value={user.role || ""}
-            disabled
-            className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-          >
-            <option value="">Select Role</option>
-            {roleOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          {/* Personal Info */}
+          <PersonalDisplay user={user} roleOptions={roleOptions} />
 
           {/* Student-specific fields */}
           {user.role === "student" && (
@@ -75,10 +32,15 @@ const ViewUserModal = ({ show, onClose, user }) => {
               </div>
               {!user.isAdultStudent && (
                 <div className="border p-4 rounded-md">
-                  <h4 className="text-md font-semibold mb-2">Parent Information</h4>
+                  <h4 className="text-md font-semibold mb-2">
+                    Parent Information
+                  </h4>
                   {user.parents && user.parents.length > 0 ? (
                     user.parents.map((parent, index) => (
-                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div
+                        key={index}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"
+                      >
                         <input
                           type="text"
                           placeholder="Parent's First Name"
@@ -96,7 +58,11 @@ const ViewUserModal = ({ show, onClose, user }) => {
                         <input
                           type="text"
                           placeholder="Parent's Phone Number"
-                          value={parent.phoneNumber || user.parentPhoneNumber || "Not available"}
+                          value={
+                            parent.phoneNumber ||
+                            user.parentPhoneNumber ||
+                            "Not available"
+                          }
                           readOnly
                           className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
                         />
@@ -110,7 +76,9 @@ const ViewUserModal = ({ show, onClose, user }) => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500">Not linked to a parent.</p>
+                    <p className="text-sm text-gray-500">
+                      Not linked to a parent.
+                    </p>
                   )}
                 </div>
               )}
@@ -120,10 +88,15 @@ const ViewUserModal = ({ show, onClose, user }) => {
           {/* Parent-specific fields */}
           {user.role === "parent" && (
             <div className="border p-4 rounded-md">
-              <h4 className="text-md font-semibold mb-2">Children Information</h4>
+              <h4 className="text-md font-semibold mb-2">
+                Children Information
+              </h4>
               {user.children && user.children.length > 0 ? (
                 user.children.map((child, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div
+                    key={index}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"
+                  >
                     <input
                       type="text"
                       placeholder="Child's First Name"
@@ -154,65 +127,11 @@ const ViewUserModal = ({ show, onClose, user }) => {
           )}
 
           {/* Address */}
-          {(user.role === "parent" || (user.role === "student" && user.isAdultStudent === true)) && (
-            <div className="border p-4 rounded-md">
-              <h4 className="text-md font-semibold mb-2">Address</h4>
-              {user.address ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="House Number"
-                    value={user.address.houseNumber || ""}
-                    readOnly
-                    className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Street"
-                    value={user.address.street || ""}
-                    readOnly
-                    className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Ward/Commune"
-                    value={user.address.ward || ""}
-                    readOnly
-                    className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-                  />
-                  <input
-                    type="text"
-                    placeholder="District"
-                    value={user.address.district || ""}
-                    readOnly
-                    className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-                  />
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={user.address.city || ""}
-                    readOnly
-                    className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Province"
-                    value={user.address.province || ""}
-                    readOnly
-                    className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Country"
-                    value={user.address.country || "Vietnam"}
-                    readOnly
-                    className="border p-2 rounded-md w-full bg-gray-100 cursor-not-allowed"
-                  />
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">Address not provided.</p>
-              )}
-            </div>
+
+          {(user.role === "parent" ||
+            (user.role === "student" && user.isAdultStudent === true) ||
+            user.role === "employee") && (
+            <AddressDisplay address={user.address} />
           )}
 
           {/* Close Button */}
