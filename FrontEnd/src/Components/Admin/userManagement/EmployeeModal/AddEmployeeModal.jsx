@@ -1,5 +1,7 @@
 import React from "react";
 
+import InformationSection from "../inputForm/InformationSection";
+
 const AddEmployeeModal = ({
   show,
   onClose,
@@ -12,7 +14,10 @@ const AddEmployeeModal = ({
   const addDegree = () => {
     setFormData({
       ...formData,
-      degree: [...formData.degree, { name: "", institution: "", year: "", major: "" }],
+      degree: [
+        ...formData.degree,
+        { name: "", institution: "", year: "", major: "" },
+      ],
     });
   };
 
@@ -42,7 +47,13 @@ const AddEmployeeModal = ({
       ...formData,
       experience: [
         ...formData.experience,
-        { position: "", company: "", startDate: "", endDate: "", description: "" },
+        {
+          position: "",
+          company: "",
+          startDate: "",
+          endDate: "",
+          description: "",
+        },
       ],
     });
   };
@@ -141,71 +152,11 @@ const AddEmployeeModal = ({
         </h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="First Name"
-              value={formData.firstName}
-              onChange={(e) =>
-                setFormData({ ...formData, firstName: e.target.value })
-              }
-              className="border p-2 rounded-md w-full"
-              required
-              autoComplete="given-name"
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              value={formData.lastName}
-              onChange={(e) =>
-                setFormData({ ...formData, lastName: e.target.value })
-              }
-              className="border p-2 rounded-md w-full"
-              required
-              autoComplete="family-name"
-            />
-          </div>
-
-          <input
-            type="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="border p-2 rounded-md w-full"
-            required
-            autoComplete="email"
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-            className="border p-2 rounded-md w-full"
-            required
-            autoComplete="new-password"
-          />
-
-          <input
-            type="text"
-            placeholder="Phone Number (10 digits)"
-            value={formData.phoneNumber || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, phoneNumber: e.target.value })
-            }
-            className="border p-2 rounded-md w-full"
-            autoComplete="tel"
-          />
+          <InformationSection formData={formData} setFormData={setFormData} />
 
           <select
             value={formData.role}
-            onChange={(e) =>
-              setFormData({ ...formData, role: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
             className="border p-2 rounded-md w-full"
             required
           >
@@ -227,7 +178,10 @@ const AddEmployeeModal = ({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    address: { ...formData.address, houseNumber: e.target.value },
+                    address: {
+                      ...formData.address,
+                      houseNumber: e.target.value,
+                    },
                   })
                 }
                 className="border p-2 rounded-md w-full"
@@ -413,7 +367,9 @@ const AddEmployeeModal = ({
                   placeholder="Start Date"
                   value={
                     experience.startDate
-                      ? new Date(experience.startDate).toISOString().split("T")[0]
+                      ? new Date(experience.startDate)
+                          .toISOString()
+                          .split("T")[0]
                       : ""
                   }
                   onChange={(e) =>

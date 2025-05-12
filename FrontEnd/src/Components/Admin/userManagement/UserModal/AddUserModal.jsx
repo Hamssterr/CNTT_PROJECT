@@ -1,4 +1,5 @@
 import React from "react";
+import InformationSection from "../inputForm/InformationSection";
 
 const AddUserModal = ({
   show,
@@ -18,7 +19,8 @@ const AddUserModal = ({
       parentPhoneNumber: newRole === "student" ? "" : undefined,
       isAdultStudent: newRole === "student" ? false : undefined, // Reset khi thay đổi role
       address:
-        newRole === "parent" || (newRole === "student" && formData.isAdultStudent)
+        newRole === "parent" ||
+        (newRole === "student" && formData.isAdultStudent)
           ? formData.address // Giữ nguyên address nếu là parent hoặc student với isAdultStudent: true
           : {
               houseNumber: "",
@@ -56,7 +58,8 @@ const AddUserModal = ({
     e.preventDefault();
     // Validation phía client cho address
     if (
-      (formData.role === "parent" || (formData.role === "student" && formData.isAdultStudent)) &&
+      (formData.role === "parent" ||
+        (formData.role === "student" && formData.isAdultStudent)) &&
       (!formData.address?.ward || !formData.address?.city)
     ) {
       alert("Ward/Commune and City are required for address.");
@@ -73,66 +76,8 @@ const AddUserModal = ({
         <h3 className="text-lg font-semibold mb-4 text-center">Add New User</h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="First Name"
-              value={formData.firstName}
-              onChange={(e) =>
-                setFormData({ ...formData, firstName: e.target.value })
-              }
-              className="border p-2 rounded-md w-full"
-              required
-              autoComplete="given-name"
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              value={formData.lastName}
-              onChange={(e) =>
-                setFormData({ ...formData, lastName: e.target.value })
-              }
-              className="border p-2 rounded-md w-full"
-              required
-              autoComplete="family-name"
-            />
-          </div>
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="border p-2 rounded-md w-full"
-            required
-            autoComplete="email"
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-            className="border p-2 rounded-md w-full"
-            required
-            autoComplete="new-password"
-          />
-
-          <input
-            type="text"
-            placeholder="Phone Number (10 digits)"
-            value={formData.phoneNumber || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, phoneNumber: e.target.value })
-            }
-            className="border p-2 rounded-md w-full"
-            required
-            autoComplete="tel"
-          />
+          <InformationSection formData={formData} setFormData={setFormData} />
 
           <select
             value={formData.role}
@@ -168,19 +113,24 @@ const AddUserModal = ({
                 placeholder="Parent's Phone Number (optional)"
                 value={formData.parentPhoneNumber || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, parentPhoneNumber: e.target.value })
+                  setFormData({
+                    ...formData,
+                    parentPhoneNumber: e.target.value,
+                  })
                 }
                 className="border p-2 rounded-md w-full"
                 autoComplete="tel"
               />
               <span className="text-sm text-gray-500">
-                Leave blank if the student does not need to be linked to a parent.
+                Leave blank if the student does not need to be linked to a
+                parent.
               </span>
             </div>
           )}
 
           {/* Address (hiển thị khi role là parent hoặc student là adult) */}
-          {(formData.role === "parent" || (formData.role === "student" && formData.isAdultStudent)) && (
+          {(formData.role === "parent" ||
+            (formData.role === "student" && formData.isAdultStudent)) && (
             <div className="border p-4 rounded-md">
               <h4 className="text-md font-semibold mb-2">Address</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -191,7 +141,10 @@ const AddUserModal = ({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      address: { ...formData.address, houseNumber: e.target.value },
+                      address: {
+                        ...formData.address,
+                        houseNumber: e.target.value,
+                      },
                     })
                   }
                   className="border p-2 rounded-md w-full"
@@ -231,7 +184,10 @@ const AddUserModal = ({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      address: { ...formData.address, district: e.target.value },
+                      address: {
+                        ...formData.address,
+                        district: e.target.value,
+                      },
                     })
                   }
                   className="border p-2 rounded-md w-full"
@@ -258,7 +214,10 @@ const AddUserModal = ({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      address: { ...formData.address, province: e.target.value },
+                      address: {
+                        ...formData.address,
+                        province: e.target.value,
+                      },
                     })
                   }
                   className="border p-2 rounded-md w-full"

@@ -321,6 +321,7 @@ const UserTableList = () => {
             password: updatedFormData.password || undefined,
             phoneNumber: updatedFormData.phoneNumber,
             role: updatedFormData.role,
+            address: updatedFormData.address,
             degree: updatedFormData.degree,
             experience: updatedFormData.experience,
           };
@@ -342,11 +343,11 @@ const UserTableList = () => {
                   parentPhoneNumber: updatedFormData.parentPhoneNumber,
                 }),
             }),
-            ...(updatedFormData.role === "consultant" && {
-              address: undefined,
-              parentPhoneNumber: undefined,
-              isAdultStudent: undefined,
-            }),
+            // ...(updatedFormData.role === "consultant" && {
+            //   address: undefined,
+            //   parentPhoneNumber: undefined,
+            //   isAdultStudent: undefined,
+            // }),
           };
         }
 
@@ -367,6 +368,7 @@ const UserTableList = () => {
           phoneNumber: updatedFormData.phoneNumber,
           role: updatedFormData.role,
           ...(employeeRoles.includes(updatedFormData.role) && {
+            address: updatedFormData.address,
             degree: updatedFormData.degree,
             experience: updatedFormData.experience,
           }),
@@ -382,7 +384,7 @@ const UserTableList = () => {
         };
 
         // Thêm logging để kiểm tra dữ liệu gửi đi
-        console.log("Data to submit for create:", dataToSubmit);
+        console.log("Data to submit for create:", dataToSubmit);  
 
         if (employeeRoles.includes(updatedFormData.role)) {
           response = await axios.post(

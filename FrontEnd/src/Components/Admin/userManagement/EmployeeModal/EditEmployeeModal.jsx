@@ -219,6 +219,7 @@ const EditEmployeeModal = ({
             <option value="teacher">Teacher</option>
             <option value="finance">Finance</option>
             <option value="admin">Admin</option>
+            <option value="consultant">Consultant</option>
           </select>
 
           {/* Address */}

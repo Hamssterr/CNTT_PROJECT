@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 
-const ExperienceDisplay = ({experiences}) => {
+const ExperienceDisplay = ({ experiences }) => {
   const [showDetail, setShowDetail] = useState(false);
 
   if (!experiences || experiences.length == 0) {
@@ -54,12 +54,25 @@ const ExperienceDisplay = ({experiences}) => {
               {exp.startDate && (
                 <p>
                   <span className="font-medium">Start date: </span>
-                  {exp.startDate}
+                  {exp.startDate
+                    ? new Date(exp.startDate).toLocaleDateString("vi-vn", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })
+                    : "N/A"}
                 </p>
               )}
               {exp.endDate && (
                 <p>
-                  <span className="font-medium">End date:</span> {exp.endDate}
+                  <span className="font-medium">End date:</span>{" "}
+                  {exp.endDate
+                    ? new Date(exp.endDate).toLocaleDateString("vi-VN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })
+                    : "N/A"}
                 </p>
               )}
               {exp.description && (
