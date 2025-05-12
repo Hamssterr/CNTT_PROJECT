@@ -201,12 +201,21 @@ export const updateUser = async (req, res) => {
       user.password = await bcrypt.hash(password, salt);
     }
 
-    // Xử lý cho employee (admin, finance, teacher)
-    const employeeRoles = ["admin", "finance", "teacher"];
+    // Xử lý cho employee (admin, finance, teacher, consultant)
+    const employeeRoles = ["admin", "finance", "teacher", "consultant"];
     if (employeeRoles.includes(user.role)) {
       user.degree = degree || user.degree;
       user.experience = experience || user.experience;
-      user.address = undefined; // Employee không cần address
+
+      // Giữ địa chỉ nếu được cung cấp hợp lệ
+      if (!address || !address.ward || !address.city) {
+        return res.status(400).json({
+          success: false,
+          message: "Ward/Commune and City are required for employees",
+        });
+      }
+      user.address = address;
+
       user.parents = []; // Employee không cần parents
       user.isAdultStudent = undefined; // Employee không cần isAdultStudent
     }
@@ -228,7 +237,8 @@ export const updateUser = async (req, res) => {
 
     // Xử lý cho student
     if (user.role === "student") {
-      const newIsAdultStudent = isAdultStudent !== undefined ? isAdultStudent : user.isAdultStudent;
+      const newIsAdultStudent =
+        isAdultStudent !== undefined ? isAdultStudent : user.isAdultStudent;
       user.isAdultStudent = newIsAdultStudent;
       user.degree = undefined; // Student không cần degree
       user.experience = undefined; // Student không cần experience
@@ -252,7 +262,10 @@ export const updateUser = async (req, res) => {
         }
 
         // Tìm parent mới
-        const parent = await User.findOne({ phoneNumber: parentPhoneNumber, role: "parent" });
+        const parent = await User.findOne({
+          phoneNumber: parentPhoneNumber,
+          role: "parent",
+        });
         if (!parent) {
           return res.status(400).json({
             success: false,
@@ -325,16 +338,6 @@ export const updateUser = async (req, res) => {
         user.address = address;
       }
     }
-
-    // Xử lý cho consultant
-    if (user.role === "consultant") {
-      user.address = undefined;
-      user.parents = [];
-      user.isAdultStudent = undefined;
-      user.degree = undefined;
-      user.experience = undefined;
-    }
-
     // Lưu user
     await user.save();
 
@@ -577,7 +580,8 @@ export const createEmployeeAccount = async (req, res) => {
 
 export const createParentAccount = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phoneNumber, address, role } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, address, role } =
+      req.body;
 
     // Validate basic
     if (!firstName || !lastName || !email || !password) {
@@ -846,7 +850,6 @@ export const createStudentAccount = async (req, res) => {
     });
   }
 };
-
 
 // Api get student and parent data
 export const getUser = async (req, res) => {
