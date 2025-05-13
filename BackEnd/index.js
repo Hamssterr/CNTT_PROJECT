@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet'; 
 import cors from 'cors';
 import bodyParser from "body-parser";
+import mongoose from "mongoose";
 
 import {connectDB} from "./Src/lib/db.js"; // Import kết nối DB
 import authRoutes from "./Src/routes/auth.routes.js";
@@ -51,11 +52,30 @@ app.use("/api/consultant", consultantRouter);
 app.use("/api/academic-finance", financeRouter);
 app.use("/api/banner", bannerRoutes);
 
-app.get("/", (req, res) => {
-    res.status(200).json({
-        message: "Welcome to the API",
-        status: "success",
-    });
+app.get("/", async (req, res) => {
+  const dbStatus = mongoose.connection.readyState; // 0 = disconnected, 1 = connected
+
+  let statusText = "Unknown";
+  switch (dbStatus) {
+    case 0:
+      statusText = "Disconnected";
+      break;
+    case 1:
+      statusText = "Connected";
+      break;
+    case 2:
+      statusText = "Connecting";
+      break;
+    case 3:
+      statusText = "Disconnecting";
+      break;
+  }
+
+  res.status(200).json({
+    message: "Welcome to the API",
+    dbConnection: statusText,
+    dbReadyState: dbStatus,
+  });
 });
 
 // Middleware xử lý lỗi chung
