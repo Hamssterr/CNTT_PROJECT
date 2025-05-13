@@ -54,7 +54,7 @@ function StudentProfile() {
       <Navbar />
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar />
-        <div className="flex-1 p-8 ml-20">
+        <div className="flex-1 p-8 ml-25">
           <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-8">
             Student Profiles
           </h1>

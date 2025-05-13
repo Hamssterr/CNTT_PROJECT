@@ -18,7 +18,6 @@ export const addNewClass = async (req, res) => {
   const {
     className,
     teacher,
-    students,
     startDate,
     classTime,
     startTime,
@@ -27,7 +26,6 @@ export const addNewClass = async (req, res) => {
   if (
     !className ||
     !teacher ||
-    !students ||
     !startDate ||
     !classTime ||
     !startTime ||
@@ -49,7 +47,6 @@ export const addNewClass = async (req, res) => {
     const newClass = new ClassModel({
       className,
       teacher,
-      students,
       startDate,
       classTime,
       startTime,
@@ -101,7 +98,6 @@ export const updateClass = async (req, res) => {
   const {
     className,
     teacher,
-    students,
     startDate,
     classTime,
     startTime,
@@ -121,7 +117,6 @@ export const updateClass = async (req, res) => {
       {
         className,
         teacher,
-        students,
         startDate,
         classTime,
         startTime,

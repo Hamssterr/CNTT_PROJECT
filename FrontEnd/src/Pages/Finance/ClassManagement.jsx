@@ -21,7 +21,20 @@ const ClassManagement = () => {
   const [selectedDays, setSelectedDays] = useState([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [leadUsers, setLeadUsers] = useState([]);
 
+  const fetchLeadUsers = async () => {
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/consultant/getLeadUsers`
+      );
+      if (data.success) {
+        setLeadUsers(data.leadUsers);
+      }
+    } catch (error) {
+      console.error("Failed to fetch lead users:", error);
+    }
+  };
   const { backendUrl } = useContext(AppContext);
 
   // Fetch classes
@@ -43,10 +56,10 @@ const ClassManagement = () => {
   const fetchTeachers = async () => {
     try {
       const { data } = await axios.get(
-        `${backendUrl}/api/academic-finance/getTeachers`
+        `${backendUrl}/api/admin/getInstructors`
       );
       if (data.success) {
-        setTeachers(data.teachers);
+        setTeachers(data.instructors);
       } else {
         Swal.fire(
           "Error",
@@ -77,7 +90,20 @@ const ClassManagement = () => {
     fetchClasses();
     fetchTeachers();
     fetchCourses(); // Fetch courses when component mounts
+    fetchLeadUsers(); // Fetch lead users when component mounts
   }, []);
+
+  const getStudentCount = (className) => {
+    return leadUsers.filter((lead) => lead.course === className).length;
+  };
+
+  const getAvailableCourses = () => {
+    // Lấy danh sách tên lớp đã được tạo
+    const existingClasses = classes.map((cls) => cls.className);
+
+    // Lọc ra những khóa học chưa được sử dụng
+    return courses.filter((course) => !existingClasses.includes(course.title));
+  };
 
   // Open modal for adding a new class
   const handleAddNew = () => {
@@ -120,7 +146,6 @@ const ClassManagement = () => {
       if (
         !selectedClass.className ||
         !selectedClass.teacher ||
-        !selectedClass.students ||
         !selectedClass.startDate ||
         !startTime ||
         !endTime ||
@@ -133,7 +158,6 @@ const ClassManagement = () => {
       const classData = {
         className: selectedClass.className,
         teacher: selectedClass.teacher,
-        students: selectedClass.students,
         startDate: new Date(selectedClass.startDate).getTime(),
         classTime: selectedDays.join(", "),
         startTime,
@@ -248,7 +272,7 @@ const ClassManagement = () => {
                     Teacher
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
-                    Students
+                    Total Students
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
                     Start Date
@@ -271,7 +295,7 @@ const ClassManagement = () => {
                       {cls.teacher}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
-                      {cls.students}
+                      {getStudentCount(cls.className)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
                       {new Date(cls.startDate).toLocaleDateString()}
@@ -345,12 +369,17 @@ const ClassManagement = () => {
                       <option value="" disabled>
                         Select a course
                       </option>
-                      {courses.map((course) => (
+                      {getAvailableCourses().map((course) => (
                         <option key={course._id} value={course.title}>
                           {course.title}
                         </option>
                       ))}
                     </select>
+                    {getAvailableCourses().length === 0 && (
+                      <p className="mt-1 text-sm text-red-500">
+                        All courses have been assigned to classes
+                      </p>
+                    )}
                   </div>
 
                   {/* Other fields remain unchanged */}
@@ -378,24 +407,6 @@ const ClassManagement = () => {
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  {/* Number of Students */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Number of Students
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      value={selectedClass.students}
-                      onChange={(e) =>
-                        setSelectedClass({
-                          ...selectedClass,
-                          students: e.target.value,
-                        })
-                      }
-                    />
                   </div>
 
                   {/* Start Date */}
