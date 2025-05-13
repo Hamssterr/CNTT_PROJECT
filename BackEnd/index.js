@@ -87,7 +87,12 @@ app.use((err, req, res, next) => {
     .json({ message: "Something went wrong!", error: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log("Server is running on PORT: " + PORT);
-  connectDB();
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log("Server is running on PORT:", PORT);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB:", err.message);
+  });
