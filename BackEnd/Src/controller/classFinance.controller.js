@@ -148,3 +148,37 @@ export const updateClass = async (req, res) => {
     });
   }
 };
+
+export const checkTeacherAvailability = async (req, res) => {
+  try {
+    const { days, startTime, endTime } = req.body;
+
+    // Tìm các lớp có giáo viên trùng khung giờ
+    const conflictingClasses = await Class.find({
+      classTime: { $in: days }, // Trùng ngày
+      $or: [
+        { startTime: { $lt: endTime, $gte: startTime } }, // Trùng giờ bắt đầu
+        { endTime: { $gt: startTime, $lte: endTime } }, // Trùng giờ kết thúc
+      ],
+    });
+
+    // Lấy danh sách giáo viên đang bận
+    const busyTeachers = conflictingClasses.map((cls) => cls.teacher);
+
+    // Trả về danh sách giáo viên trống
+    const availableTeachers = await Teacher.find({
+      _id: { $nin: busyTeachers },
+    });
+
+    res.status(200).json({
+      success: true,
+      teachers: availableTeachers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to check teacher availability.",
+      error: error.message,
+    });
+  }
+};

@@ -101,7 +101,7 @@ const Navbar = () => {
       {/* Logo */}
       <Link to="/" className="flex items-center">
         <img src={logo} alt="logo" className="w-10 h-10" />
-        <p className="ml-10 text-xl font-bold">Consultant Portal</p>
+        <p className="ml-15 text-xl font-bold">Academic-Finance Portal</p>
       </Link>
 
       {/* Right Menu */}

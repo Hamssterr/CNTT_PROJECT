@@ -391,15 +391,40 @@ export const deleteUser = async (req, res) => {
 export const getInstructors = async (req, res) => {
   try {
     const instructors = await User.find({ role: "teacher" }).select(
-      "_id firstName lastName"
+      "_id firstName lastName email phoneNumber degree experience"
     );
 
-    res.status(200).json({
-      success: true,
-      instructors: instructors.map((instructor) => ({
+    const formattedInstructors = instructors.map((instructor) => {
+      const totalExperienceYears = instructor.experience.reduce(
+        (total, exp) => {
+          const startDate = new Date(exp.startDate);
+          const endDate = exp.endDate ? new Date(exp.endDate) : new Date();
+          const experienceYears =
+            endDate.getFullYear() - startDate.getFullYear();
+          return total + experienceYears;
+        },
+        0
+      );
+      const degreeNames = instructor.degree.map((deg) => deg.name);
+
+      return {
         _id: instructor._id,
         name: `${instructor.firstName} ${instructor.lastName}`,
-      })),
+        email: instructor.email,
+        phoneNumber: instructor.phoneNumber,
+        degrees: degreeNames, // Danh sách tên bằng cấp
+        experienceYears: Math.floor(totalExperienceYears), // Tổng số năm kinh nghiệm (làm tròn 1 chữ số thập phân)
+      };
+    });
+
+    res.status(200).json({
+      // success: true,
+      // instructors: instructors.map((instructor) => ({
+      //   _id: instructor._id,
+      //   name: `${instructor.firstName} ${instructor.lastName}`,
+      // })),
+      success: true,
+      instructors: formattedInstructors,
     });
   } catch (error) {
     console.error("Error fetching instructors:", error);

@@ -39,7 +39,6 @@ const ClassManagement = () => {
       Swal.fire("Error", "Failed to fetch classes.", "error");
     }
   };
-
   // Fetch teachers
   const fetchTeachers = async () => {
     try {
@@ -174,12 +173,48 @@ const ClassManagement = () => {
     }
   };
 
+  // Thêm hàm handleDelete
+  const handleDelete = async (classId) => {
+    try {
+      // Hiển thị thông báo xác nhận trước khi xóa
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      });
+
+      if (result.isConfirmed) {
+        // Gửi yêu cầu xóa lớp học
+        const response = await axios.delete(
+          `${backendUrl}/api/academic-finance/deleteClass/${classId}`
+        );
+
+        if (response.data.success) {
+          Swal.fire("Deleted!", "The class has been deleted.", "success");
+          fetchClasses(); // Cập nhật danh sách lớp học sau khi xóa
+        } else {
+          Swal.fire(
+            "Error",
+            response.data.message || "Failed to delete the class.",
+            "error"
+          );
+        }
+      }
+    } catch (error) {
+      Swal.fire("Error", "Operation failed. Please try again.", "error");
+    }
+  };
+
   return (
     <div>
       <NavBar />
       <div className="flex min-h-screen bg-gray-100">
         <SideBar />
-        <div className="flex-1 p-8 ml-20">
+        <div className="flex-1 p-8 ml-25">
           <div className="mb-6 flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800">
               Class Management

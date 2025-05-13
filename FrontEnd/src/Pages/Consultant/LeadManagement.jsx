@@ -48,6 +48,7 @@ function LeadManagement() {
   const [addNew, setAddNew] = useState(false);
   const [leadsData, setLeadsData] = useState([]);
   const { leads, setLeads, backendUrl } = useContext(AppContext);
+  const [courses, setCourses] = useState([]); // State to store courses
 
   const availableCourses = [
     { id: 1, name: "Web Development" },
@@ -63,12 +64,14 @@ function LeadManagement() {
   // Fetch courses data
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("/api/courses");
-      if (response.data.success) {
-        setAvailableCourses(response.data.courses);
+      const { data } = await axios.get(`${backendUrl}/api/course/getAllCourse`);
+      if (data.success) {
+        setCourses(data.courses);
+      } else {
+        Swal.fire("Error", data.message || "Failed to fetch courses.", "error");
       }
     } catch (error) {
-      console.error("Failed to fetch courses:", error);
+      Swal.fire("Error", "Failed to fetch courses.", "error");
     }
   };
 
@@ -317,9 +320,9 @@ function LeadManagement() {
               }
             >
               <option value="">Select a course</option>
-              {availableCourses.map((course) => (
-                <option key={course.id} value={course.name}>
-                  {course.name}
+              {courses.map((course) => (
+                <option key={course.id} value={course.title}>
+                  {course.title}
                 </option>
               ))}
             </select>

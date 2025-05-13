@@ -1,7 +1,17 @@
 import express from "express";
 
-import { getClasses, addNewClass, deleteClass, updateClass } from "../controller/classFinance.controller.js";
-import { getTeachers, addNewTeacher, updateTeacher } from "../controller/teacherFinance.controller.js";
+import {
+  getClasses,
+  addNewClass,
+  deleteClass,
+  updateClass,
+  checkTeacherAvailability,
+} from "../controller/classFinance.controller.js";
+import {
+  getTeachers,
+  addNewTeacher,
+  updateTeacher,
+} from "../controller/teacherFinance.controller.js";
 import { verifyFinance } from "../middleware/verifyFinance.js";
 
 const financeRouter = express.Router();
@@ -13,4 +23,9 @@ financeRouter.put("/updateClass/:id", verifyFinance, updateClass);
 financeRouter.get("/getTeachers", verifyFinance, getTeachers);
 financeRouter.post("/addNewTeacher", verifyFinance, addNewTeacher);
 financeRouter.put("/updateTeacher/:id", verifyFinance, updateTeacher);
+financeRouter.post(
+  "/checkTeacherAvailability",
+  verifyFinance,
+  checkTeacherAvailability
+);
 export default financeRouter;
