@@ -6,17 +6,6 @@ const InformationSection = ({ formData, setFormData }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
           type="text"
-          placeholder="First Name"
-          value={formData.firstName}
-          onChange={(e) =>
-            setFormData({ ...formData, firstName: e.target.value })
-          }
-          className="border p-2 rounded-md w-full"
-          required
-          autoComplete="given-name"
-        />
-        <input
-          type="text"
           placeholder="Last Name"
           value={formData.lastName}
           onChange={(e) =>
@@ -25,6 +14,17 @@ const InformationSection = ({ formData, setFormData }) => {
           className="border p-2 rounded-md w-full"
           required
           autoComplete="family-name"
+        />
+        <input
+          type="text"
+          placeholder="First Name"
+          value={formData.firstName}
+          onChange={(e) =>
+            setFormData({ ...formData, firstName: e.target.value })
+          }
+          className="border p-2 rounded-md w-full"
+          required
+          autoComplete="given-name"
         />
       </div>
 
@@ -58,7 +58,6 @@ const InformationSection = ({ formData, setFormData }) => {
         className="border p-2 rounded-md w-full"
         autoComplete="tel"
       />
-      
     </div>
   );
 };

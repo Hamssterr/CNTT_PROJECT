@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Search, ChevronUp, Pencil, UserPlus, Trash2 } from "lucide-react";
+import { Search, ChevronUp, Pencil, UserPlus, Trash2, Eye } from "lucide-react";
 import { AppContext } from "../../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../../Loading";
 import AddCourseModal from "./AddCourseModal";
 import DeleteCourseModal from "./DeleteCourseModal";
+import ViewCourseModal from "./ViewCourseModal";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -13,7 +14,14 @@ const TABS = [
   { label: "Newest", value: "newStudent" },
 ];
 
-const TABLE_HEAD = ["Image", "Title", "Teacher","Status", "Create At", "Update & Delete"];
+const TABLE_HEAD = [
+  "Image",
+  "Title",
+  "Teacher",
+  "Status",
+  "Create At",
+  "Function",
+];
 
 const CourseTableList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,6 +36,7 @@ const CourseTableList = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -133,7 +142,7 @@ const CourseTableList = () => {
     }
   }, [backendUrl]);
 
-  // filter course 
+  // filter course
   useEffect(() => {
     let filtered = courseData;
 
@@ -149,7 +158,6 @@ const CourseTableList = () => {
     setFilteredCourses(filtered);
     setCurrentPage(1);
   }, [searchQuery, courseData]);
-
 
   // Page split
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -187,9 +195,7 @@ const CourseTableList = () => {
         toast.error(data.message || "Can not update status course");
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Error. Please try again."
-      );
+      toast.error(error.response?.data?.message || "Error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -252,6 +258,15 @@ const CourseTableList = () => {
       setCourseToDelete(null);
     }
   };
+
+const handleView = (course) => {
+  if (!course || !course._id) {
+    toast.error("Invalid course data");
+    return;
+  }
+  setSelectedCourseId(course); // Lưu toàn bộ đối tượng course
+  setShowDetailModal(true);
+};
 
   const openDeleteModal = (course) => {
     setCourseToDelete(course);
@@ -384,6 +399,16 @@ const CourseTableList = () => {
           setCourseToDelete(null);
         }}
         onConfirm={handleDeleteCourse}
+      />
+
+      <ViewCourseModal 
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedCourseId(null);
+        }}
+        course={selectedCourseId}
+        instructorList={instructors}
       />
 
       {/* Header */}
@@ -529,29 +554,40 @@ const CourseTableList = () => {
 
                       <td className={classes}>
                         <span className="text-sm text-gray-600">
-                        {course.createdAt
-                          ? new Date(course.createdAt).toLocaleDateString("vi-VN", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            })
-                          : "No Date"}
+                          {course.createdAt
+                            ? new Date(course.createdAt).toLocaleDateString(
+                                "vi-VN",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }
+                              )
+                            : "No Date"}
                         </span>
                       </td>
 
                       <td className={classes}>
-                        <button
-                          className="text-gray-600 hover:text-blue-600 transition"
-                          onClick={() => handleEditCourse(course)}
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          className="pl-2 text-red-600 hover:text-red-800 transition"
-                          onClick={() => openDeleteModal(course)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="p-2 rounded hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition"
+                            onClick={() => handleView(course)}
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            className="p-2 rounded hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition"
+                            onClick={() => handleEditCourse(course)}
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            className="p-2 rounded hover:bg-red-100 text-red-600 hover:text-red-700 transition"
+                            onClick={() => openDeleteModal(course)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

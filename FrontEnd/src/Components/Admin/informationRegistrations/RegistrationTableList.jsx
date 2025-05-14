@@ -82,7 +82,7 @@ const RegistrationTableList = () => {
   const handleView = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/admin/${id}`, {
+      const response = await axios.get(`${backendUrl}/api/admin/registrations/${id}`, {
         withCredentials: true,
       });
       if (response.data.success) {
