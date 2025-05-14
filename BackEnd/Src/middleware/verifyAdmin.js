@@ -6,7 +6,7 @@ export const verifyAdmin = (req, res, next) => {
   if (!token) {
     return res
       .status(401)
-      .json({ message: "No token provided, please log in" });
+      .json({ message: "No token provided, please log in as ADMIN" });
   }
 
   try {
