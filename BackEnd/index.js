@@ -15,6 +15,7 @@ import teacherRoutes from "./Src/routes/teacher.routes.js";
 import consultantRouter from "./Src/routes/consultant.routes.js";
 import financeRouter from "./Src/routes/finance.routes.js";
 import bannerRoutes from "./Src/routes/banner.routes.js"
+import classRoutes from "./Src/routes/class.routes.js"
 
 dotenv.config();
 const app = express();
