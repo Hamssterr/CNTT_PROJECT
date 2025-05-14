@@ -14,7 +14,7 @@ import courseRoutes from "./Src/routes/course.routes.js";
 import teacherRoutes from "./Src/routes/teacher.routes.js";
 import consultantRouter from "./Src/routes/consultant.routes.js";
 import financeRouter from "./Src/routes/finance.routes.js";
-import bannerRoutes from "./Src/routes/banner.routes.js";
+import bannerRoutes from "./Src/routes/banner.routes.js"
 
 dotenv.config();
 const app = express();
@@ -51,6 +51,7 @@ app.use("/api/teacher", teacherRoutes);
 app.use("/api/consultant", consultantRouter);
 app.use("/api/academic-finance", financeRouter);
 app.use("/api/banner", bannerRoutes);
+app.use("/api/class", classRoutes);
 
 app.get("/", async (req, res) => {
   const dbStatus = mongoose.connection.readyState; // 0 = disconnected, 1 = connected

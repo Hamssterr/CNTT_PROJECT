@@ -22,6 +22,8 @@ import {
   updateCourseById,
   registrations,
   getRegistration,
+  registerEnrollStudent,
+  removeEnrollStudent,
 } from "../controller/course.controller.js";
 
 import {
@@ -31,6 +33,8 @@ import {
   deleteBanner,
   getBannerById,
 } from "../controller/banner.controller.js";
+
+import {createClass, getClasses, updateClass, deleteClass} from "../controller/class.controller.js"
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
@@ -79,6 +83,10 @@ router.put(
   updateCourseById
 );
 
+router.post("/registerEnrollStudent/:id", verifyAdmin, registerEnrollStudent);
+
+router.delete("/:id/removeEnrollStudent", verifyAdmin, removeEnrollStudent)
+
 // get Instructors
 
 router.get("/getInstructors", verifyAdmin, getInstructors);
@@ -103,5 +111,15 @@ router.get("/getBannerById/:id", verifyAdmin, getBannerById);
 router.put("/updateBanner/:id", verifyAdmin, cloudinaryFileUploader.single("backgroundImage") ,updateBanner);
 
 router.delete("/deleteBanner/:id", verifyAdmin, deleteBanner);
+
+// Class Management
+
+router.post("/createClass", verifyAdmin, createClass)
+
+router.get("/getClasses", verifyAdmin, getClasses);
+
+router.put("/updateClass/:id", verifyAdmin, updateClass)
+
+router.delete("/deleteClass/id", verifyAdmin, deleteClass)
 
 export default router;

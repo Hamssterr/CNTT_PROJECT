@@ -1,7 +1,8 @@
 import Course from "../model/course.model.js";
+import User from "../model/user.model.js";
 import RegisterCourse from "../model/registerCourse.model.js";
+import Class from "../model/class.model.js";
 import mongoose from "mongoose";
-
 
 export const createCourse = async (req, res) => {
   try {
@@ -30,14 +31,14 @@ export const createCourse = async (req, res) => {
       category,
       level,
       duration: duration ? JSON.parse(duration) : {},
-      price: Number(price),
+      price: Number(price) || 0,
       currency,
       status,
       content: content ? JSON.parse(content) : [],
       schedule: schedule ? JSON.parse(schedule) : { daysOfWeek: [], shift: "" },
       target: target ? JSON.parse(target) : [],
       thumbnail: thumbnailUrl,
-      maxEnrollment: Number(maxEnrollment),
+      maxEnrollment: Number(maxEnrollment) || 0,
     });
 
     await newCourse.save();
@@ -58,39 +59,41 @@ export const createCourse = async (req, res) => {
 
 export const getAllCourse = async (req, res) => {
   try {
-    const courses = await Course.find().sort({createdAt: -1});
+    const courses = await Course.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       message: "Fetched all courses",
-      courses
-    })
+      courses,
+    });
   } catch (error) {
     console.log("Error fetching courses", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch courses"
-    })    
+      message: "Failed to fetch courses",
+    });
   }
-}
+};
 
 export const getAllCourseForPublicRoute = async (req, res) => {
   try {
-    const courses = await Course.find({ status: "Active" }).sort({createdAt: -1});
+    const courses = await Course.find({ status: "Active" }).sort({
+      createdAt: -1,
+    });
 
     res.status(200).json({
       success: true,
       message: "Fetched all courses",
-      courses
-    })
+      courses,
+    });
   } catch (error) {
     console.log("Error fetching courses", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch courses"
-    })    
+      message: "Failed to fetch courses",
+    });
   }
-}
+};
 
 export const getCourseById = async (req, res) => {
   try {
@@ -151,7 +154,9 @@ export const updateCourseById = async (req, res) => {
 
     //  Kiểm tra ID có hợp lệ không
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: "Invalid course ID" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid course ID" });
     }
 
     const updateData = { ...req.body };
@@ -182,13 +187,17 @@ export const updateCourseById = async (req, res) => {
 
     if (updateData.target && typeof updateData.target === "string") {
       updateData.target = JSON.parse(updateData.target);
-    }    
+    }
 
     //  Tiến hành cập nhật
-    const updatedCourse = await Course.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedCourse = await Course.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updatedCourse) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
     res.status(200).json({ success: true, course: updatedCourse });
@@ -198,19 +207,189 @@ export const updateCourseById = async (req, res) => {
   }
 };
 
+export const registerEnrollStudent = async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    const { id: courseId } = req.params;
+
+    // Kiểm tra phoneNumber được cung cấp
+    if (!phoneNumber) {
+      res.status(400);
+      throw new Error("Phone number is required");
+    }
+
+    // Tìm user bằng phoneNumber và kiểm tra role
+    const user = await User.findOne({ phoneNumber, role: "student" });
+    if (!user) {
+      res.status(404);
+      throw new Error("No student found with this phone number");
+    }
+
+    // Kiểm tra khóa học tồn tại
+    const course = await Course.findById(courseId);
+    if (!course) {
+      res.status(404);
+      throw new Error("Course not found");
+    }
+
+    // Kiểm tra trạng thái khóa học
+    if (course.status !== "Active") {
+      res.status(400);
+      throw new Error("Course is not active");
+    }
+
+    // Kiểm tra xem học viên đã đăng ký khóa học chưa
+    const alreadyEnrolled = course.enrolledUsers.some(
+      (enrolled) => enrolled.userId.toString() === user._id.toString()
+    );
+    if (alreadyEnrolled) {
+      res.status(400);
+      throw new Error("User already enrolled in this course");
+    }
+
+    // Kiểm tra giới hạn maxEnrollment
+    if (
+      course.maxEnrollment &&
+      course.enrolledUsers.length >= course.maxEnrollment
+    ) {
+      res.status(400);
+      throw new Error("Course has reached maximum enrollment");
+    }
+
+    // Thêm học viên vào khóa học
+    course.enrolledUsers.push({
+      userId: user._id,
+      email: user.email,
+      enrolledDate: new Date(),
+      progress: 0,
+    });
+
+    // Tìm lớp học liên kết (nếu có) và thêm học viên
+    const classObj = await Class.findOne({ courseId: course._id });
+    if (classObj) {
+      // Kiểm tra xem học viên đã có trong lớp chưa
+      const alreadyInClass = classObj.students.some(
+        (student) => student.userId.toString() === user._id.toString()
+      );
+      if (alreadyInClass) {
+        res.status(400);
+        throw new Error("User already enrolled in the associated class");
+      }
+
+      // Thêm học viên vào lớp học
+      classObj.students.push({
+        userId: user._id,
+        enrolledDate: new Date(),
+        progress: 0,
+      });
+
+      await classObj.save();
+    }
+
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Student enrolled successfully",
+      course,
+    });
+  } catch (error) {
+    console.error("Register enrolled student Error:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 export const registerCourse = async (req, res) => {
   const { courseId, name, email, phoneNumber } = req.body;
 
   try {
-    const newRegistration = new RegisterCourse({ courseId, name, email, phoneNumber });
+    const newRegistration = new RegisterCourse({
+      courseId,
+      name,
+      email,
+      phoneNumber,
+    });
     await newRegistration.save();
 
-    res.status(200).json({ success: true, message: "Registration successful!" });
+    res
+      .status(200)
+      .json({ success: true, message: "Registration successful!" });
   } catch (err) {
     console.error("Error registering:", err);
-    res.status(500).json({ success: false, message: "Server error. Try again." });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error. Try again." });
   }
-}
+};
+
+export const removeEnrollStudent = async (req, res) => {
+  const { courseId } = req.params;
+  const { userId } = req.body;
+
+  // Kiểm tra khóa học tồn tại
+  const course = await Course.findById(courseId);
+  if (!course) {
+    res.status(404);
+    throw new Error("Course not found");
+  }
+
+  // Kiểm tra học viên tồn tại
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Kiểm tra xem học viên đã đăng ký khóa học chưa
+  const alreadyEnrolled = course.enrolledUsers.some(
+    (enrolled) => enrolled.userId.toString() === userId.toString()
+  );
+  if (alreadyEnrolled) {
+    res.status(400);
+    throw new Error("User is already enrolled in this course");
+  }
+
+  // Kiểm tra giới hạn maxEnrollment
+  if (
+    course.maxEnrollment &&
+    course.enrolledUsers.length >= course.maxEnrollment
+  ) {
+    res.status(400);
+    throw new Error("Course has reached maximum enrollment");
+  }
+
+  // Thêm học viên vào khóa học
+  course.enrolledUsers.push({
+    userId,
+    enrolledDate: new Date(),
+    progress: 0,
+  });
+
+  // Đồng bộ với Class (nếu có)
+  const classObj = await Class.findOne({ courseId });
+  if (classObj) {
+    // Kiểm tra xem học viên đã có trong lớp chưa
+    const alreadyInClass = classObj.students.some(
+      (student) => student.userId.toString() === userId.toString()
+    );
+    if (!alreadyInClass) {
+      classObj.students.push({
+        userId,
+        enrolledDate: new Date(),
+        progress: 0,
+      });
+      await classObj.save();
+    }
+  }
+
+  await course.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Student enrolled successfully",
+    course,
+  });
+};
 
 export const registrations = async (req, res) => {
   try {
@@ -226,14 +405,18 @@ export const registrations = async (req, res) => {
     console.error("Error fetching registrations:", err);
     res.status(500).json({ success: false, message: "Server error." });
   }
-}
+};
 
 export const getRegistration = async (req, res) => {
   try {
-    const registration = await RegisterCourse.findById(req.params.id).populate("courseId");
+    const registration = await RegisterCourse.findById(req.params.id).populate(
+      "courseId"
+    );
 
     if (!registration) {
-      return res.status(404).json({ success: false, message: "Registration not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Registration not found" });
     }
 
     res.json({ success: true, data: registration });
@@ -241,4 +424,4 @@ export const getRegistration = async (req, res) => {
     console.error("Error fetching registration:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
-}
+};
