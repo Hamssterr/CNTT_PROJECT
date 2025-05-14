@@ -16,31 +16,31 @@ const Sidebar = () => {
   // Define sidebar items with corresponding paths
   const sidebarItems = [
     {
-      path: "/academic-finance/schedule",
-      icon: BookOpen,
-      label: ["My", "Schedule"],
-      singleLine: false,
+      path: "/teacher/dashboard",
+      icon: Home,
+      label: "Dashboard",
+      singleLine: true,
     },
     {
-      path: "/academic-finance/my-classes",
+      path: "/teacher/notification",
       icon: BookOpen,
-      label: ["My", "Class"],
-      singleLine: false,
+      label: "Notification",
+      singleLine: true,
     },
     {
-      path: "/academic-finance/lecture-materials",
+      path: "/teacher/my-classes",
       icon: User,
-      label: ["Lecture", "Material"],
+      label: ["My", "Classes"],
       singleLine: false,
     },
     {
-      path: "/academic-finance/notification",
+      path: "/teacher/lecture-materials",
       icon: Users,
-      label: ["Student", "Profiles"],
+      label: ["Lecture", "Materials"],
       singleLine: false,
     },
     {
-      path: "/academic-finance/attendance",
+      path: "/teacher/attendance",
       icon: ClipboardList,
       label: "Attendance",
       singleLine: true,
