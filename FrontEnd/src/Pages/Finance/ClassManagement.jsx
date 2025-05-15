@@ -46,7 +46,7 @@ const ClassManagement = () => {
       if (data.success) {
         setClasses(data.classes);
       } else {
-        Swal.fire("Error", data.message || "Failed to fetch classes.", "error");
+        Swal.fire("Error", data.message || "Failed to fetch classes, please try again.", "error");
       }
     } catch (error) {
       Swal.fire("Error", "Failed to fetch classes.", "error");
