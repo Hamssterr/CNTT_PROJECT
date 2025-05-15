@@ -1,5 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Search, ChevronUp, Pencil, UserPlus, Trash2, Eye } from "lucide-react";
+import {
+  Search,
+  ChevronUp,
+  Pencil,
+  UserPlus,
+  Trash2,
+  Eye,
+  Plus,
+} from "lucide-react";
 import { AppContext } from "../../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -7,6 +15,7 @@ import Loading from "../../Loading";
 import AddCourseModal from "./AddCourseModal";
 import DeleteCourseModal from "./DeleteCourseModal";
 import ViewCourseModal from "./ViewCourseModal";
+import AddEnrolledStudentModal from "./EnrolledStudent/AddEnrolledStudentModal";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -37,6 +46,7 @@ const CourseTableList = () => {
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showAddEnrolledStudent, setShowAddEnrolledStudent] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -228,6 +238,11 @@ const CourseTableList = () => {
     setShowAddModal(true);
   };
 
+  const handleAddEnrolledStudent = (course) => {
+    setSelectedCourseId(course._id);
+    setShowAddEnrolledStudent(true);
+  };
+
   const handleDeleteCourse = async () => {
     if (!courseToDelete) return;
 
@@ -259,14 +274,14 @@ const CourseTableList = () => {
     }
   };
 
-const handleView = (course) => {
-  if (!course || !course._id) {
-    toast.error("Invalid course data");
-    return;
-  }
-  setSelectedCourseId(course); // Lưu toàn bộ đối tượng course
-  setShowDetailModal(true);
-};
+  const handleView = (course) => {
+    if (!course || !course._id) {
+      toast.error("Invalid course data");
+      return;
+    }
+    setSelectedCourseId(course); // Lưu toàn bộ đối tượng course
+    setShowDetailModal(true);
+  };
 
   const openDeleteModal = (course) => {
     setCourseToDelete(course);
@@ -351,6 +366,39 @@ const handleView = (course) => {
     }
   };
 
+  const handleSubmitEnrolledStudent = async (phoneNumber) => {
+    if (!selectedCourseId || !phoneNumber) {
+      toast.error("Course ID or phone number is missing");
+      return;
+    }
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+      const response = await axios.post(
+        `${backendUrl}/api/admin/registerEnrollStudent/${selectedCourseId}`,
+        { phoneNumber },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { data } = response;
+      if (data.success) {
+        toast.success(data.message || "Student enrolled successfully");
+        await fetchingCourseData();
+        setShowAddEnrolledStudent(false);
+        setSelectedCourseId(null);
+      } else {
+        toast.error(data.message || "Failed to enroll student");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to enroll student");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -401,7 +449,7 @@ const handleView = (course) => {
         onConfirm={handleDeleteCourse}
       />
 
-      <ViewCourseModal 
+      <ViewCourseModal
         isOpen={showDetailModal}
         onClose={() => {
           setShowDetailModal(false);
@@ -409,6 +457,19 @@ const handleView = (course) => {
         }}
         course={selectedCourseId}
         instructorList={instructors}
+        courses={courseData} // Truyền courseData
+        backendUrl={backendUrl} // Truyền backendUrl
+        fetchingCourseData={fetchingCourseData}
+      />
+
+      <AddEnrolledStudentModal
+        show={showAddEnrolledStudent}
+        onClose={() => {
+          setShowAddEnrolledStudent(false);
+          setSelectedCourseId(null);
+        }}
+        onSubmit={handleSubmitEnrolledStudent}
+        loading={loading}
       />
 
       {/* Header */}
@@ -432,7 +493,7 @@ const handleView = (course) => {
                 setShowAddModal(true);
               }}
             >
-              <UserPlus size={16} /> Add Course
+              <Plus size={16} /> Add Course
             </button>
           </div>
         </div>
@@ -581,6 +642,14 @@ const handleView = (course) => {
                           >
                             <Pencil size={16} />
                           </button>
+
+                          <button
+                            className="p-2 rounded hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition"
+                            onClick={() => handleAddEnrolledStudent(course)}
+                          >
+                            <UserPlus size={16} />
+                          </button>
+
                           <button
                             className="p-2 rounded hover:bg-red-100 text-red-600 hover:text-red-700 transition"
                             onClick={() => openDeleteModal(course)}
