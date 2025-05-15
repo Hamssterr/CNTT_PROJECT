@@ -8,7 +8,7 @@ import report from "./report.png";
 import project from "./project.png";
 import notification from "./notification.png";
 import person from "./person.png";
-import logo from "./logo.png";
+import logo from "./logo_2.png";
 import edit from "./edit.png";
 import logout from "./logout.png";
 import profile_picture from "./profile_picture.png";
