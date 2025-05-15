@@ -12,15 +12,34 @@ export const getClasses = async (req, res) => {
 
 export const createClass = async (req, res) => {
   try {
-    const { className, room, courseId, schedule } = req.body;
+    const { className, room, courseId } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!className || !room || !courseId) {
+      res.status(400).json({
+        success: false,
+        message: "Class name, room, and course ID are required",
+      });
+    }
 
     // Kiểm tra khóa học tồn tại
     const course = await Course.findById(courseId);
     if (!course) {
-      res.status(404);
-      throw new Error("Course not found");
+      res.status(404).json({ success: false, message: "Course not found" });
     }
 
+    // Kiểm tra schedule của khóa học
+    if (
+      !course.schedule ||
+      !course.schedule.daysOfWeek ||
+      !course.schedule.shift
+    ) {
+      res
+        .status(400)
+        .json({ success: false, message: "Course schedule is incomplete" });
+    }
+
+    // Kiểm tra lớp học đã tồn tại cho khóa học này
     const existingClass = await Class.findOne({ courseId });
     if (existingClass) {
       return res.status(400).json({
@@ -29,12 +48,23 @@ export const createClass = async (req, res) => {
       });
     }
 
+    // Tạo class mới chứa:....
     const classObj = new Class({
       className,
       room,
       courseId,
-      schedule,
-      students: [],
+      schedule: {
+        daysOfWeek: course.schedule.daysOfWeek,
+        shift: course.schedule.shift,
+      },
+      students: course.enrolledUsers.map((enrolled) => ({
+        userId: enrolled.userId, // String sẽ được Mongoose chuyển thành ObjectId
+        firstName: enrolled.firstName,
+        lastName: enrolled.lastName,
+        email: enrolled.email,
+        enrolledDate: enrolled.enrolledDate,
+        progress: enrolled.progress,
+      })),
     });
 
     const createdClass = await classObj.save();
@@ -42,59 +72,90 @@ export const createClass = async (req, res) => {
   } catch (error) {
     console.error("Error create class", error);
     res.status(400).json({
-      message: "Failed to create class",
       success: false,
+      message: "Failed to create class",
     });
   }
 };
 
 export const updateClass = async (req, res) => {
   try {
-    const { className, room, courseId, schedule } = req.body;
+    const { className, room, courseId } = req.body;
+    const { id: classId } = req.params;
 
-    const classObj = await Class.findById(req.params.id);
+    // Tìm lớp học
+    const classObj = await Class.findById(classId);
     if (!classObj) {
-      res.status(404);
-      throw new Error("Class not found");
+      res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
     }
 
     // Kiểm tra khóa học nếu courseId được cung cấp
-    if (courseId) {
+    if (courseId && courseId !== classObj.courseId.toString()) {
       const course = await Course.findById(courseId);
       if (!course) {
         res.status(404).json({
+          success: false,
           message: "Course not found",
-          success: false
         });
-        
+      }
+
+      // Kiểm tra schedule của khóa học
+      if (
+        !course.schedule ||
+        !course.schedule.daysOfWeek ||
+        !course.schedule.shift
+      ) {
+        res.status(400).json({
+          success: false,
+          message: "Course schedule is incomplete",
+        });
       }
 
       // Kiểm tra xem courseId đã được sử dụng trong lớp học khác chưa
-      if (courseId !== classObj.courseId.toString()) {
-        const existingClass = await Class.findOne({ courseId });
-        if (existingClass) {
-          res.status(400).json({
-            success: false,
-            message: "This course is already associated with another class",
-          });
-        }
+      const existingClass = await Class.findOne({
+        courseId,
+        _id: { $ne: classId },
+      });
+      if (existingClass) {
+        res.status(400).json({
+          success: false,
+          message: "This course is already associated with another class",
+        });
       }
+
+      // Cập nhật courseId và schedule
+      classObj.courseId = courseId;
+      classObj.schedule = {
+        daysOfWeek: course.schedule.daysOfWeek,
+        shift: course.schedule.shift,
+      };
+
+      // Đồng bộ students với enrolledUsers của course mới
+      classObj.students = course.enrolledUsers.map((enrolled) => ({
+        userId: enrolled.userId, // Chuyển String thành ObjectId tự động bởi Mongoose
+        email: enrolled.email,
+         firstName: enrolled.firstName,
+        lastName: enrolled.lastName,
+        enrolledDate: enrolled.enrolledDate,
+        progress: enrolled.progress,
+      }));
     }
 
-    // Cập nhật chỉ các trường được cung cấp
-    classObj.className = className || classObj.className;
-    classObj.room = room || classObj.room;
-    classObj.courseId = courseId || classObj.courseId;
-    classObj.schedule = schedule || classObj.schedule;
+    // Cập nhật các trường khác nếu được cung cấp
+    if (className) classObj.className = className;
+    if (room) classObj.room = room;
 
     const updatedClass = await classObj.save();
     res.json({ success: true, class: updatedClass });
   } catch (error) {
-    console.error("Error update class", error);
+    console.error("Error updated class", error);
 
     res.status(400).json({
-      message: "Failed to update class",
       success: false,
+      message: "Failed to updated class",
     });
   }
 };
@@ -103,8 +164,10 @@ export const deleteClass = async (req, res) => {
   try {
     const classObj = await Class.findById(req.params.id);
     if (!classObj) {
-      res.status(404);
-      throw new Error("Class not found");
+      res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
     }
 
     await classObj.remove();
@@ -113,8 +176,8 @@ export const deleteClass = async (req, res) => {
     console.error("Error deleted class", error);
 
     res.status(400).json({
-      message: "Failed to deleted class",
       success: false,
+      message: "Failed to deleted class",
     });
   }
 };

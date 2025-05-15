@@ -214,28 +214,36 @@ export const registerEnrollStudent = async (req, res) => {
 
     // Kiểm tra phoneNumber được cung cấp
     if (!phoneNumber) {
-      res.status(400);
-      throw new Error("Phone number is required");
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
     }
 
     // Tìm user bằng phoneNumber và kiểm tra role
     const user = await User.findOne({ phoneNumber, role: "student" });
     if (!user) {
-      res.status(404);
-      throw new Error("No student found with this phone number");
+      return res.status(404).json({
+        success: false,
+        message: "No student found with this phone number",
+      });
     }
 
     // Kiểm tra khóa học tồn tại
     const course = await Course.findById(courseId);
     if (!course) {
-      res.status(404);
-      throw new Error("Course not found");
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
     }
 
     // Kiểm tra trạng thái khóa học
     if (course.status !== "Active") {
-      res.status(400);
-      throw new Error("Course is not active");
+      return res.status(400).json({
+        success: false,
+        message: "Course is not active",
+      });
     }
 
     // Kiểm tra xem học viên đã đăng ký khóa học chưa
@@ -243,8 +251,10 @@ export const registerEnrollStudent = async (req, res) => {
       (enrolled) => enrolled.userId.toString() === user._id.toString()
     );
     if (alreadyEnrolled) {
-      res.status(400);
-      throw new Error("User already enrolled in this course");
+      return res.status(400).json({
+        success: false,
+        message: "User already enrolled in this course",
+      });
     }
 
     // Kiểm tra giới hạn maxEnrollment
@@ -252,13 +262,47 @@ export const registerEnrollStudent = async (req, res) => {
       course.maxEnrollment &&
       course.enrolledUsers.length >= course.maxEnrollment
     ) {
-      res.status(400);
-      throw new Error("Course has reached maximum enrollment");
+      return res.status(400).json({
+        success: false,
+        message: "Course has reached maximum enrollment",
+      });
+    }
+
+    // Kiểm tra xung đột lịch học
+    const enrolledCourses = await Course.find({
+      "enrolledUsers.userId": user._id.toString(),
+    });
+    const newCourseSchedule = course.schedule;
+    if (
+      newCourseSchedule &&
+      newCourseSchedule.daysOfWeek &&
+      newCourseSchedule.shift
+    ) {
+      for (const enrolledCourse of enrolledCourses) {
+        const enrolledSchedule = enrolledCourse.schedule;
+        if (
+          enrolledSchedule &&
+          enrolledSchedule.daysOfWeek &&
+          enrolledSchedule.shift === newCourseSchedule.shift
+        ) {
+          const hasConflict = enrolledSchedule.daysOfWeek.some((day) =>
+            newCourseSchedule.daysOfWeek.includes(day)
+          );
+          if (hasConflict) {
+            return res.status(400).json({
+              success: false,
+              message: `Schedule conflict: User is already enrolled in a course with the same shift (${newCourseSchedule.shift}) on overlapping days`,
+            });
+          }
+        }
+      }
     }
 
     // Thêm học viên vào khóa học
     course.enrolledUsers.push({
       userId: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       enrolledDate: new Date(),
       progress: 0,
@@ -272,13 +316,18 @@ export const registerEnrollStudent = async (req, res) => {
         (student) => student.userId.toString() === user._id.toString()
       );
       if (alreadyInClass) {
-        res.status(400);
-        throw new Error("User already enrolled in the associated class");
+        return res.status(400).json({
+          success: false,
+          message: "User already enrolled in the associated class",
+        });
       }
 
       // Thêm học viên vào lớp học
       classObj.students.push({
         userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
         enrolledDate: new Date(),
         progress: 0,
       });
@@ -288,14 +337,255 @@ export const registerEnrollStudent = async (req, res) => {
 
     await course.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Student enrolled successfully",
       course,
     });
   } catch (error) {
     console.error("Register enrolled student Error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const changeCourseEnrollStudent = async (req, res) => {
+  try {
+    const { userId, newCourseId } = req.body;
+    const { id: oldCourseId } = req.params;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!userId || !newCourseId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and new course ID are required",
+      });
+    }
+
+    // Tìm user bằng userId và kiểm tra role
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No student found with this user ID",
+      });
+    }
+    if (user.role !== "student") {
+      return res.status(400).json({
+        success: false,
+        message: "User is not a student",
+      });
+    }
+
+    // Kiểm tra khóa học cũ tồn tại
+    const oldCourse = await Course.findById(oldCourseId);
+    if (!oldCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Old course not found",
+      });
+    }
+
+    // Kiểm tra khóa học mới tồn tại
+    const newCourse = await Course.findById(newCourseId);
+    if (!newCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "New course not found",
+      });
+    }
+
+    // Kiểm tra trạng thái khóa học mới
+    if (newCourse.status !== "Active") {
+      return res.status(400).json({
+        success: false,
+        message: "New course is not active",
+      });
+    }
+
+    // Kiểm tra xem học viên có trong khóa học cũ không
+    const enrolledIndex = oldCourse.enrolledUsers.findIndex(
+      (enrolled) => enrolled.userId === user._id.toString()
+    );
+    if (enrolledIndex === -1) {
+      return res.status(400).json({
+        success: false,
+        message: "User is not enrolled in the old course",
+      });
+    }
+
+    // Kiểm tra xem học viên đã đăng ký khóa học mới chưa
+    const alreadyEnrolled = newCourse.enrolledUsers.some(
+      (enrolled) => enrolled.userId === user._id.toString()
+    );
+    if (alreadyEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: "User already enrolled in the new course",
+      });
+    }
+
+    // Kiểm tra giới hạn maxEnrollment của khóa học mới
+    if (
+      newCourse.maxEnrollment &&
+      newCourse.enrolledUsers.length >= newCourse.maxEnrollment
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "New course has reached maximum enrollment",
+      });
+    }
+
+    // Kiểm tra xung đột lịch học
+    const enrolledCourses = await Course.find({
+      "enrolledUsers.userId": user._id.toString(),
+      _id: { $ne: oldCourseId }, // Loại trừ khóa học cũ
+    });
+    const newCourseSchedule = newCourse.schedule;
+    if (
+      newCourseSchedule &&
+      newCourseSchedule.daysOfWeek &&
+      newCourseSchedule.shift
+    ) {
+      for (const enrolledCourse of enrolledCourses) {
+        const enrolledSchedule = enrolledCourse.schedule;
+        if (
+          enrolledSchedule &&
+          enrolledSchedule.daysOfWeek &&
+          enrolledSchedule.shift === newCourseSchedule.shift
+        ) {
+          const hasConflict = enrolledSchedule.daysOfWeek.some((day) =>
+            newCourseSchedule.daysOfWeek.includes(day)
+          );
+          if (hasConflict) {
+            return res.status(400).json({
+              success: false,
+              message: `Schedule conflict: User is already enrolled in a course with the same shift (${newCourseSchedule.shift}) on overlapping days`,
+            });
+          }
+        }
+      }
+    }
+
+    // Xóa học viên khỏi khóa học cũ
+    oldCourse.enrolledUsers.splice(enrolledIndex, 1);
+
+    // Đồng bộ với Class của khóa học cũ (nếu có)
+    const oldClass = await Class.findOne({ courseId: oldCourse._id });
+    if (oldClass) {
+      const studentIndex = oldClass.students.findIndex(
+        (student) => student.userId.toString() === user._id.toString()
+      );
+      if (studentIndex !== -1) {
+        oldClass.students.splice(studentIndex, 1);
+        await oldClass.save();
+      }
+    }
+
+    // Thêm học viên vào khóa học mới
+    newCourse.enrolledUsers.push({
+      userId: user._id.toString(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      enrolledDate: new Date(),
+      progress: 0,
+    });
+
+    // Đồng bộ với Class của khóa học mới (nếu có)
+    const newClass = await Class.findOne({ courseId: newCourse._id });
+    if (newClass) {
+      newClass.students.push({
+        userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        enrolledDate: new Date(),
+        progress: 0,
+      });
+      await newClass.save();
+    }
+
+    // Lưu thay đổi
+    await oldCourse.save();
+    await newCourse.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Student course changed successfully",
+      course: newCourse,
+    });
+  } catch (error) {
+    console.error("Error changing course for enrolled student:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error changing course for enrolled student. Try again.",
+    });
+  }
+};
+
+export const removeEnrollStudent = async (req, res) => {
+  try {
+    const { idCourse, userId } = req.params;
+
+    // Kiểm tra khóa học tồn tại
+    const course = await Course.findById(idCourse);
+    if (!course) {
+      res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // Kiểm tra học viên tồn tại
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Kiểm tra xem học viên có trong khóa học không
+    const enrolledIndex = course.enrolledUsers.findIndex(
+      (enrolled) => enrolled.userId === userId
+    );
+    if (enrolledIndex === -1) {
+      res.status(400).json({
+        success: false,
+        message: "User is not enrolled in this course",
+      });
+    }
+
+    // Xóa học viên khỏi khóa học
+    course.enrolledUsers.splice(enrolledIndex, 1);
+
+    // Đồng bộ với Class (nếu có)
+    const classObj = await Class.findOne({ courseId: idCourse });
+    if (classObj) {
+      const studentIndex = classObj.students.findIndex(
+        (student) => student.userId.toString() === userId
+      );
+      if (studentIndex !== -1) {
+        classObj.students.splice(studentIndex, 1);
+        await classObj.save();
+      }
+    }
+
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Student unenrolled successfully",
+      course,
+    });
+  } catch (error) {
+    console.error("Error remove enrolled student:", err);
+    res.status(500).json({
+      success: false,
+      message: "Error remove enrolled student. Try again.",
+    });
   }
 };
 
@@ -320,75 +610,6 @@ export const registerCourse = async (req, res) => {
       .status(500)
       .json({ success: false, message: "Server error. Try again." });
   }
-};
-
-export const removeEnrollStudent = async (req, res) => {
-  const { courseId } = req.params;
-  const { userId } = req.body;
-
-  // Kiểm tra khóa học tồn tại
-  const course = await Course.findById(courseId);
-  if (!course) {
-    res.status(404);
-    throw new Error("Course not found");
-  }
-
-  // Kiểm tra học viên tồn tại
-  const user = await User.findById(userId);
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
-  }
-
-  // Kiểm tra xem học viên đã đăng ký khóa học chưa
-  const alreadyEnrolled = course.enrolledUsers.some(
-    (enrolled) => enrolled.userId.toString() === userId.toString()
-  );
-  if (alreadyEnrolled) {
-    res.status(400);
-    throw new Error("User is already enrolled in this course");
-  }
-
-  // Kiểm tra giới hạn maxEnrollment
-  if (
-    course.maxEnrollment &&
-    course.enrolledUsers.length >= course.maxEnrollment
-  ) {
-    res.status(400);
-    throw new Error("Course has reached maximum enrollment");
-  }
-
-  // Thêm học viên vào khóa học
-  course.enrolledUsers.push({
-    userId,
-    enrolledDate: new Date(),
-    progress: 0,
-  });
-
-  // Đồng bộ với Class (nếu có)
-  const classObj = await Class.findOne({ courseId });
-  if (classObj) {
-    // Kiểm tra xem học viên đã có trong lớp chưa
-    const alreadyInClass = classObj.students.some(
-      (student) => student.userId.toString() === userId.toString()
-    );
-    if (!alreadyInClass) {
-      classObj.students.push({
-        userId,
-        enrolledDate: new Date(),
-        progress: 0,
-      });
-      await classObj.save();
-    }
-  }
-
-  await course.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Student enrolled successfully",
-    course,
-  });
 };
 
 export const registrations = async (req, res) => {

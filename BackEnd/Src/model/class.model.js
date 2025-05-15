@@ -23,6 +23,9 @@ const ClassSchema = new mongoose.Schema({
         ref: "User", // Giả định bạn có model User
         required: true,
       },
+      lastName: String,
+      firstName: String,
+      email: String,
       enrolledDate: {
         type: Date,
         default: Date.now,

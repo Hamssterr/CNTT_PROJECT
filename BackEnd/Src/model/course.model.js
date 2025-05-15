@@ -38,6 +38,8 @@ const CourseSchema = new mongoose.Schema({
   enrolledUsers: [
     {
       userId: String,
+      lastName: String,
+      firstName: String,
       email: String,
       enrolledDate: Date,
       progress: { type: Number, default: 0 },

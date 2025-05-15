@@ -24,6 +24,7 @@ import {
   getRegistration,
   registerEnrollStudent,
   removeEnrollStudent,
+  changeCourseEnrollStudent,
 } from "../controller/course.controller.js";
 
 import {
@@ -85,7 +86,9 @@ router.put(
 
 router.post("/registerEnrollStudent/:id", verifyAdmin, registerEnrollStudent);
 
-router.delete("/:id/removeEnrollStudent", verifyAdmin, removeEnrollStudent)
+router.put("/changeCourseEnrollStudent/:id", verifyAdmin, changeCourseEnrollStudent)
+
+router.delete("/:idCourse/removeEnrollStudent/:userId", verifyAdmin, removeEnrollStudent);
 
 // get Instructors
 
