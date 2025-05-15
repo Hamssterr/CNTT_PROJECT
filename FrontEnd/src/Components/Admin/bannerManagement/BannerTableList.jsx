@@ -286,6 +286,7 @@ const BannerTableList = () => {
               Manage all banners for courses
             </p>
           </div>
+
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
@@ -298,6 +299,7 @@ const BannerTableList = () => {
             </button>
           </div>
         </div>
+
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex gap-2 w-full md:w-auto">
             {TABS.map(({ label, value }) => (
@@ -309,6 +311,7 @@ const BannerTableList = () => {
               </button>
             ))}
           </div>
+
           <div className="relative w-full md:w-72">
             <input
               type="text"
@@ -382,31 +385,33 @@ const BannerTableList = () => {
                       ? new Date(banner.createdAt).toLocaleDateString("en-GB")
                       : "N/A"}
                   </td>
-                 <td className="p-4">
-                    <button
-                      className="text-gray-600 hover:text-blue-600 mr-2"
-                      onClick={() => handleViewDetails(banner)}
-                      title="View Details"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      className="text-gray-600 hover:text-blue-600 mr-2"
-                      onClick={() => handleEditBanner(banner)}
-                      title="Edit"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => {
-                        setBannerToDelete(banner);
-                        setShowDeleteModal(true);
-                      }}
-                      title="Delete"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="text-gray-600 hover:text-blue-600 mr-2"
+                        onClick={() => handleViewDetails(banner)}
+                        title="View Details"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        className="text-gray-600 hover:text-blue-600 mr-2"
+                        onClick={() => handleEditBanner(banner)}
+                        title="Edit"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-800"
+                        onClick={() => {
+                          setBannerToDelete(banner);
+                          setShowDeleteModal(true);
+                        }}
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

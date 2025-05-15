@@ -663,19 +663,19 @@ const UserTableList = () => {
                           onClick={() => handleView(user)}
                           className="p-2 rounded hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition"
                         >
-                          <Eye size={18} />
+                          <Eye size={16} />
                         </button>
                         <button
                           onClick={() => handleUpdate(user)}
                           className="p-2 rounded hover:bg-blue-100 text-gray-600 hover:text-blue-600 transition"
                         >
-                          <Pencil size={18} />
+                          <Pencil size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(user)}
                           className="p-2 rounded hover:bg-red-100 text-red-600 hover:text-red-700 transition"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
