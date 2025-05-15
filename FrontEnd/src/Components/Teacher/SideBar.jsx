@@ -16,12 +16,6 @@ const Sidebar = () => {
   // Define sidebar items with corresponding paths
   const sidebarItems = [
     {
-      path: "/teacher/dashboard",
-      icon: Home,
-      label: "Dashboard",
-      singleLine: true,
-    },
-    {
       path: "/teacher/notification",
       icon: BookOpen,
       label: "Notification",

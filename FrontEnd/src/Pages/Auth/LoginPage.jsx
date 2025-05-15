@@ -43,7 +43,7 @@ const LoginPage = () => {
         else if (role === "admin") navigate("/admin/dashboard");
         else if (role === "consultant") navigate("/consultant/dashboard");
         else if (role === "finance") navigate("/academic-finance/dashboard");
-        else if (role === "teacher") navigate("/teacher/dashboard");
+        else if (role === "teacher") navigate("/teacher/my-classes");
         else {
           toast.error("Unsupported role");
           navigate("/");
