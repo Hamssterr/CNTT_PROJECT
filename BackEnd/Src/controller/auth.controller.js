@@ -190,3 +190,43 @@ export const verifyToken = async (req, res, next) => {
   }
 };
 
+export const setCredentials = async (req, res) => {
+  const { token, role } = req.body;
+
+  // Set httpOnly cookies
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  });
+
+  res.cookie("role", role, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+
+  res.json({ success: true });
+};
+
+export const verify = async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.json({ success: false });
+    }
+
+    // Verify token logic here
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({
+      success: true,
+      role: decoded.role,
+      token: token, // Gửi lại token để frontend có thể khôi phục
+    });
+  } catch (error) {
+    res.json({ success: false });
+  }
+};
+
