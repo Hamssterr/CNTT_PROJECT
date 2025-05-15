@@ -118,12 +118,13 @@ const LoginPage = () => {
           </button>
 
           <div className="text-center mt-4">
-            <p>
+            <p className="text-white">
+              Don't have an account?{" "}
               <span
-                onClick={() => navigate("/reset-password")}
+                onClick={() => navigate("/signup")}
                 className="text-yellow-400 hover:text-yellow-300 cursor-pointer"
               >
-                Forgot Password ? 
+                Register
               </span>
             </p>
           </div>
