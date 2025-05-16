@@ -3,6 +3,7 @@ import User from "../model/user.model.js";
 import RegisterCourse from "../model/registerCourse.model.js";
 import Class from "../model/class.model.js";
 import mongoose from "mongoose";
+import leadUser from "../model/lead.model.js";
 
 export const createCourse = async (req, res) => {
   try {

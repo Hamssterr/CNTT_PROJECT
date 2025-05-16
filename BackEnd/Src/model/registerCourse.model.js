@@ -8,7 +8,7 @@ const RegisterCourseSchema = new mongoose.Schema({
   },
   parentName: { type: String, required: true },
   studentName: { type: String, required: true },
-  email: { type: String, required: true },
+   email: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   registeredAt: {
     type: Date,

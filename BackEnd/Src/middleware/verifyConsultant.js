@@ -21,7 +21,7 @@ export const verifyConsultant = (req, res, next) => {
 
       const role = data.role;
 
-      if (role !== "consultant" && role !== "finance") {
+      if (role !== "consultant" && role !== "finance" && role !== "admin") {
         return res.status(401).json({
           message: "This token has no access rights, you are not a consultant",
         });

@@ -12,8 +12,8 @@ import {getSchedules, addSchedule, updateSchedule, deleteSchedule} from "../cont
 
 const consultantRouter = express.Router();
 
-consultantRouter.get("/getLeadUsers", verifyConsultant, getLeadUsers);
-consultantRouter.post("/addNewLeadUser", verifyConsultant, addNewLeadUser);
+consultantRouter.get("/getLeadUsers", getLeadUsers);
+consultantRouter.post("/addNewLeadUser", addNewLeadUser);
 consultantRouter.put("/updateLeadUser/:id", verifyConsultant, updateLeadUser);
 consultantRouter.delete(
   "/deleteLeadUser/:id",

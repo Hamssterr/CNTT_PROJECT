@@ -24,15 +24,36 @@ const CourseDetail = () => {
   const [course, setCourse] = useState(null);
   const { backendUrl } = useContext(AppContext);
   const [expandedSections, setExpandedSections] = useState({});
+  const [leadsData, setLeadsData] = useState([]);
   const navigate = useNavigate();
 
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [registerData, setRegisterData] = useState({
-    parentName: "",
+    name: "",
     studentName: "",
     email: "",
-    phoneNumber: "",
+    phone: "",
+    status: "",
+    course: "",
+    registrationDate: "",
+    paymentStatus: "",
   });
+
+  const fetchLeadsData = async () => {
+    try {
+      const response = await axios.get(
+        `${backendUrl}/api/consultant/getLeadUsers`
+      );
+      if (response.data.success) {
+        setLeadsData(response.data.leadUsers);
+      } else {
+        toast.error(response.data.message || "Failed to fetch leads.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch leads:", error);
+      toast.error("Failed to fetch leads.");
+    }
+  };
 
   const handleRegisterChange = (e) => {
     const { name, value } = e.target;
@@ -41,27 +62,54 @@ const CourseDetail = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    console.log("Register data:", registerData);
+    console.log("Register Data:", {
+      name: registerData.name,
+      studentName: registerData.studentName,
+      email: registerData.email,
+      phone: registerData.phone,
+      course: course?.title || "Unknown Course",
+      status: "Pending",
+      registrationDate: new Date().toISOString(),
+      paymentStatus: "Unpaid",
+    });
+
+    // Kiểm tra trùng lặp số điện thoại hoặc email
+    const isDuplicate = leadsData.some(
+      (lead) =>
+        lead.phone === registerData.phone || lead.email === registerData.email
+    );
+
+    if (isDuplicate) {
+      toast.warning("Phone number or email already exists!");
+      return;
+    }
+
     try {
-      const res = await axios.post(`${backendUrl}/api/course/register`, {
-        courseId: id,
-        parentName: registerData.parentName, // Đảm bảo đúng tên field
-        studentName: registerData.studentName,
-        email: registerData.email,
-        phoneNumber: registerData.phoneNumber,
-      });
+      const res = await axios.post(
+        `${backendUrl}/api/consultant/addNewLeadUser`,
+        {
+          name: registerData.name, // Parent/Guardian Name
+          studentName: registerData.studentName,
+          email: registerData.email,
+          phone: registerData.phone,
+          course: course?.title || "Unknown Course", // Lấy tên khóa học hoặc giá trị mặc định
+          status: "Pending", // Mặc định trạng thái là Pending
+          registrationDate: new Date().toISOString(), // Ngày đăng ký hiện tại
+          paymentStatus: "Unpaid", // Mặc định trạng thái thanh toán là Unpaid
+        }
+      );
 
       if (res.data.success) {
-        toast.success("Register successfull!");
+        toast.success("Registration successful!");
         setShowRegisterForm(false);
         setRegisterData({
-          parentName: "",
+          name: "",
           studentName: "",
           email: "",
-          phoneNumber: "",
+          phone: "",
         });
       } else {
-        toast.error(res.data.message || "Register Error.");
+        toast.error(res.data.message || "Registration failed.");
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -87,6 +135,7 @@ const CourseDetail = () => {
 
   useEffect(() => {
     fetchCourseData();
+    fetchLeadsData();
   }, [backendUrl, id]);
 
   const toggleSection = (sectionId) => {

@@ -47,8 +47,8 @@ const CourseRegisterForm = ({
                 </div>
                 <input
                   type="text"
-                  name="parentName"
-                  value={registerData.parentName}
+                  name="name"
+                  value={registerData.name}
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   placeholder="Enter parent/guardian name"
@@ -87,8 +87,8 @@ const CourseRegisterForm = ({
                 </div>
                 <input
                   type="tel"
-                  name="phoneNumber"
-                  value={registerData.phoneNumber}
+                  name="phone"
+                  value={registerData.phone}
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   placeholder="Enter phone number"
