@@ -6,7 +6,8 @@ const RegisterCourseSchema = new mongoose.Schema({
     ref: "Course",
     required: true,
   },
-  name: { type: String, required: true },
+  parentName: { type: String, required: true },
+  studentName: { type: String, required: true },
   email: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   registeredAt: {

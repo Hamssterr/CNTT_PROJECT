@@ -733,12 +733,13 @@ export const removeEnrollStudent = async (req, res) => {
 };
 
 export const registerCourse = async (req, res) => {
-  const { courseId, name, email, phoneNumber } = req.body;
+  const { courseId, parentName, studentName , email, phoneNumber } = req.body;
 
   try {
     const newRegistration = new RegisterCourse({
       courseId,
-      name,
+      parentName,
+      studentName,
       email,
       phoneNumber,
     });

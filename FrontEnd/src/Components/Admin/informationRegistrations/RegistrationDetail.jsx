@@ -18,8 +18,16 @@ const RegistrationDetailModal = ({ isOpen, onClose, registrationDetail }) => {
         </h3>
         <div className="space-y-4">
           <div>
-            <span className="font-semibold text-gray-700">Name:</span>
-            <p className="text-gray-600">{registrationDetail.name || "N/A"}</p>
+            <span className="font-semibold text-gray-700">Parent's Name:</span>
+            <p className="text-gray-600">
+              {registrationDetail.parentName || "N/A"}
+            </p>
+          </div>
+          <div>
+            <span className="font-semibold text-gray-700">Student's Name:</span>
+            <p className="text-gray-600">
+              {registrationDetail.studentName || "N/A"}
+            </p>
           </div>
           <div>
             <span className="font-semibold text-gray-700">Email:</span>

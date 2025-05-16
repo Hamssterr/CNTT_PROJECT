@@ -11,7 +11,7 @@ import {
   Users,
   ArrowLeft,
   Clock2,
-  X, 
+  X,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import Navbar from "../Navbar";
@@ -28,7 +28,8 @@ const CourseDetail = () => {
 
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [registerData, setRegisterData] = useState({
-    name: "",
+    parentName: "",
+    studentName: "",
     email: "",
     phoneNumber: "",
   });
@@ -40,16 +41,25 @@ const CourseDetail = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    console.log("Register data:", registerData);
     try {
       const res = await axios.post(`${backendUrl}/api/course/register`, {
         courseId: id,
-        ...registerData,
+        parentName: registerData.parentName, // Đảm bảo đúng tên field
+        studentName: registerData.studentName,
+        email: registerData.email,
+        phoneNumber: registerData.phoneNumber,
       });
-  
+
       if (res.data.success) {
         toast.success("Register successfull!");
         setShowRegisterForm(false);
-        setRegisterData({ email: "", name: "", phoneNumber: "" });
+        setRegisterData({
+          parentName: "",
+          studentName: "",
+          email: "",
+          phoneNumber: "",
+        });
       } else {
         toast.error(res.data.message || "Register Error.");
       }
@@ -61,7 +71,9 @@ const CourseDetail = () => {
 
   const fetchCourseData = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/api/course/getCourse/${id}`);
+      const response = await axios.get(
+        `${backendUrl}/api/course/getCourse/${id}`
+      );
       if (response.data.success) {
         setCourse(response.data.data);
       } else {

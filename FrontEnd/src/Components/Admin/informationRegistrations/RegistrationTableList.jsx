@@ -12,7 +12,8 @@ const TABS = [
 ];
 
 const TABLE_HEAD = [
-  "Name",
+  "Parent's Name",
+  "Student's Name",
   "Email",
   "Create At",
   "Phone Number",
@@ -82,9 +83,12 @@ const RegistrationTableList = () => {
   const handleView = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/admin/registrations/${id}`, {
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${backendUrl}/api/admin/registrations/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
       if (response.data.success) {
         setRegistrationDetail(response.data.data);
         setModalOpen(true);
@@ -195,7 +199,12 @@ const RegistrationTableList = () => {
                   >
                     <td className={classes}>
                       <span className="text-sm font-medium text-gray-800">
-                        {user.name || "N/A"}
+                        {user.parentName || "N/A"}
+                      </span>
+                    </td>
+                    <td className={classes}>
+                      <span className="text-sm font-medium text-gray-800">
+                        {user.studentName || "N/A"}
                       </span>
                     </td>
                     <td className={classes}>
