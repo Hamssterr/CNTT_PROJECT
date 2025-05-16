@@ -377,7 +377,7 @@ const BannerTableList = () => {
                   <td className="p-4 text-sm text-gray-700">
                     {banner.courseId?.title || "N/A"}
                   </td>
-                  <td className="p-4 text-sm text-gray-700">
+                  <td className="p-4 pl-8 text-sm text-gray-700">
                     {banner.number || "N/A"}
                   </td>
                   <td className="p-4 text-sm text-gray-600">

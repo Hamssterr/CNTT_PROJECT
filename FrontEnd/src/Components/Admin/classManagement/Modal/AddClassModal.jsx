@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { AppContext } from "../../../context/AppContext";
+
 import { toast } from "react-toastify";
 
 const AddClassModal = ({ show, onClose, onSubmit, loading, courses }) => {

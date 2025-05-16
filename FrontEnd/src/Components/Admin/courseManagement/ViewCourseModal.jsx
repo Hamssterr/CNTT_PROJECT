@@ -86,7 +86,7 @@ const ViewCourseModal = ({
       setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.delete(
-        `${backendUrl}/api/admin/removeEnrolledStudent/${course._id}/${selectedUserId}`,
+        `${backendUrl}/api/admin/${course._id}/removeEnrollStudent/${selectedUserId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -99,6 +99,7 @@ const ViewCourseModal = ({
         await fetchingCourseData();
         setShowDeleteModal(false);
         setSelectedUserId(null);
+        onClose();
       } else {
         toast.error(data.message || "Failed to remove student");
       }

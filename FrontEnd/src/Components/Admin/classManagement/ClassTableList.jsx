@@ -6,7 +6,10 @@ import { AppContext } from "../../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-import AddClassModal from "./AddClassModal";
+import AddClassModal from "./Modal/AddClassModal";
+import ViewClassModal from "./Modal/ViewClassModal";
+import EditClassModal from "./Modal/EditClassModal";
+import DeleteClassModal from "./Modal/DeleteClassModal";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -19,8 +22,6 @@ const TABLE_HEAD = [
   "Course",
   "Schedule",
   "Students",
-
-  // "Created At",
   "Actions",
 ];
 
@@ -29,8 +30,13 @@ const ClassTableList = () => {
   const [loading, setLoading] = useState(false);
   const [classData, setClassData] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
 
   // Hàm lấy dữ liệu lớp học
   const fetchClassData = async () => {
@@ -69,25 +75,44 @@ const ClassTableList = () => {
     }
   };
 
+  // Hàm lấy danh sách người dùng
+  const fetchUsers = async () => {
+    try {
+      axios.defaults.withCredentials = true;
+      const response = await axios.get(`${backendUrl}/api/admin/getStudents`);
+      const { data } = response;
+      if (data.success && Array.isArray(data.students)) {
+        setStudents(data.students);
+      } else {
+        setStudents([]);
+        toast.error(data.message || "No students found");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to load students");
+    }
+  };
+
   // Lọc dữ liệu theo searchQuery
   useEffect(() => {
-    let filtered = classData;
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.trim().toLowerCase();
-      filtered = classData.filter(
-        (cls) =>
-          cls.className?.toLowerCase().includes(query) ||
-          cls.room?.toLowerCase().includes(query) ||
-          cls.courseId?.title?.toLowerCase().includes(query)
-      );
+    if (searchQuery.trim() === "") {
+      fetchClassData(); // Làm mới classData khi không có query
+      return;
     }
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = classData.filter(
+      (cls) =>
+        cls.className?.toLowerCase().includes(query) ||
+        cls.room?.toLowerCase().includes(query) ||
+        cls.courseId?.title?.toLowerCase().includes(query)
+    );
     setClassData(filtered);
-  }, [searchQuery, classData]);
+  }, [searchQuery]);
 
   // Gọi API khi component mount
   useEffect(() => {
     fetchClassData();
     fetchCourses();
+    fetchUsers();
   }, [backendUrl]);
 
   // Định dạng lịch học
@@ -125,54 +150,232 @@ const ClassTableList = () => {
     }
   };
 
-  // // Xử lý xem chi tiết lớp học (chưa triển khai modal)
-  // const handleViewDetails = (cls) => {
-  //   toast.info("View details for class: " + cls.className);
-  //   // TODO: Mở modal xem chi tiết
-  // };
+  // Xử lý xem chi tiết lớp học
+  const handleViewDetails = async (cls) => {
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+      const response = await axios.get(
+        `${backendUrl}/api/admin/getClassesById/${cls._id}`
+      );
+      const { data } = response;
+      if (data.success) {
+        setSelectedClass(data.class);
+        setShowViewModal(true);
+      } else {
+        toast.error(data.message || "Failed to load class details");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to load class details"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // // Xử lý chỉnh sửa lớp học (chưa triển khai modal)
-  // const handleEditClass = (cls) => {
-  //   toast.info("Edit class: " + cls.className);
-  //   // TODO: Mở modal chỉnh sửa
-  // };
+  // Xử lý chỉnh sửa lớp học
+  const handleEditClass = async (cls) => {
+    if (!cls || !cls._id) {
+      toast.error("Invalid class data");
+      return;
+    }
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+      const response = await axios.get(
+        `${backendUrl}/api/admin/getClassesById/${cls._id}`
+      );
+      const { data } = response;
+      if (data.success) {
+        setSelectedClass(data.class);
+        setShowEditModal(true);
+      } else {
+        toast.error(data.message || "Failed to load class details");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to load class details"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // // Xử lý xóa lớp học
-  // const handleDeleteClass = async (classId) => {
-  //   try {
-  //     setLoading(true);
-  //     axios.defaults.withCredentials = true;
-  //     const response = await axios.delete(
-  //       `${backendUrl}/api/admin/deleteClass/${classId}`
-  //     );
-  //     const { data } = response;
-  //     if (data.success) {
-  //       toast.success(data.message || "Class deleted successfully");
-  //       await fetchClassData();
-  //     } else {
-  //       toast.error(data.message || "Failed to delete class");
-  //     }
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message || "Failed to delete class");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  // Xử lý cập nhật lớp học
+  const handleUpdateClass = async (formData) => {
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+      const response = await axios.put(
+        `${backendUrl}/api/admin/updateClass/${selectedClass._id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { data } = response;
+      if (data.success) {
+        toast.success(data.message || "Class updated successfully");
+        await fetchClassData();
+        setShowEditModal(false);
+        setSelectedClass(null);
+      } else {
+        toast.error(data.message || "Failed to update class");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update class");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý thêm học viên
+  const handleAddStudent = async (studentId) => {
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+      const response = await axios.post(
+        `${backendUrl}/api/admin/registerEnrollStudentById/${selectedClass.courseId._id}`,
+        {
+          userId: studentId,
+          courseId: selectedClass.courseId._id,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { data } = response;
+      if (data.success) {
+        toast.success(data.message || "Student enrolled successfully");
+        // Refresh class details
+        const classResponse = await axios.get(
+          `${backendUrl}/api/admin/getClassesById/${selectedClass._id}`
+        );
+        if (classResponse.data.success) {
+          setSelectedClass(classResponse.data.class);
+        }
+        await fetchClassData();
+      } else {
+        toast.error(data.message || "Failed to enroll student");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to enroll student");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý xóa học viên
+  const handleRemoveStudent = async (studentId) => {
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+      const response = await axios.delete(
+        `${backendUrl}/api/admin/${selectedClass.courseId._id}/removeEnrollStudent/${studentId}`,
+        {
+          userId: studentId,
+          courseId: selectedClass.courseId._id,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { data } = response;
+      if (data.success) {
+        toast.success(data.message || "Student removed successfully");
+        // Refresh class details
+        const classResponse = await axios.get(
+          `${backendUrl}/api/admin/getClassesById/${selectedClass._id}`
+        );
+        if (classResponse.data.success) {
+          setSelectedClass(classResponse.data.class);
+        }
+        await fetchClassData();
+      } else {
+        toast.error(data.message || "Failed to remove student");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to remove student");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý xóa lớp học
+  const handleDeleteClass = async (classId) => {
+    try {
+      setLoading(true);
+      axios.defaults.withCredentials = true;
+      const response = await axios.delete(
+        `${backendUrl}/api/admin/deleteClass/${classId}`
+      );
+      const { data } = response;
+      if (data.success) {
+        toast.success(data.message || "Class deleted successfully");
+        await fetchClassData();
+        setShowDeleteModal(false);
+        setSelectedClass(null);
+      } else {
+        toast.error(data.message || "Failed to delete class");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete class");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="w-full bg-white rounded-lg shadow-md border border-gray-200">
-      {/* Header */}
-
+      {/* Modals */}
       <AddClassModal
         show={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-        }}
+        onClose={() => setShowAddModal(false)}
         onSubmit={handleAddClass}
         loading={loading}
         courses={courses}
       />
+      <ViewClassModal
+        show={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedClass(null);
+        }}
+        classData={selectedClass}
+      />
+      <EditClassModal
+        show={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedClass(null);
+        }}
+        onSubmit={handleUpdateClass}
+        loading={loading}
+        courses={courses}
+        classData={selectedClass}
+        students={students}
+        onAddStudent={handleAddStudent}
+        onRemoveStudent={handleRemoveStudent}
+      />
 
+      <DeleteClassModal
+        show={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          selectedClass(null);
+        }}
+        onConfirm={() => handleDeleteClass(selectedClass?._id)}
+        classData={selectedClass}
+      />
+
+      {/* Header */}
       <div className="p-5 border-b border-gray-200">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -256,32 +459,34 @@ const ClassTableList = () => {
                   <td className="p-4 text-sm text-gray-700">
                     {cls.courseId?.title || "N/A"}
                   </td>
-
                   <td className="p-4 text-sm text-gray-700">
                     {formatSchedule(cls.schedule)}
                   </td>
-                  <td className="p-4 text-sm text-gray-700">
+                  <td className="p-4 pl-9 text-sm text-gray-700">
                     {cls.students?.length || 0}
                   </td>
-                  {/* <td className="p-4 text-sm text-gray-600">
-                    {formatDate(cls.createdAt)}
-                  </td> */}
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <button
                         className="text-gray-600 hover:text-blue-600 mr-2"
                         title="View Details"
+                        onClick={() => handleViewDetails(cls)}
                       >
                         <Eye size={16} />
                       </button>
                       <button
                         className="text-gray-600 hover:text-blue-600 mr-2"
+                        onClick={() => handleEditClass(cls)}
                         title="Edit"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         className="text-red-600 hover:text-red-800"
+                        onClick={() => {
+                          setSelectedClass(cls);
+                          setShowDeleteModal(true);
+                        }}
                         title="Delete"
                       >
                         <Trash2 size={16} />
