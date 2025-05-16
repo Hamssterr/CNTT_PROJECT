@@ -12,6 +12,7 @@ import {
   createStudentAccount,
   getUser,
   checkParent,
+  getStudents,
 } from "../controller/admin.controller.js";
 
 import {
@@ -25,6 +26,7 @@ import {
   registerEnrollStudent,
   removeEnrollStudent,
   changeCourseEnrollStudent,
+  registerEnrollStudentById,
 } from "../controller/course.controller.js";
 
 import {
@@ -35,7 +37,7 @@ import {
   getBannerById,
 } from "../controller/banner.controller.js";
 
-import {createClass, getClasses, updateClass, deleteClass} from "../controller/class.controller.js"
+import {createClass, getClasses, getClassesById, updateClass, deleteClass} from "../controller/class.controller.js"
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
@@ -62,6 +64,8 @@ router.get("/getUser/:id", verifyAdmin, getUser);
 
 router.get("/checkParent/:phoneNumber", verifyAdmin, checkParent);
 
+router.get("/getStudents", verifyAdmin, getStudents)
+
 // Course
 
 router.get("/getCourse", verifyAdmin, getAllCourse);
@@ -85,6 +89,8 @@ router.put(
 );
 
 router.post("/registerEnrollStudent/:id", verifyAdmin, registerEnrollStudent);
+
+router.post("/registerEnrollStudentById/:id", verifyAdmin, registerEnrollStudentById)
 
 router.put("/changeCourseEnrollStudent/:id", verifyAdmin, changeCourseEnrollStudent)
 
@@ -121,8 +127,10 @@ router.post("/createClass", verifyAdmin, createClass)
 
 router.get("/getClasses", verifyAdmin, getClasses);
 
+router.get("/getClassesById/:id", verifyAdmin, getClassesById)
+
 router.put("/updateClass/:id", verifyAdmin, updateClass)
 
-router.delete("/deleteClass/id", verifyAdmin, deleteClass)
+router.delete("/deleteClass/:id", verifyAdmin, deleteClass)
 
 export default router;

@@ -924,3 +924,25 @@ export const checkParent = async (req, res) => {
     });
   }
 };
+
+// Api get student list
+export const getStudents = async (req, res) => {
+  try {
+    // Fetch users with role "student"
+    const students = await User.find(
+      { role: "student" },
+      "firstName lastName email phoneNumber"
+    );
+
+    return res.status(200).json({
+      success: true,
+      students,
+    });
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch students",
+    });
+  }
+};

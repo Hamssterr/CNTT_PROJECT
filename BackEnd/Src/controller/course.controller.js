@@ -350,6 +350,149 @@ export const registerEnrollStudent = async (req, res) => {
   }
 };
 
+export const registerEnrollStudentById = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { id: courseId } = req.params;
+
+    // Kiểm tra userId được cung cấp
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    // Tìm user bằng userId và kiểm tra role
+    const user = await User.findOne({ _id: userId, role: "student" });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No student found with this user ID",
+      });
+    }
+
+    // Kiểm tra khóa học tồn tại
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // Kiểm tra trạng thái khóa học
+    if (course.status !== "Active") {
+      return res.status(400).json({
+        success: false,
+        message: "Course is not active",
+      });
+    }
+
+    // Kiểm tra xem học viên đã đăng ký khóa học chưa
+    const alreadyEnrolled = course.enrolledUsers.some(
+      (enrolled) => enrolled.userId.toString() === user._id.toString()
+    );
+    if (alreadyEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: "User already enrolled in this course",
+      });
+    }
+
+    // Kiểm tra giới hạn maxEnrollment
+    if (
+      course.maxEnrollment &&
+      course.enrolledUsers.length >= course.maxEnrollment
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Course has reached maximum enrollment",
+      });
+    }
+
+    // Kiểm tra xung đột lịch học
+    const enrolledCourses = await Course.find({
+      "enrolledUsers.userId": user._id.toString(),
+    });
+    const newCourseSchedule = course.schedule;
+    if (
+      newCourseSchedule &&
+      newCourseSchedule.daysOfWeek &&
+      newCourseSchedule.shift
+    ) {
+      for (const enrolledCourse of enrolledCourses) {
+        const enrolledSchedule = enrolledCourse.schedule;
+        if (
+          enrolledSchedule &&
+          enrolledSchedule.daysOfWeek &&
+          enrolledSchedule.shift === newCourseSchedule.shift
+        ) {
+          const hasConflict = enrolledSchedule.daysOfWeek.some((day) =>
+            newCourseSchedule.daysOfWeek.includes(day)
+          );
+          if (hasConflict) {
+            return res.status(400).json({
+              success: false,
+              message: `Schedule conflict: User is already enrolled in a course with the same shift (${newCourseSchedule.shift}) on overlapping days`,
+            });
+          }
+        }
+      }
+    }
+
+    // Thêm học viên vào khóa học
+    course.enrolledUsers.push({
+      userId: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      enrolledDate: new Date(),
+      progress: 0,
+    });
+
+    // Tìm lớp học liên kết (nếu có) và thêm học viên
+    const classObj = await Class.findOne({ courseId: course._id });
+    if (classObj) {
+      // Kiểm tra xem học viên đã có trong lớp chưa
+      const alreadyInClass = classObj.students.some(
+        (student) => student.userId.toString() === user._id.toString()
+      );
+      if (alreadyInClass) {
+        return res.status(400).json({
+          success: false,
+          message: "User already enrolled in the associated class",
+        });
+      }
+
+      // Thêm học viên vào lớp học
+      classObj.students.push({
+        userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        enrolledDate: new Date(),
+        progress: 0,
+      });
+
+      await classObj.save();
+    }
+
+    await course.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Student enrolled successfully",
+      course,
+    });
+  } catch (error) {
+    console.error("Register enrolled student Error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 export const changeCourseEnrollStudent = async (req, res) => {
   try {
     const { userId, newCourseId } = req.body;

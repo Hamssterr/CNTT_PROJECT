@@ -10,22 +10,72 @@ export const getClasses = async (req, res) => {
   res.json({ success: true, classes });
 };
 
+export const getClassesById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Kiểm tra classId hợp lệ
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Class ID is required",
+      });
+    }
+
+    // Tìm lớp học theo ID và populate courseId, students.userId
+    const classDoc = await Class.findById(id)
+      .populate("courseId", "title")
+      .populate("students.userId", "name email");
+
+    // Kiểm tra lớp học tồn tại
+    if (!classDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
+    }
+
+    // Trả về lớp học
+    res.status(200).json({
+      success: true,
+      class: classDoc,
+    });
+  } catch (error) {
+    console.error("Error fetching class by ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch class",
+    });
+  }
+};
+
 export const createClass = async (req, res) => {
   try {
     const { className, room, courseId } = req.body;
 
     // Kiểm tra dữ liệu đầu vào
     if (!className || !room || !courseId) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Class name, room, and course ID are required",
+      });
+    }
+
+    // Validate courseId
+    if (!mongoose.isValidObjectId(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course ID",
       });
     }
 
     // Kiểm tra khóa học tồn tại
     const course = await Course.findById(courseId);
     if (!course) {
-      res.status(404).json({ success: false, message: "Course not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
     }
 
     // Kiểm tra schedule của khóa học
@@ -34,9 +84,10 @@ export const createClass = async (req, res) => {
       !course.schedule.daysOfWeek ||
       !course.schedule.shift
     ) {
-      res
-        .status(400)
-        .json({ success: false, message: "Course schedule is incomplete" });
+      return res.status(400).json({
+        success: false,
+        message: "Course schedule is incomplete",
+      });
     }
 
     // Kiểm tra lớp học đã tồn tại cho khóa học này
@@ -48,7 +99,7 @@ export const createClass = async (req, res) => {
       });
     }
 
-    // Tạo class mới chứa:....
+    // Tạo class mới
     const classObj = new Class({
       className,
       room,
@@ -58,7 +109,7 @@ export const createClass = async (req, res) => {
         shift: course.schedule.shift,
       },
       students: course.enrolledUsers.map((enrolled) => ({
-        userId: enrolled.userId, // String sẽ được Mongoose chuyển thành ObjectId
+        userId: enrolled.userId,
         firstName: enrolled.firstName,
         lastName: enrolled.lastName,
         email: enrolled.email,
@@ -68,10 +119,16 @@ export const createClass = async (req, res) => {
     });
 
     const createdClass = await classObj.save();
-    res.status(201).json({ success: true, class: createdClass });
+    // Populate courseId for response
+    await createdClass.populate("courseId", "title");
+    return res.status(201).json({
+      success: true,
+      message: "Class created successfully",
+      class: createdClass,
+    });
   } catch (error) {
-    console.error("Error create class", error);
-    res.status(400).json({
+    console.error("Error creating class:", error);
+    return res.status(500).json({
       success: false,
       message: "Failed to create class",
     });
@@ -86,7 +143,7 @@ export const updateClass = async (req, res) => {
     // Tìm lớp học
     const classObj = await Class.findById(classId);
     if (!classObj) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "Class not found",
       });
@@ -96,7 +153,7 @@ export const updateClass = async (req, res) => {
     if (courseId && courseId !== classObj.courseId.toString()) {
       const course = await Course.findById(courseId);
       if (!course) {
-        res.status(404).json({
+        return res.status(404).json({
           success: false,
           message: "Course not found",
         });
@@ -108,7 +165,7 @@ export const updateClass = async (req, res) => {
         !course.schedule.daysOfWeek ||
         !course.schedule.shift
       ) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           message: "Course schedule is incomplete",
         });
@@ -120,7 +177,7 @@ export const updateClass = async (req, res) => {
         _id: { $ne: classId },
       });
       if (existingClass) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           message: "This course is already associated with another class",
         });
@@ -135,9 +192,9 @@ export const updateClass = async (req, res) => {
 
       // Đồng bộ students với enrolledUsers của course mới
       classObj.students = course.enrolledUsers.map((enrolled) => ({
-        userId: enrolled.userId, // Chuyển String thành ObjectId tự động bởi Mongoose
+        userId: enrolled.userId,
         email: enrolled.email,
-         firstName: enrolled.firstName,
+        firstName: enrolled.firstName,
         lastName: enrolled.lastName,
         enrolledDate: enrolled.enrolledDate,
         progress: enrolled.progress,
@@ -149,35 +206,49 @@ export const updateClass = async (req, res) => {
     if (room) classObj.room = room;
 
     const updatedClass = await classObj.save();
-    res.json({ success: true, class: updatedClass });
+    return res.status(200).json({ success: true, class: updatedClass });
   } catch (error) {
-    console.error("Error updated class", error);
-
-    res.status(400).json({
+    console.error("Error updating class:", error);
+    return res.status(500).json({
       success: false,
-      message: "Failed to updated class",
+      message: "Failed to update class",
     });
   }
 };
 
 export const deleteClass = async (req, res) => {
   try {
-    const classObj = await Class.findById(req.params.id);
+    const { id } = req.params;
+
+    // Validate class ID
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid class ID",
+      });
+    }
+
+    // Find class
+    const classObj = await Class.findById(id);
     if (!classObj) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "Class not found",
       });
     }
 
-    await classObj.remove();
-    res.json({ success: true, message: "Class deleted successfully" });
-  } catch (error) {
-    console.error("Error deleted class", error);
+    // Delete class
+    await classObj.deleteOne();
 
-    res.status(400).json({
+    return res.status(200).json({
+      success: true,
+      message: "Class deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting class:", error);
+    return res.status(500).json({
       success: false,
-      message: "Failed to deleted class",
+      message: "Failed to delete class",
     });
   }
 };
