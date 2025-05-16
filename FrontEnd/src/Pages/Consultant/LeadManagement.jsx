@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../../Components/Consultant/Navbar";
 import Sidebar from "../../Components/Consultant/Sidebar";
 import Footer from "../../Components/Footer";
-import "../../public/ModalStyle.css";
-import axios from "axios";
 import {
   Search,
   Phone,
@@ -12,7 +10,13 @@ import {
   CircleCheck,
   UserX,
   X,
+  Plus,
+  Filter,
+  RefreshCcw,
+  Download,
 } from "lucide-react";
+import "../../public/ModalStyle.css";
+import axios from "axios";
 import Modal from "react-modal";
 import Swal from "sweetalert2";
 import { useContext } from "react";
@@ -23,6 +27,7 @@ Modal.setAppElement("#root");
 const customModalStyles = {
   overlay: {
     backgroundColor: "rgba(0, 0, 0, 0.75)",
+    backdropFilter: "blur(5px)",
     zIndex: 1000,
   },
   content: {
@@ -38,6 +43,7 @@ const customModalStyles = {
     maxWidth: "600px",
     width: "90%",
     transition: "all 200ms ease-in-out",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
   },
 };
 
@@ -49,17 +55,6 @@ function LeadManagement() {
   const [leadsData, setLeadsData] = useState([]);
   const { leads, setLeads, backendUrl } = useContext(AppContext);
   const [courses, setCourses] = useState([]); // State to store courses
-
-  const availableCourses = [
-    { id: 1, name: "Web Development" },
-    { id: 2, name: "Mobile App Development" },
-    { id: 3, name: "Data Science" },
-    { id: 4, name: "Machine Learning" },
-    { id: 5, name: "Cloud Computing" },
-    { id: 6, name: "DevOps" },
-    { id: 7, name: "Cyber Security" },
-    { id: 8, name: "UI/UX Design" },
-  ];
 
   // Fetch courses data
   const fetchCourses = async () => {
@@ -128,7 +123,8 @@ function LeadManagement() {
     // Kiểm tra trùng số điện thoại hoặc email
     const isDuplicate = leadsData.some(
       (lead) =>
-        (lead.phone === selectedLead.phone || lead.email === selectedLead.email) &&
+        (lead.phone === selectedLead.phone ||
+          lead.email === selectedLead.email) &&
         (addNew || lead._id !== selectedLead._id) // Cho phép cập nhật chính mình
     );
     if (isDuplicate) {
@@ -355,159 +351,289 @@ function LeadManagement() {
   return (
     <div>
       <Navbar />
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Sidebar />
         <div className="flex-1 p-8 ml-20">
-          {/* Header Section */}
-          <div className="mb-6 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Lead Management
-            </h1>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleAdd}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"
-              >
-                Add New Lead
-              </button>
-              <div className="relative">
+          {/* Enhanced Header Section */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                  Lead Management
+                </h1>
+                <p className="text-gray-600">
+                  Manage and track potential students
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => fetchLeads()}
+                  className="p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg shadow-sm hover:shadow transition-all"
+                  title="Refresh"
+                >
+                  <RefreshCcw size={20} />
+                </button>
+                <button
+                  className="p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg shadow-sm hover:shadow transition-all"
+                  title="Export"
+                >
+                  <Download size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Search and Filters Bar */}
+            <div className="flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm">
+              <div className="flex-1 min-w-[300px] relative">
                 <input
                   type="text"
-                  placeholder="Search leads..."
+                  placeholder="Search by name, email, phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="py-2 pl-10 pr-4 rounded-lg shadow-sm border border-gray-300"
+                  className="w-full py-2.5 pl-10 pr-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                 />
                 <Search
-                  className="absolute left-3 top-2.5 text-gray-400"
+                  className="absolute left-3 top-3 text-gray-400"
                   size={20}
                 />
               </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAdd}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm hover:shadow transition-all"
+                >
+                  <Plus size={20} />
+                  Add New Lead
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Table Section */}
-          <div className="bg-white rounded-xl shadow overflow-auto">
-            <table className="w-full table-auto">
-              <thead className="bg-gray-200 text-gray-700 uppercase text-xs">
-                <tr>
-                  <th className="py-3 px-4">Name</th>
-                  <th className="py-3 px-4">Student's name</th>
-                  <th className="py-3 px-4">Contact</th>
-                  <th className="py-3 px-4">Course</th>
-                  <th className="py-3 px-4">Registration date</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-600">
-                {filteredLeads.map((lead) => (
-                  <tr key={lead._id} className="border-b hover:bg-gray-100">
-                    <td className="py-3 px-4 text-center">{lead.name}</td>
-                    <td className="py-3 px-4 text-center">
-                      {lead.studentName}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="flex items-center gap-1">
-                          <Phone size={16} /> {lead.phone}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Mail size={16} /> {lead.email}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-center">{lead.course}</td>
-                    <td className="py-3 px-4 text-center">
-                      {new Date(lead.registrationDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      {lead.status === "Contacted" && (
-                        <span className="text-green-600 font-semibold flex items-center gap-1 justify-center">
-                          <CircleCheck size={18} /> {lead.status}
-                        </span>
-                      )}
-                      {lead.status === "Not Responding" && (
-                        <span className="text-red-500 font-semibold flex items-center gap-1 justify-center">
-                          <UserX size={18} /> {lead.status}
-                        </span>
-                      )}
-                      {lead.status === "Pending" && (
-                        <span className="text-yellow-500 font-semibold flex items-center gap-1 justify-center">
-                          <Clock size={18} /> {lead.status}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(lead)}
-                          className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
-                        >
-                          Update
-                        </button>
-                        <button
-                          onClick={() => handleDelete(lead)}
-                          className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+          {/* Enhanced Table Section */}
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50 text-gray-600 text-sm">
+                    <th className="py-4 px-6 text-left font-semibold">Name</th>
+                    <th className="py-4 px-6 text-left font-semibold">
+                      Student
+                    </th>
+                    <th className="py-4 px-6 text-left font-semibold">
+                      Contact
+                    </th>
+                    <th className="py-4 px-6 text-left font-semibold">
+                      Course
+                    </th>
+                    <th className="py-4 px-6 text-left font-semibold">
+                      Registration
+                    </th>
+                    <th className="py-4 px-6 text-left font-semibold">
+                      Status
+                    </th>
+                    <th className="py-4 px-6 text-center font-semibold">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Modal */}
-          <Modal
-            isOpen={showModal}
-            onRequestClose={handleClose}
-            closeTimeoutMS={300}
-            className="myModal"
-            overlayClassName="myOverlay"
-            ariaHideApp={false}
-          >
-            <div className="bg-white rounded-lg">
-              {/* Modal Header */}
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    {addNew ? "Add New Lead" : "Update Lead Information"}
-                  </h2>
-                  <button
-                    onClick={handleClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Modal Body */}
-              {renderModalBody()}
-
-              {/* Modal Footer */}
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-                <button
-                  onClick={handleClose}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  onClick={handleSave}
-                >
-                  {addNew ? "Add Lead" : "Update Lead"}
-                </button>
-              </div>
+                </thead>
+                <tbody>
+                  {filteredLeads.map((lead, index) => (
+                    <tr
+                      key={lead._id}
+                      className={`border-t border-gray-100 hover:bg-blue-50/30 transition-colors ${
+                        index % 2 === 0 ? "bg-gray-50/30" : ""
+                      }`}
+                    >
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                            {lead.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {lead.name}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-gray-600">
+                        {lead.studentName}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Phone size={16} className="text-blue-500" />
+                            {lead.phone}
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Mail size={16} className="text-blue-500" />
+                            {lead.email}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                          {lead.course}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-gray-600">
+                        {new Date(lead.registrationDate).toLocaleDateString()}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
+                            lead.status === "Contacted"
+                              ? "bg-green-100 text-green-700"
+                              : lead.status === "Not Responding"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {lead.status === "Contacted" && (
+                            <CircleCheck size={16} />
+                          )}
+                          {lead.status === "Not Responding" && (
+                            <UserX size={16} />
+                          )}
+                          {lead.status === "Pending" && <Clock size={16} />}
+                          {lead.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(lead)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(lead)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M3 6h18" />
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </Modal>
+          </div>
         </div>
       </div>
-      <Footer />
+
+      {/* Enhanced Modal styling in your CSS file */}
+      <style jsx>{`
+        .myModal {
+          background: white;
+          border-radius: 1rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          max-width: 42rem;
+          width: 90%;
+          margin: 2rem auto;
+          animation: modalEntry 0.3s ease-out;
+        }
+
+        @keyframes modalEntry {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        .myOverlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.75);
+          backdrop-filter: blur(5px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+      `}</style>
+
+      <Modal
+        isOpen={showModal}
+        onRequestClose={handleClose}
+        style={customModalStyles}
+        contentLabel="Lead Form"
+      >
+        <div className="bg-white rounded-xl overflow-hidden">
+          {/* Modal Header */}
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {addNew ? "Add New Lead" : "Edit Lead"}
+              </h2>
+              <button
+                onClick={handleClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+          </div>
+
+          {/* Modal Body */}
+          {renderModalBody()}
+
+          {/* Modal Footer */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleClose}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {addNew ? "Add Lead" : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
