@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
 
 export const verifyAdmin = (req, res, next) => {
-  const token = req.cookies.jwt;
+  const token =
+    req.cookies?.jwt ||
+    req.headers.authorization?.split(" ")[1] ||
+    req.headers["x-access-token"];
 
   if (!token) {
     return res
@@ -23,11 +26,9 @@ export const verifyAdmin = (req, res, next) => {
       const role = data.role;
 
       if (role !== "admin" && role !== "finance") {
-        return res
-          .status(401)
-          .json({
-            message: "This token has no access rights, you are not a Admin",
-          });
+        return res.status(401).json({
+          message: "This token has no access rights, you are not a Admin",
+        });
       } else {
         req.user = data;
         next();
