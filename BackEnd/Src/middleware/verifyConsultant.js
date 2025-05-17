@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
 
 export const verifyConsultant = (req, res, next) => {
-  const token = req.cookies.jwt;
+  const token =
+    req.cookies?.jwt ||
+    req.headers.authorization?.split(" ")[1] ||
+    req.headers["x-access-token"];
 
   if (!token) {
     return res

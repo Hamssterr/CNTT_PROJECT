@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
 
 export const verifyTeacher = (req, res, next) => {
-  const token = req.cookies.jwt;
+  const token =
+    req.cookies?.jwt ||
+    req.headers.authorization?.split(" ")[1] ||
+    req.headers["x-access-token"];
 
   if (!token) {
     return res
@@ -24,11 +27,9 @@ export const verifyTeacher = (req, res, next) => {
       const role = data.role;
 
       if (role !== "teacher") {
-        return res
-          .status(401)
-          .json({
-            message: "This token has no access rights, you are not a Teacher",
-          });
+        return res.status(401).json({
+          message: "This token has no access rights, you are not a Teacher",
+        });
       } else {
         req.user = data;
         next();
