@@ -13,41 +13,55 @@ export const AppProvider = ({ children }) => {
   const [schedules, setSchedules] = useState([]);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
+   const checkAuthStatus = async () => {
+  try {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+      axios.defaults.withCredentials = true;
+
+      const { data } = await axios.get(`${backendUrl}/api/auth/verify`);
+      if (data.success) {
+        setIsLoggedIn(true);
+        setRole(localStorage.getItem("role"));
+      } else {
+        throw new Error("Verification failed");
+      }
+    }
+  } catch (error) {
+    if (error.response?.status === 401) {
+      // Thử refresh token
       try {
-        const storedRole = localStorage.getItem("role");
-        const storedToken = localStorage.getItem("token");
-
-        if (storedRole && storedToken) {
-          axios.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${storedToken}`;
-          axios.defaults.withCredentials = true;
-
-          const { data } = await axios.get(`${backendUrl}/api/auth/verify`);
-          if (data.success) {
-            setIsLoggedIn(true);
-            setRole(storedRole);
-          } else {
-            setIsLoggedIn(false);
-            setRole(null);
-            localStorage.removeItem("role");
-            localStorage.removeItem("token");
-          }
-        } else {
-          setIsLoggedIn(false);
-          setRole(null);
+        const refreshResponse = await axios.post(`${backendUrl}/api/auth/refresh`, {
+          refreshToken: localStorage.getItem("refreshToken"), // Giả sử bạn lưu refresh token
+        });
+        const newToken = refreshResponse.data.token;
+        localStorage.setItem("token", newToken);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+        // Thử lại yêu cầu verify
+        const { data } = await axios.get(`${backendUrl}/api/auth/verify`);
+        if (data.success) {
+          setIsLoggedIn(true);
+          setRole(localStorage.getItem("role"));
         }
-      } catch (error) {
-        console.error("Auth check failed: ", error);
+      } catch (refreshError) {
+        console.error("Refresh token failed:", refreshError);
         setIsLoggedIn(false);
         setRole(null);
         localStorage.removeItem("role");
         localStorage.removeItem("token");
-      } finally {
-        setIsCheckingAuth(false); // Đánh dấu kiểm tra hoàn tất
       }
-    };
+    } else {
+      console.error("Auth check failed:", error);
+      setIsLoggedIn(false);
+      setRole(null);
+      localStorage.removeItem("role");
+      localStorage.removeItem("token");
+    }
+  } finally {
+    setIsCheckingAuth(false);
+  }
+};
     checkAuthStatus();
   }, [backendUrl]);
 
