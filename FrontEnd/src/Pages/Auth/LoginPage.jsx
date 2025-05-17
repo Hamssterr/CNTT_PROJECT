@@ -27,14 +27,10 @@ const LoginPage = () => {
 
     try {
       axios.defaults.withCredentials = true;
-      const { data } = await axios.post(
-        `${backendUrl}/api/auth/login`,
-        {
-          email,
-          password,
-        },
-        { withCredentials: true }
-      );
+      const { data } = await axios.post(`${backendUrl}/api/auth/login`, {
+        email,
+        password,
+      });
 
       if (data.success) {
         const token = data.token || data.data.token;
