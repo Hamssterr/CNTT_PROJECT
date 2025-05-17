@@ -153,7 +153,7 @@ const ClassTableList = () => {
   // Xử lý xem chi tiết lớp học
   const handleViewDetails = async (cls) => {
     try {
-      setLoading(true);
+      // setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.get(
         `${backendUrl}/api/admin/getClassesById/${cls._id}`

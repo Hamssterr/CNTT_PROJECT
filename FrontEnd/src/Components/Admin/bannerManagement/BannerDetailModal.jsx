@@ -6,81 +6,150 @@ const BannerDetailModal = ({ isOpen, onClose, bannerDetail }) => {
 
   return (
     <div className="fixed inset-0 bg-black/30 bg-opacity-40 z-40 flex justify-center items-center">
-      <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative ">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
-        >
-          <X size={24} />
-        </button>
-        <h3 className="text-xl font-bold text-gray-800 mb-4">Banner Details</h3>
-        <div className="space-y-4">
-          <div>
-            <span className="font-semibold text-gray-700">Title:</span>
-            <p className="text-gray-600">{bannerDetail.title || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Description:</span>
-            <p className="text-gray-600">{bannerDetail.description || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Button Text:</span>
-            <p className="text-gray-600">{bannerDetail.buttonText || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Button Color:</span>
-            <p className="text-gray-600">{bannerDetail.buttonColor || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Gradient:</span>
-            <p className="text-gray-600">{bannerDetail.gradient || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Course:</span>
-            <p className="text-gray-600">{bannerDetail.courseId?.title || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Number:</span>
-            <p className="text-gray-600">{bannerDetail.number || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Number Color:</span>
-            <p className="text-gray-600">{bannerDetail.numberColor || "N/A"}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Background Image:</span>
-            <div className="mt-1">
-              {bannerDetail.backgroundImage ? (
-                <img
-                  src={bannerDetail.backgroundImage}
-                  alt={bannerDetail.title || "Banner"}
-                  className="w-32 h-32 object-cover rounded"
-                />
-              ) : (
-                <p className="text-gray-600">N/A</p>
-              )}
-            </div>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-700">Created At:</span>
-            <p className="text-gray-600">
-              {bannerDetail.createdAt
-                ? new Date(bannerDetail.createdAt).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
-                : "N/A"}
-            </p>
-          </div>
-        </div>
-        <div className="mt-6 flex justify-end">
+      <div className="bg-white rounded-xl p-8 w-11/12 max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">
+            Banner Details
+          </h2>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100"
+            className="text-gray-500 hover:text-gray-700 text-2xl font-semibold transition-colors duration-200"
           >
-            Close
+            <X size={24} />
           </button>
+        </div>
+
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-50 rounded-xl p-6 shadow-inner">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Basic Information
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-gray-600 font-medium">Title:</span>
+                  <p className="text-gray-800 mt-1">
+                    {bannerDetail.title || "Not set"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-600 font-medium">
+                    Description:
+                  </span>
+                  <p className="text-gray-800 mt-1">
+                    {bannerDetail.description || "Not set"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-600 font-medium">
+                    Button Text:
+                  </span>
+                  <p className="text-gray-800 mt-1">
+                    {bannerDetail.buttonText}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-6 shadow-inner">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Style Configuration
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-gray-600 font-medium">
+                    Button Color:
+                  </span>
+                  <div className="flex items-center mt-1">
+                    <span className="text-gray-800">
+                      {bannerDetail.buttonColor}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-600 font-medium">
+                    Using Gradient:
+                  </span>
+                  <p className="text-gray-800 mt-1">
+                    {bannerDetail.useGradient ? "Yes" : "No"}
+                  </p>
+                </div>
+                {bannerDetail.useGradient && (
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-gray-600 font-medium">
+                        Gradient Start:
+                      </span>
+                      <div className="flex items-center mt-1">
+                        <div
+                          className="w-6 h-6 rounded-full mr-2"
+                          style={{
+                            backgroundColor: bannerDetail.gradientStart,
+                          }}
+                        ></div>
+                        <span className="text-gray-800">
+                          {bannerDetail.gradientStart}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">
+                        Gradient End:
+                      </span>
+                      <div className="flex items-center mt-1">
+                        <div
+                          className="w-6 h-6 rounded-full mr-2"
+                          style={{ backgroundColor: bannerDetail.gradientEnd }}
+                        ></div>
+                        <span className="text-gray-800">
+                          {bannerDetail.gradientEnd}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Preview
+            </h3>
+            <div
+              className="w-full h-80 rounded-xl shadow-lg overflow-hidden relative"
+              style={{
+                background: bannerDetail.gradient
+                  ? `bg-gradient-to-r(${bannerDetail.gradient})`
+                  : undefined,
+                backgroundImage: bannerDetail.backgroundImage
+                  ? `url(${bannerDetail.backgroundImage})`
+                  : undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            >
+              <div className="absolute inset-0 bg-opacity-40">
+                <div className="p-8 text-white">
+                  <h2 className="text-2xl md:text-4xl font-extrabold flex items-center gap-2">
+                    {bannerDetail.title || "Banner Title"}
+                    <span className="text-yellow-400 text-xl md:text-2xl">
+                      ⭐
+                    </span>
+                  </h2>
+                  <p className="text-sm md:text-lg max-w-md md:max-w-lg">
+                    {bannerDetail.description || "Banner Description"}
+                  </p>
+                  <button
+                    style={{ backgroundColor: bannerDetail.buttonColor }}
+                    className={`inline-block rounded-full px-6 py-2 font-semibold transition-colors duration-300 bg-white ${bannerDetail.buttonColor} hover:bg-gray-100 text-black`}
+                  >
+                    {bannerDetail.buttonText}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
