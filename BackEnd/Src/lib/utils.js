@@ -12,7 +12,7 @@ export const generateToken = (userId, role, res) => {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
     httpOnly: true, // Prevents client-side JavaScript access
     secure: process.env.NODE_ENV !== "development", // Only send over HTTPS in production
-    sameSite: "none", // Mitigates CSRF attacks
+    sameSite: "strict", // Mitigates CSRF attacks
     path: "/",
   });
 
