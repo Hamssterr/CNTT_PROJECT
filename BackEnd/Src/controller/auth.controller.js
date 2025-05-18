@@ -162,7 +162,10 @@ export const checkAuth = (req, res) => {
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const token = req.cookies.jwt;
+    const token =
+    req.cookies?.jwt ||
+    req.headers.authorization?.split(" ")[1] ||
+    req.headers["x-access-token"];
     if (!token) {
       return res.status(401).json({ success: false, message: "No token provided" });
     }
