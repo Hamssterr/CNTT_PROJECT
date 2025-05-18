@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
-import Navbar from "../../Components/Academic-Finance/NavBar";
-import Sidebar from "../../Components/Academic-Finance/SideBar";
 import Swal from "sweetalert2";
+import Sidebar from "../../Components/Academic-Finance/Sidebar";
+import Navbar from "../../Components/Academic-Finance/Navbar";
+
 import { Search } from "lucide-react";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
