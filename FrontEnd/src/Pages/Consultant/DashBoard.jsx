@@ -3,6 +3,7 @@ import { AppContext } from "../../context/AppContext";
 import Sidebar from "../../Components/Consultant/Sidebar";
 import Footer from "../../Components/Footer";
 import Navbar from "../../Components/Consultant/Navbar";
+import Loading from "../../Components/Loading";
 import {
   Users,
   CalendarCheck,
@@ -14,6 +15,7 @@ import axios from "axios";
 
 function DashBoard() {
   const { backendUrl } = useContext(AppContext);
+  const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
     newLeadsToday: 0,
     totalLeads: 0,
@@ -25,6 +27,8 @@ function DashBoard() {
 
   const fetchDashboardData = async () => {
     try {
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 300));
       // Fetch leads data
       const leadsResponse = await axios.get(
         `${backendUrl}/api/consultant/getLeadUsers`
@@ -90,6 +94,8 @@ function DashBoard() {
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -111,140 +117,146 @@ function DashBoard() {
           </div>
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Left Column - Cards & Tables */}
-            <div className="lg:col-span-2">
-              {/* Statistic Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <Card
-                  icon={<UserPlus />}
-                  title="New Leads Today"
-                  number={dashboardData.newLeadsToday}
-                  color="bg-blue-500"
-                />
-                <Card
-                  icon={<Users />}
-                  title="Total Leads"
-                  number={dashboardData.totalLeads}
-                  color="bg-purple-500"
-                />
-                <Card
-                  icon={<CalendarCheck />}
-                  title="Appointments Today"
-                  number={dashboardData.appointmentsToday}
-                  color="bg-green-500"
-                />
-                <Card
-                  icon={<Users2 />}
-                  title="Total Students"
-                  number={dashboardData.totalStudents}
-                  color="bg-orange-500"
-                />
-              </div>
-
-              {/* Tables */}
-              <div className="grid grid-cols-1 gap-4">
-                {/* Today's Appointments Table */}
-                <div className="bg-white p-4 rounded-xl shadow">
-                  <h2 className="text-lg font-semibold mb-4">
-                    Today's Appointments
-                  </h2>
-                  <table className="w-full text-left">
-                    <thead className="text-sm font-semibold text-gray-600 border-b">
-                      <tr>
-                        <th className="py-2">Time</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dashboardData.todayAppointments.length > 0 ? (
-                        dashboardData.todayAppointments.map((apt, index) => (
-                          <tr
-                            key={index}
-                            className="border-b hover:bg-gray-100"
-                          >
-                            <td className="py-2">{apt.time}</td>
-                            <td>{apt.title}</td>
-                            <td>{apt.desc}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan="3"
-                            className="py-4 text-center text-gray-500"
-                          >
-                            No appointments scheduled for today
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64 bg-gray-100/50">
+              <Loading />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Left Column - Cards & Tables */}
+              <div className="lg:col-span-2">
+                {/* Statistic Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <Card
+                    icon={<UserPlus />}
+                    title="New Leads Today"
+                    number={dashboardData.newLeadsToday}
+                    color="bg-blue-500"
+                  />
+                  <Card
+                    icon={<Users />}
+                    title="Total Leads"
+                    number={dashboardData.totalLeads}
+                    color="bg-purple-500"
+                  />
+                  <Card
+                    icon={<CalendarCheck />}
+                    title="Appointments Today"
+                    number={dashboardData.appointmentsToday}
+                    color="bg-green-500"
+                  />
+                  <Card
+                    icon={<Users2 />}
+                    title="Total Students"
+                    number={dashboardData.totalStudents}
+                    color="bg-orange-500"
+                  />
                 </div>
 
-                {/* Recent Leads Table */}
-                <div className="bg-white p-4 rounded-xl shadow">
-                  <h2 className="text-lg font-semibold mb-4">Recent Leads</h2>
-                  <table className="w-full text-left">
-                    <thead className="text-sm font-semibold text-gray-600 border-b">
-                      <tr>
-                        <th className="py-2">Name</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dashboardData.recentLeads.length > 0 ? (
-                        dashboardData.recentLeads.map((lead, index) => (
-                          <tr
-                            key={index}
-                            className="border-b hover:bg-gray-100"
-                          >
-                            <td className="py-2">{lead.name}</td>
-                            <td>{lead.phone}</td>
-                            <td>
-                              <span
-                                className={`${
-                                  lead.status === "Contacted"
-                                    ? "text-blue-600"
-                                    : lead.status === "Not Responding"
-                                    ? "text-red-500"
-                                    : "text-yellow-500"
-                                }`}
-                              >
-                                {lead.status}
-                              </span>
+                {/* Tables */}
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Today's Appointments Table */}
+                  <div className="bg-white p-4 rounded-xl shadow">
+                    <h2 className="text-lg font-semibold mb-4">
+                      Today's Appointments
+                    </h2>
+                    <table className="w-full text-left">
+                      <thead className="text-sm font-semibold text-gray-600 border-b">
+                        <tr>
+                          <th className="py-2">Time</th>
+                          <th>Title</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dashboardData.todayAppointments.length > 0 ? (
+                          dashboardData.todayAppointments.map((apt, index) => (
+                            <tr
+                              key={index}
+                              className="border-b hover:bg-gray-100"
+                            >
+                              <td className="py-2">{apt.time}</td>
+                              <td>{apt.title}</td>
+                              <td>{apt.desc}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="3"
+                              className="py-4 text-center text-gray-500"
+                            >
+                              No appointments scheduled for today
                             </td>
                           </tr>
-                        ))
-                      ) : (
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Recent Leads Table */}
+                  <div className="bg-white p-4 rounded-xl shadow">
+                    <h2 className="text-lg font-semibold mb-4">Recent Leads</h2>
+                    <table className="w-full text-left">
+                      <thead className="text-sm font-semibold text-gray-600 border-b">
                         <tr>
-                          <td
-                            colSpan="3"
-                            className="py-4 text-center text-gray-500"
-                          >
-                            No new leads today
-                          </td>
+                          <th className="py-2">Name</th>
+                          <th>Phone</th>
+                          <th>Status</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {dashboardData.recentLeads.length > 0 ? (
+                          dashboardData.recentLeads.map((lead, index) => (
+                            <tr
+                              key={index}
+                              className="border-b hover:bg-gray-100"
+                            >
+                              <td className="py-2">{lead.name}</td>
+                              <td>{lead.phone}</td>
+                              <td>
+                                <span
+                                  className={`${
+                                    lead.status === "Contacted"
+                                      ? "text-blue-600"
+                                      : lead.status === "Not Responding"
+                                      ? "text-red-500"
+                                      : "text-yellow-500"
+                                  }`}
+                                >
+                                  {lead.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="3"
+                              className="py-4 text-center text-gray-500"
+                            >
+                              No new leads today
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Right Column - Calendar */}
-            <div className="bg-white p-4 rounded-xl shadow h-120">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <CalendarDays /> Calendar
-              </h2>
-              <iframe
-                src="https://calendar.google.com/calendar/embed?height=400&wkst=1&bgcolor=%23ffffff&ctz=Asia%2FHo_Chi_Minh&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH"
-                className="w-full h-[400px] rounded-lg border-0"
-              ></iframe>
+              {/* Right Column - Calendar */}
+              <div className="bg-white p-4 rounded-xl shadow h-120">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <CalendarDays /> Calendar
+                </h2>
+                <iframe
+                  src="https://calendar.google.com/calendar/embed?height=400&wkst=1&bgcolor=%23ffffff&ctz=Asia%2FHo_Chi_Minh&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH"
+                  className="w-full h-[400px] rounded-lg border-0"
+                ></iframe>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       <Footer />

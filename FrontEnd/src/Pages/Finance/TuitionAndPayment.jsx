@@ -6,36 +6,43 @@ import Swal from "sweetalert2";
 import { jsPDF } from "jspdf";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
+import Loading from "../../Components/Loading";
 
 function TuitionAndPayment() {
   const { backendUrl } = useContext(AppContext);
-
-  // State for students and courses
+  const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifiedStudents, setNotifiedStudents] = useState({});
 
-  // Fetch students with outstanding tuition from backend
+  // Fetch students with status "Contacted" from backend
   const fetchStudents = async () => {
     try {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate loading
       const { data } = await axios.get(
         `${backendUrl}/api/consultant/getLeadUsers`
       );
       if (data.success) {
-        const transformedData = data.leadUsers.map((lead) => ({
-          id: lead._id,
-          studentName: lead.studentName,
-          parentName: lead.name,
-          email: lead.email,
-          phone: lead.phone,
-          className: lead.course,
-          paymentStatus: lead.paymentStatus,
-        }));
+        // Lọc chỉ những mục có status là "Contacted"
+        const transformedData = data.leadUsers
+          .filter((lead) => lead.status === "Contacted")
+          .map((lead) => ({
+            id: lead._id,
+            studentName: lead.studentName,
+            parentName: lead.name,
+            email: lead.email,
+            phone: lead.phone,
+            className: lead.course,
+            paymentStatus: lead.paymentStatus,
+          }));
         setStudents(transformedData);
       }
     } catch (error) {
       console.error("Failed to fetch students:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,14 +68,13 @@ function TuitionAndPayment() {
   // Filter students based on search query
   const filteredStudents = students
     .map((student) => {
-      // Find the course that matches the student's className
       const course = courses.find(
         (course) => course.title === student.className
       );
       return {
         ...student,
-        amountDue: course ? course.price : "N/A", // Add price to student data
-        dueDate: "2025-12-31", // Hard-coded due date
+        amountDue: course ? course.price : "N/A",
+        dueDate: "2025-12-31",
       };
     })
     .filter(
@@ -93,7 +99,6 @@ function TuitionAndPayment() {
   // Handler for payment update - update paymentStatus to "Paid"
   const handlePayment = async (id) => {
     try {
-      // Tìm student hiện tại để lấy thông tin
       const currentStudent = students.find((student) => student.id === id);
       if (!currentStudent) {
         Swal.fire("Error", "Student not found", "error");
@@ -108,21 +113,19 @@ function TuitionAndPayment() {
           email: currentStudent.email,
           phone: currentStudent.phone,
           course: currentStudent.className,
-          registrationDate: new Date(), // Giữ nguyên ngày đăng ký cũ
-          status: currentStudent.status || "Pending", // Giữ nguyên status cũ
-          paymentStatus: "Paid", // Cập nhật payment status thành Paid
+          registrationDate: new Date(),
+          status: currentStudent.status || "Pending",
+          paymentStatus: "Paid",
         }
       );
 
       if (data.success) {
-        // Cập nhật state local
         setStudents((prev) =>
           prev.map((student) =>
             student.id === id ? { ...student, paymentStatus: "Paid" } : student
           )
         );
 
-        // Hiển thị thông báo thành công
         Swal.fire({
           title: "Success!",
           text: "Payment status updated successfully",
@@ -159,7 +162,7 @@ function TuitionAndPayment() {
 
   // Handle notifying the parent
   const handleNotifyParent = (student) => {
-    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split("T")[0];
 
     if (notifiedStudents[student.id] === today) {
       Swal.fire(
@@ -170,7 +173,6 @@ function TuitionAndPayment() {
       return;
     }
 
-    // Update notifiedStudents state
     setNotifiedStudents((prev) => ({
       ...prev,
       [student.id]: today,
@@ -226,90 +228,95 @@ function TuitionAndPayment() {
           </div>
 
           {/* Tuition Table */}
-          <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200 text-center">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Student Name
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Class
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount Due
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Due Date
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {student.studentName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {student.className}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        ${student.amountDue}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {student.dueDate}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {student.paymentStatus === "Unpaid" ? (
+          {loading ? (
+            <div className="flex justify-center items-center h-64 bg-gray-100/50">
+              <Loading />
+            </div>
+          ) : (
+            <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200 text-center">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Student Name
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Class
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount Due
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Due Date
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map((student) => (
+                      <tr key={student.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.studentName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {student.className}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          ${student.amountDue}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {student.dueDate}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {student.paymentStatus === "Unpaid" ? (
+                            <button
+                              onClick={() => handlePayment(student.id)}
+                              className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm transition duration-150 ease-in-out"
+                            >
+                              Paid
+                            </button>
+                          ) : (
+                            <span className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm inline-block">
+                              Paid ✓
+                            </span>
+                          )}
                           <button
-                            onClick={() => handlePayment(student.id)}
-                            className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm transition duration-150 ease-in-out"
+                            onClick={() => handlePrintInvoice(student)}
+                            className="ml-2 px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm"
                           >
-                            Paid
+                            Invoice
                           </button>
-                        ) : (
-                          <span className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm inline-block">
-                            Paid ✓
-                          </span>
-                        )}
-                        {/* Các nút khác giữ nguyên */}
-                        <button
-                          onClick={() => handlePrintInvoice(student)}
-                          className="ml-2 px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm"
-                        >
-                          Invoice
-                        </button>
-                        <button
-                          onClick={() => handleNotifyParent(student)}
-                          disabled={student.paymentStatus === "Paid"}
-                          className={`ml-2 px-3 py-1 rounded-lg text-sm ${
-                            student.paymentStatus === "Paid"
-                              ? "bg-gray-400 cursor-not-allowed opacity-50"
-                              : "bg-red-500 hover:bg-red-600 text-white"
-                          }`}
-                        >
-                          Notify Parent
-                        </button>
+                          <button
+                            onClick={() => handleNotifyParent(student)}
+                            disabled={student.paymentStatus === "Paid"}
+                            className={`ml-2 px-3 py-1 rounded-lg text-sm ${
+                              student.paymentStatus === "Paid"
+                                ? "bg-gray-400 cursor-not-allowed opacity-50"
+                                : "bg-red-500 hover:bg-red-600 text-white"
+                            }`}
+                          >
+                            Notify Parent
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="px-6 py-4 text-center text-gray-500"
+                      >
+                        No students with outstanding tuition.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="5"
-                      className="px-6 py-4 text-center text-gray-500"
-                    >
-                      No students with outstanding tuition.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

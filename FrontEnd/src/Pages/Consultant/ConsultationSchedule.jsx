@@ -12,6 +12,7 @@ import "../../public/ModalStyle.css";
 import enUS from "date-fns/locale/en-US";
 import { useContext } from "react";
 import { AppContext } from "../../context/AppContext";
+import Loading from "../../Components/Loading";
 import axios from "axios";
 
 const locales = {
@@ -30,6 +31,7 @@ Modal.setAppElement("#root");
 
 function ConsultationSchedule() {
   const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { schedules, setSchedules, backendUrl } = useContext(AppContext);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -42,6 +44,8 @@ function ConsultationSchedule() {
   // Fetch schedules from backend
   const fetchSchedules = async () => {
     try {
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate loading delay
       const response = await axios.get(
         `${backendUrl}/api/consultant/getSchedules`
       );
@@ -59,6 +63,8 @@ function ConsultationSchedule() {
         title: "Error",
         text: "Failed to fetch schedules",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -217,27 +223,33 @@ function ConsultationSchedule() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow flex-1">
-            <Calendar
-              localizer={localizer}
-              events={filteredEvents}
-              startAccessor="start"
-              endAccessor="end"
-              style={{ height: calendarHeight }}
-              onSelectSlot={handleSelect}
-              onSelectEvent={handleEventSelect}
-              selectable
-              view={view}
-              onView={setView}
-              views={["month", "week", "day", "agenda"]}
-              defaultView="month"
-              toolbar={true}
-              popup
-              step={60}
-              showMultiDayTimes
-              className="custom-calendar"
-            />
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64 bg-gray-100/50">
+              <Loading />
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow flex-1">
+              <Calendar
+                localizer={localizer}
+                events={filteredEvents}
+                startAccessor="start"
+                endAccessor="end"
+                style={{ height: calendarHeight }}
+                onSelectSlot={handleSelect}
+                onSelectEvent={handleEventSelect}
+                selectable
+                view={view}
+                onView={setView}
+                views={["month", "week", "day", "agenda"]}
+                defaultView="month"
+                toolbar={true}
+                popup
+                step={60}
+                showMultiDayTimes
+                className="custom-calendar"
+              />
+            </div>
+          )}
         </div>
       </div>
       <Footer />

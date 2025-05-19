@@ -21,6 +21,8 @@ import Modal from "react-modal";
 import Swal from "sweetalert2";
 import { useContext } from "react";
 import { AppContext } from "../../context/AppContext";
+import Loading from "../../Components/Loading";
+import { set } from "date-fns";
 
 Modal.setAppElement("#root");
 
@@ -48,6 +50,7 @@ const customModalStyles = {
 };
 
 function LeadManagement() {
+  const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,6 +76,8 @@ function LeadManagement() {
   // Fetch leads data
   const fetchLeads = async () => {
     try {
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate loading delay
       const response = await axios.get(
         `${backendUrl}/api/consultant/getLeadUsers`
       );
@@ -85,6 +90,8 @@ function LeadManagement() {
         title: "Error",
         text: "Failed to fetch leads data",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -410,145 +417,153 @@ function LeadManagement() {
           </div>
 
           {/* Enhanced Table Section */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-600 text-sm">
-                    <th className="py-4 px-6 text-left font-semibold">Name</th>
-                    <th className="py-4 px-6 text-left font-semibold">
-                      Student
-                    </th>
-                    <th className="py-4 px-6 text-left font-semibold">
-                      Contact
-                    </th>
-                    <th className="py-4 px-6 text-left font-semibold">
-                      Course
-                    </th>
-                    <th className="py-4 px-6 text-left font-semibold">
-                      Registration
-                    </th>
-                    <th className="py-4 px-6 text-left font-semibold">
-                      Status
-                    </th>
-                    <th className="py-4 px-6 text-center font-semibold">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLeads.map((lead, index) => (
-                    <tr
-                      key={lead._id}
-                      className={`border-t border-gray-100 hover:bg-blue-50/30 transition-colors ${
-                        index % 2 === 0 ? "bg-gray-50/30" : ""
-                      }`}
-                    >
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
-                            {lead.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {lead.name}
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64 bg-gray-100/50">
+              <Loading />
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+              <div className="overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-600 text-sm">
+                      <th className="py-4 px-6 text-left font-semibold">
+                        Name
+                      </th>
+                      <th className="py-4 px-6 text-left font-semibold">
+                        Student
+                      </th>
+                      <th className="py-4 px-6 text-left font-semibold">
+                        Contact
+                      </th>
+                      <th className="py-4 px-6 text-left font-semibold">
+                        Course
+                      </th>
+                      <th className="py-4 px-6 text-left font-semibold">
+                        Registration
+                      </th>
+                      <th className="py-4 px-6 text-left font-semibold">
+                        Status
+                      </th>
+                      <th className="py-4 px-6 text-center font-semibold">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredLeads.map((lead, index) => (
+                      <tr
+                        key={lead._id}
+                        className={`border-t border-gray-100 hover:bg-blue-50/30 transition-colors ${
+                          index % 2 === 0 ? "bg-gray-50/30" : ""
+                        }`}
+                      >
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                              {lead.name.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {lead.name}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
-                        {lead.studentName}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Phone size={16} className="text-blue-500" />
-                            {lead.phone}
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {lead.studentName}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Phone size={16} className="text-blue-500" />
+                              {lead.phone}
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Mail size={16} className="text-blue-500" />
+                              {lead.email}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Mail size={16} className="text-blue-500" />
-                            {lead.email}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                            {lead.course}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {new Date(lead.registrationDate).toLocaleDateString()}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
+                              lead.status === "Contacted"
+                                ? "bg-green-100 text-green-700"
+                                : lead.status === "Not Responding"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {lead.status === "Contacted" && (
+                              <CircleCheck size={16} />
+                            )}
+                            {lead.status === "Not Responding" && (
+                              <UserX size={16} />
+                            )}
+                            {lead.status === "Pending" && <Clock size={16} />}
+                            {lead.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(lead)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDelete(lead)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                              </svg>
+                            </button>
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                          {lead.course}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
-                        {new Date(lead.registrationDate).toLocaleDateString()}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-                            lead.status === "Contacted"
-                              ? "bg-green-100 text-green-700"
-                              : lead.status === "Not Responding"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {lead.status === "Contacted" && (
-                            <CircleCheck size={16} />
-                          )}
-                          {lead.status === "Not Responding" && (
-                            <UserX size={16} />
-                          )}
-                          {lead.status === "Pending" && <Clock size={16} />}
-                          {lead.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(lead)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDelete(lead)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M3 6h18" />
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
