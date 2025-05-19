@@ -122,7 +122,7 @@ function DashBoard() {
       <div className="flex min-h-screen bg-gray-100">
         <SideBar />
         <div className="flex-1 p-8 ml-25">
-          <h1 className="text-2xl font-bold text-gray-800 mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-8">
             Dashboard Overview
           </h1>
 

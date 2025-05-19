@@ -205,7 +205,7 @@ function ConsultationSchedule() {
         <Sidebar />
         <div className="flex-1 p-8 ml-20">
           <div className="mb-6 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 className="text-3xl font-bold text-gray-800">
               Consultation Schedule
             </h1>
             <div className="relative">

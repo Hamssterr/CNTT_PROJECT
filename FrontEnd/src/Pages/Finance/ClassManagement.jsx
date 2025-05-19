@@ -1,7 +1,7 @@
 import React from "react";
 
-import NavBar from "../../Components/Academic-Finance/Navbar";
-import SideBar from "../../Components/Academic-Finance/Sidebar";
+import NavBar from "../../Components/Academic-Finance/NavBar";
+import SideBar from "../../Components/Academic-Finance/SideBar";
 
 import CourseTableList from "../../Components/Admin/courseManagement/CourseTableList";
 
