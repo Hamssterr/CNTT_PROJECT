@@ -72,6 +72,13 @@ const ViewClassModal = ({ show, onClose, classData }) => {
                   {classData.courseId?.title || "Not set"}
                 </p>
               </div>
+
+               <div>
+                <span className="text-gray-600 font-medium">Instructor:</span>
+                <p className="text-gray-800 mt-1">
+                  {classData.instructor?.name || "Not set"}
+                </p>
+              </div>
             </div>
           </div>
 

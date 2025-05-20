@@ -142,32 +142,31 @@ const Home = () => {
                   animate="center"
                   exit="exit"
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  className={`relative overflow-hidden rounded-2xl py-12 px-6 text-white bg-gradient-to-r ${banners[currentBanner].gradient} h-[400px] md:h-[450px] flex items-center`}
+                  className={`relative overflow-hidden rounded-xl md:rounded-2xl py-6 md:py-12 px-4 md:px-6 text-white bg-gradient-to-r ${banners[currentBanner].gradient} h-[300px] sm:h-[350px] md:h-[450px] flex items-center`}
                 >
-                  {/* Background overlay */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center opacity-10"
-                    style={{
-                      backgroundImage: `url(${banners[currentBanner].backgroundImage})`,
-                      backgroundSize: "85%",
-                      backgroundPosition: "center",
-                    }}
+                  {/* Background overlay image (responsive scaling) */}
+                  <img
+                    src={banners[currentBanner].backgroundImage}
+                    alt="Background"
+                    className="absolute inset-0 w-full h-full object-cover 
+             md:object-cover md:w-full md:h-full 
+             lg:object-cover lg:w-[40%] lg:h-full lg:right-0 lg:left-auto lg:translate-x-0 opacity-10"
                   />
 
                   {/* Text content */}
-                  <div className="relative z-10 text-left space-y-6 pl-8 w-3/4">
-                    <h1 className="text-2xl md:text-4xl font-extrabold flex items-center gap-2">
+                  <div className="relative z-10 text-left space-y-4 md:space-y-6 pl-4 md:pl-8 w-full sm:w-3/4">
+                    <h1 className="text-lg sm:text-xl md:text-4xl font-extrabold flex items-center gap-2">
                       {banners[currentBanner].title}
-                      <span className="text-yellow-400 text-xl md:text-2xl">
+                      <span className="text-yellow-400 text-base sm:text-lg md:text-2xl">
                         ⭐
                       </span>
                     </h1>
-                    <p className="text-sm md:text-lg max-w-md md:max-w-lg">
+                    <p className="text-xs sm:text-sm md:text-lg max-w-xs sm:max-w-md md:max-w-lg">
                       {banners[currentBanner].description}
                     </p>
                     <button
                       onClick={handleBannerClick}
-                      className={`inline-block rounded-full px-6 py-2 font-semibold transition-colors duration-300 bg-white ${banners[currentBanner].buttonColor} hover:bg-gray-100 text-black`}
+                      className={`inline-block rounded-full px-4 py-2 sm:px-6 font-semibold transition-colors duration-300 bg-white ${banners[currentBanner].buttonColor} hover:bg-gray-100 text-black text-sm sm:text-base`}
                       disabled={!banners[currentBanner].courseId}
                     >
                       {banners[currentBanner].buttonText}
@@ -178,29 +177,33 @@ const Home = () => {
             )}
 
             {/* Controls */}
-            {/* Left Button */}
             <button
               onClick={prevBanner}
-              className="absolute top-1/2 left-4 -translate-x-full transform -translate-y-1/2 bg-gray-200 text-gray-800 p-3 rounded-full hover:bg-gray-300 transition-colors z-20"
+              className="absolute top-1/2 left-6 -translate-x-full transform -translate-y-1/2 bg-gray-200 text-gray-800 p-3 rounded-full hover:bg-gray-300 transition-colors z-20"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft
+                size={16}
+                className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+              />
             </button>
 
-            {/* Right Button */}
             <button
               onClick={nextBanner}
-              className="absolute top-1/2 right-[-12px] transform -translate-y-1/2 bg-gray-200 text-gray-800 p-3 rounded-full hover:bg-gray-300 transition-colors z-20"
+              className="absolute top-1/2 right-[-17px] transform -translate-y-1/2 bg-gray-200 text-gray-800 p-3 rounded-full hover:bg-gray-300 transition-colors z-20"
             >
-              <ChevronRight size={20} />
+              <ChevronRight
+                size={16}
+                className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+              />
             </button>
 
             {/* Pagination Dots */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+            <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
               {banners.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToBanner(index)}
-                  className={`w-3 h-3 rounded-full ${
+                  className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${
                     currentBanner === index ? "bg-blue-600" : "bg-gray-300"
                   } hover:bg-blue-400 transition-colors`}
                 ></button>
@@ -211,7 +214,7 @@ const Home = () => {
           {/* Courses Section */}
           <section id="courses">
             {/* Theory Courses */}
-            <section className="mb-12 pl-10">
+            <section className="mb-12 md:pl-3 lg:pl-5">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Theory Courses
               </h2>
@@ -244,7 +247,7 @@ const Home = () => {
             </section>
 
             {/* Programming Courses */}
-            <section className="pl-10">
+            <section className="md:pl-3 lg:pl-5">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Programming Courses
               </h2>

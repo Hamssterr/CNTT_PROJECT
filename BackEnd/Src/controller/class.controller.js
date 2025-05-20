@@ -90,6 +90,18 @@ export const createClass = async (req, res) => {
       });
     }
 
+    // Kiểm tra thông tin instructor
+    if (
+      !course.instructor ||
+      !course.instructor.id ||
+      !course.instructor.name
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Course instructor information is incomplete",
+      });
+    }
+
     // Kiểm tra lớp học đã tồn tại cho khóa học này
     const existingClass = await Class.findOne({ courseId });
     if (existingClass) {
@@ -104,6 +116,10 @@ export const createClass = async (req, res) => {
       className,
       room,
       courseId,
+      instructor: {
+        id: course.instructor.id,
+        name: course.instructor.name,
+      },
       schedule: {
         daysOfWeek: course.schedule.daysOfWeek,
         shift: course.schedule.shift,
@@ -120,7 +136,7 @@ export const createClass = async (req, res) => {
 
     const createdClass = await classObj.save();
     // Populate courseId for response
-    await createdClass.populate("courseId", "title");
+    await createdClass.populate("courseId", "title instructor");
     return res.status(201).json({
       success: true,
       message: "Class created successfully",
@@ -149,9 +165,18 @@ export const updateClass = async (req, res) => {
       });
     }
 
-    // Kiểm tra khóa học nếu courseId được cung cấp
+    // Kiểm tra khóa học nếu courseId được cung cấp hoặc lấy khóa học hiện tại
+    let course;
     if (courseId && courseId !== classObj.courseId.toString()) {
-      const course = await Course.findById(courseId);
+      // Validate courseId
+      if (!mongoose.isValidObjectId(courseId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid course ID",
+        });
+      }
+
+      course = await Course.findById(courseId);
       if (!course) {
         return res.status(404).json({
           success: false,
@@ -171,6 +196,18 @@ export const updateClass = async (req, res) => {
         });
       }
 
+      // Kiểm tra thông tin instructor
+      if (
+        !course.instructor ||
+        !course.instructor.id ||
+        !course.instructor.name
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Course instructor information is incomplete",
+        });
+      }
+
       // Kiểm tra xem courseId đã được sử dụng trong lớp học khác chưa
       const existingClass = await Class.findOne({
         courseId,
@@ -183,14 +220,16 @@ export const updateClass = async (req, res) => {
         });
       }
 
-      // Cập nhật courseId và schedule
+      // Cập nhật courseId, schedule, instructor, và students
       classObj.courseId = courseId;
       classObj.schedule = {
         daysOfWeek: course.schedule.daysOfWeek,
         shift: course.schedule.shift,
       };
-
-      // Đồng bộ students với enrolledUsers của course mới
+      classObj.instructor = {
+        id: course.instructor.id,
+        name: course.instructor.name,
+      };
       classObj.students = course.enrolledUsers.map((enrolled) => ({
         userId: enrolled.userId,
         email: enrolled.email,
@@ -199,6 +238,29 @@ export const updateClass = async (req, res) => {
         enrolledDate: enrolled.enrolledDate,
         progress: enrolled.progress,
       }));
+    } else {
+      // Nếu không thay đổi courseId, kiểm tra và cập nhật instructor từ khóa học hiện tại
+      course = await Course.findById(classObj.courseId);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Current course not found",
+        });
+      }
+      if (
+        !course.instructor ||
+        !course.instructor.id ||
+        !course.instructor.name
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Current course instructor information is incomplete",
+        });
+      }
+      classObj.instructor = {
+        id: course.instructor.id,
+        name: course.instructor.name,
+      };
     }
 
     // Cập nhật các trường khác nếu được cung cấp
@@ -206,7 +268,13 @@ export const updateClass = async (req, res) => {
     if (room) classObj.room = room;
 
     const updatedClass = await classObj.save();
-    return res.status(200).json({ success: true, class: updatedClass });
+    // Populate courseId for response
+    await updatedClass.populate("courseId", "title");
+    return res.status(200).json({
+      success: true,
+      message: "Class updated successfully",
+      class: updatedClass,
+    });
   } catch (error) {
     console.error("Error updating class:", error);
     return res.status(500).json({
@@ -249,6 +317,58 @@ export const deleteClass = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete class",
+    });
+  }
+};
+
+
+// API: Lấy danh sách lớp học của giảng viên đăng nhập
+export const getClassesByInstructor = async (req, res) => {
+  try {
+
+    const instructorId = req.user?.userId;
+
+    // Kiểm tra xem instructorId có tồn tại không
+    if (!instructorId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Instructor ID not found",
+      });
+    }
+
+    // Kiểm tra xem instructorId có hợp lệ không
+    if (!mongoose.isValidObjectId(instructorId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid instructor ID",
+      });
+    }
+
+    // Tìm tất cả các lớp học mà instructor.id khớp với userId
+    const classes = await Class.find({ "instructor.id": instructorId })
+      .populate("courseId", "title")
+      .lean();
+
+    // Kiểm tra xem có lớp học nào không
+    if (!classes || classes.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No classes found for this instructor",
+        classes: [],
+      });
+    }
+
+    // Trả về danh sách lớp học
+    return res.status(200).json({
+      success: true,
+      message: "Classes retrieved successfully",
+      classes,
+    });
+  } catch (error) {
+    console.error("Error retrieving classes by instructor:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve classes",
     });
   }
 };

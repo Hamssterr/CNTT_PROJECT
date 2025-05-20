@@ -16,6 +16,10 @@ const ClassSchema = new mongoose.Schema({
     ref: "Course",
     required: [true, "Course ID is required"],
   },
+  instructor: {
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+  },
   students: [
     {
       userId: {
