@@ -1,10 +1,39 @@
 import React, { useState, useEffect, useContext } from "react";
 import Navbar from "../../Components/Teacher/NavBar";
 import Sidebar from "../../Components/Teacher/SideBar";
-import { Users, BookOpen, Calendar, Clock, Info, Download } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  Calendar,
+  Clock,
+  Info,
+  Download,
+  X,
+} from "lucide-react";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../Components/Loading";
+import Modal from "react-modal";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Thêm styles cho modal
+const customModalStyles = {
+  overlay: {
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    zIndex: 1000,
+  },
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    transform: "translate(-50%, -50%)",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    overflow: "visible",
+  },
+};
 
 function MyClasses() {
   const { backendUrl, user } = useContext(AppContext);
@@ -66,6 +95,159 @@ function MyClasses() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Component cho thẻ thông tin
+  const InfoCard = ({ label, value, icon }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gray-50 p-4 rounded-lg"
+    >
+      <div className="flex items-center gap-2 text-gray-600 mb-1">
+        {icon}
+        <span className="font-semibold">{label}</span>
+      </div>
+      <div className="text-gray-800">{value}</div>
+    </motion.div>
+  );
+
+  // Thay thế modal cũ bằng modal mới
+  const renderClassDetailsModal = () => (
+    <Modal
+      isOpen={showModal}
+      onRequestClose={() => setShowModal(false)}
+      style={customModalStyles}
+      contentLabel="Class Details"
+    >
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl relative"
+        >
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100"
+            onClick={() => setShowModal(false)}
+          >
+            <X size={20} className="text-gray-500" />
+          </motion.button>
+
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl font-bold mb-6 text-gray-800"
+          >
+            {selectedClass.className}
+          </motion.h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <InfoCard
+              label="Course"
+              value={selectedClass.courseId?.title}
+              icon={<BookOpen size={18} className="text-blue-500" />}
+            />
+            <InfoCard
+              label="Schedule"
+              value={`${selectedClass.schedule?.daysOfWeek?.join(", ")} - ${
+                selectedClass.schedule?.shift
+              }`}
+              icon={<Calendar size={18} className="text-green-500" />}
+            />
+            <InfoCard
+              label="Room"
+              value={selectedClass.room}
+              icon={<Clock size={18} className="text-yellow-500" />}
+            />
+            <InfoCard
+              label="Students"
+              value={`${selectedClass.students?.length || 0} enrolled`}
+              icon={<Users size={18} className="text-purple-500" />}
+            />
+            <InfoCard
+              label="Created Date"
+              value={new Date(selectedClass.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+              icon={<Calendar size={18} className="text-orange-500" />}
+            />
+            <InfoCard
+              label="Instructor"
+              value={selectedClass.instructor?.name || 'Not assigned'}
+              icon={<Users size={18} className="text-indigo-500" />}
+            />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gray-50 rounded-lg p-6"
+          >
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Student List
+            </h3>
+            <div className="max-h-64 overflow-y-auto pr-4">
+              {selectedClass.students?.length > 0 ? (
+                <div className="space-y-3">
+                  {selectedClass.students.map((student) => (
+                    <motion.div
+                      key={student._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                          {(student.name || student.firstName)?.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-800">
+                            {student.name ||
+                              `${student.firstName} ${student.lastName}`}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {student.email}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-4">
+                  No students enrolled yet
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-6 flex justify-end gap-3"
+          >
+            <button
+              onClick={() => exportStudentsCSV(selectedClass)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+            >
+              <Download size={18} />
+              Export Student List
+            </button>
+            <button
+              onClick={() => setShowModal(false)}
+              className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Close
+            </button>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    </Modal>
+  );
 
   return (
     <div>
@@ -129,12 +311,6 @@ function MyClasses() {
                     >
                       <Info size={16} /> Details
                     </button>
-                    <button
-                      className="flex items-center gap-1 px-3 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 text-sm"
-                      onClick={() => exportStudentsCSV(cls)}
-                    >
-                      <Download size={16} /> Export Students
-                    </button>
                   </div>
                 </div>
               ))}
@@ -142,59 +318,7 @@ function MyClasses() {
           )}
 
           {/* Modal xem chi tiết lớp */}
-          {showModal && selectedClass && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-lg relative">
-                <button
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-                  onClick={() => setShowModal(false)}
-                >
-                  ×
-                </button>
-                <h2 className="text-2xl font-bold mb-4">
-                  {selectedClass.className}
-                </h2>
-                <p className="mb-2">
-                  <span className="font-semibold">Course:</span>{" "}
-                  {selectedClass.courseId?.title}
-                </p>
-                <p className="mb-2">
-                  <span className="font-semibold">Schedule:</span>{" "}
-                  {selectedClass.schedule?.daysOfWeek?.join(", ")} -{" "}
-                  {selectedClass.schedule?.shift}
-                </p>
-                <p className="mb-2">
-                  <span className="font-semibold">Room:</span>{" "}
-                  {selectedClass.room}
-                </p>
-                <p className="mb-2">
-                  <span className="font-semibold">Instructor:</span>{" "}
-                  {selectedClass.instructor?.name}
-                </p>
-                <p className="mb-4">
-                  <span className="font-semibold">Created At:</span>{" "}
-                  {new Date(selectedClass.createdAt).toLocaleDateString()}
-                </p>
-                <div>
-                  <span className="font-semibold">Students:</span>
-                  <ul className="list-disc ml-6 mt-2 max-h-32 overflow-y-auto">
-                    {selectedClass.students?.length > 0 ? (
-                      selectedClass.students.map((s) => (
-                        <li key={s._id}>
-                          {s.name || `${s.firstName || ""} ${s.lastName || ""}`}{" "}
-                          <span className="text-xs text-gray-500">
-                            {s.email}
-                          </span>
-                        </li>
-                      ))
-                    ) : (
-                      <li className="text-gray-400">No students</li>
-                    )}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
+          {showModal && selectedClass && renderClassDetailsModal()}
         </div>
       </div>
     </div>

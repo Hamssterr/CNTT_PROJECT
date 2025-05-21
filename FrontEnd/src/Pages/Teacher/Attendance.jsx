@@ -226,10 +226,9 @@ function Attendance() {
                                 </div>
                                 <div className="ml-4">
                                   <div className="text-sm font-medium text-gray-900">
-                                    {student.name ||
-                                      `${student.firstName || ""} ${
-                                        student.lastName || ""
-                                      }`}
+                                    {` ${student.lastName + " " || ""}${
+                                      student.firstName || ""
+                                    }`}
                                   </div>
                                 </div>
                               </div>
