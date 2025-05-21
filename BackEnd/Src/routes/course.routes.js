@@ -1,24 +1,38 @@
-import express from 'express'
+import express from "express";
 
-import { createCourse, getAllCourse, getCourseById, deleteCourseById, updateCourseById, registerCourse, registrations, getAllCourseForPublicRoute } from '../controller/course.controller.js'
-import  {cloudinaryFileUploader}  from '../middleware/FileUploader.js';
+import {
+  createCourse,
+  getAllCourse,
+  getCourseById,
+  deleteCourseById,
+  updateCourseById,
+  registerCourse,
+  registrations,
+  getAllCourseForPublicRoute,
+} from "../controller/course.controller.js";
+import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
+import { get } from "mongoose";
 
 const router = express.Router();
 
-router.get('/getAllCourse', getAllCourse);
+router.get("/getAllCourse", getAllCourse);
 
-router.get('/getAllCourseForPublicRoute', getAllCourseForPublicRoute)
+router.get("/getAllCourseForPublicRoute", getAllCourseForPublicRoute);
 
-router.post('/', cloudinaryFileUploader.single('thumbnail'), createCourse);
+router.post("/", cloudinaryFileUploader.single("thumbnail"), createCourse);
 
-router.get('/getCourse/:id', getCourseById);
+router.get("/getCourse/:id", getCourseById);
 
-router.delete('/:id', deleteCourseById);
+router.delete("/:id", deleteCourseById);
 
-router.put('/:id', cloudinaryFileUploader.single('thumbnail'), updateCourseById);
+router.put(
+  "/:id",
+  cloudinaryFileUploader.single("thumbnail"),
+  updateCourseById
+);
 
-router.post('/register', registerCourse);
+router.post("/register", registerCourse);
 
-router.get("/registrations", registrations)
+router.get("/registrations", registrations);
 
 export default router;

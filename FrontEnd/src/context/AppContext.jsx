@@ -11,6 +11,7 @@ export const AppProvider = ({ children }) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [leads, setLeads] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [user, setUser] = useState(null); // Thêm dòng này
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -28,20 +29,24 @@ export const AppProvider = ({ children }) => {
           if (data.success) {
             setIsLoggedIn(true);
             setRole(storedRole);
+            setUser(data.data); // Lưu user vào context
           } else {
             setIsLoggedIn(false);
             setRole(null);
+            setUser(null); // Reset user nếu fail
             localStorage.removeItem("role");
             localStorage.removeItem("token");
           }
         } else {
           setIsLoggedIn(false);
           setRole(null);
+          setUser(null); // Reset user nếu không có token
         }
       } catch (error) {
         console.error("Auth check failed: ", error);
         setIsLoggedIn(false);
         setRole(null);
+        setUser(null); // Reset user nếu lỗi
         localStorage.removeItem("role");
         localStorage.removeItem("token");
       } finally {
@@ -121,6 +126,8 @@ export const AppProvider = ({ children }) => {
         fetchAllData,
         updateLeads,
         updateSchedules,
+        user, // Thêm dòng này
+        setUser, // Nếu cần cập nhật user ở nơi khác
       }}
     >
       {children}

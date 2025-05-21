@@ -25,7 +25,7 @@ export const verifyAdmin = (req, res, next) => {
 
       const role = data.role;
 
-      if (role !== "admin" && role !== "finance") {
+      if (role !== "admin" && role !== "finance" && role !== "teacher") {
         return res.status(401).json({
           message: "This token has no access rights, you are not a Admin",
         });
