@@ -44,7 +44,9 @@ function Attendance() {
   };
 
   useEffect(() => {
-    fetchClasses();
+    if (user) {
+      fetchClasses();
+    }
     // eslint-disable-next-line
   }, [backendUrl, user]);
 

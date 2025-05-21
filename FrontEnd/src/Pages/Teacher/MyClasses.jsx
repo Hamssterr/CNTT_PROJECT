@@ -70,7 +70,9 @@ function MyClasses() {
   };
 
   useEffect(() => {
-    fetchClasses();
+    if (user) {
+      fetchClasses();
+    }
     // eslint-disable-next-line
   }, [backendUrl, user]);
 
@@ -168,16 +170,19 @@ function MyClasses() {
             />
             <InfoCard
               label="Created Date"
-              value={new Date(selectedClass.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+              value={new Date(selectedClass.createdAt).toLocaleDateString(
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                }
+              )}
               icon={<Calendar size={18} className="text-orange-500" />}
             />
             <InfoCard
               label="Instructor"
-              value={selectedClass.instructor?.name || 'Not assigned'}
+              value={selectedClass.instructor?.name || "Not assigned"}
               icon={<Users size={18} className="text-indigo-500" />}
             />
           </div>

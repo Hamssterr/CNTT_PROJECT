@@ -90,6 +90,17 @@ export const AppProvider = ({ children }) => {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     setIsLoggedIn(true);
     setRole(userRole);
+
+    axios
+      .get(`${backendUrl}/api/auth/verify`, { withCredentials: true })
+      .then((response) => {
+        if (response.data.success) {
+          setUser(response.data.data); // Cập nhật user
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch user after login:", error);
+      });
   };
 
   const logout = () => {
@@ -98,6 +109,7 @@ export const AppProvider = ({ children }) => {
     delete axios.defaults.headers.common["Authorization"];
     setIsLoggedIn(false);
     setRole(null);
+    setUser(null); // Reset user khi logout
   };
 
   const updateLeads = (newLeads) => {
