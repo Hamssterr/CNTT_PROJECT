@@ -87,8 +87,8 @@ const Navbar = () => {
 
   const sidebarItems = [
     { path: "/parent/dashboard", icon: Home, label: "Home" },
-    { path: "/student/timetable", icon: Calendar, label: "Time Table" },
-    { path: "/student/tuition", icon: Wallet, label: "Tuition" },
+    { path: "/parent/timetable", icon: Calendar, label: "Time Table" },
+    { path: "/parent/tuition", icon: Wallet, label: "Tuition" },
   ];
 
   return (
