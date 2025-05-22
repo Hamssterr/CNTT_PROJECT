@@ -36,7 +36,7 @@ const RegistrationTableList = () => {
         toast.error(data.message || "Failed to fetch registrations.");
       }
     } catch (error) {
-      toast.error("Failed to fetch registrations.");
+      toast.error("Failed to fetch registrations.", error);
     } finally {
       setLoading(false);
     }

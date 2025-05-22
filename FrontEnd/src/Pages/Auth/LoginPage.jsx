@@ -41,6 +41,7 @@ const LoginPage = () => {
         // Navigate based on role
         if (role === "student") navigate("/student/dashboard");
         else if (role === "admin") navigate("/admin/dashboard");
+        else if (role === "parent") navigate("/parent/dashboard");
         else if (role === "consultant") navigate("/consultant/dashboard");
         else if (role === "finance") navigate("/academic-finance/dashboard");
         else if (role === "teacher") navigate("/teacher/my-classes");

@@ -6,6 +6,7 @@ import ProtectedRoute from "../src/Lib/ProtectedRoute";
 import Loading from "./Components/Loading";
 
 import StudentRoutes from "./routes/StudentRoutes";
+import ParentRoutes from "./routes/ParentRoutes";
 import AdminRoutes from "./routes/AdminRoutes";
 import PublicRoutes from "./routes/PublicRoutes";
 import ConsultantRoutes from "./routes/ConsultantRoutes";
@@ -73,6 +74,16 @@ const App = () => {
         ))}
 
         {StudentRoutes.map((route, index) => (
+          <Route
+            key={index}
+            path={route.path}
+            element={
+              <ProtectedRoute role={route.role}>{route.element}</ProtectedRoute>
+            }
+          />
+        ))}
+
+          {ParentRoutes.map((route, index) => (
           <Route
             key={index}
             path={route.path}

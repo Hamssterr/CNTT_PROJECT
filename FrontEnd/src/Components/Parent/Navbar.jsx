@@ -13,28 +13,28 @@ import { Home, Calendar, Wallet, Menu } from "lucide-react";
 const Navbar = () => {
   const navigate = useNavigate();
   const { backendUrl, isLoggedIn, logout } = useContext(AppContext);
-  const [studentData, setStudentData] = useState(null);
+  const [parentData, setParentData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Trạng thái menu mobile
 
   useEffect(() => {
-    const fetchStudentData = async () => {
+    const fetchParentData = async () => {
       try {
         const { data } = await axios.get(
-          `${backendUrl}/api/student/dashboard`,
+          `${backendUrl}/api/parent/dashboard`,
           {
             withCredentials: true,
           }
         );
 
         if (data.success) {
-          setStudentData(data.data);
+          setParentData(data.data);
         } else {
           throw new Error(data.error);
         }
       } catch (error) {
         console.error(
-          "Fetch student data error:",
+          "Fetch parent data error:",
           error.response?.data || error.message
         );
         toast.error(
@@ -46,7 +46,7 @@ const Navbar = () => {
     };
 
     if (isLoggedIn) {
-      fetchStudentData();
+      fetchParentData();
     } else {
       navigate("/");
     }
@@ -86,7 +86,7 @@ const Navbar = () => {
   };
 
   const sidebarItems = [
-    { path: "/student/dashboard", icon: Home, label: "Home" },
+    { path: "/parent/dashboard", icon: Home, label: "Home" },
     { path: "/student/timetable", icon: Calendar, label: "Time Table" },
     { path: "/student/tuition", icon: Wallet, label: "Tuition" },
   ];
@@ -98,7 +98,7 @@ const Navbar = () => {
         <img className="h-12 w-12 rounded-sm" src={logo} alt="Logo" />
         <span className="hidden md:flex justify-center text-center pl-5 pt-2 text-2xl font-bold">
           Hello{" "}
-          {isLoggedIn && studentData?.firstName + " " + studentData?.lastName}
+          {isLoggedIn && parentData?.firstName + " " + parentData?.lastName}
         </span>
       </div>
 
@@ -119,10 +119,10 @@ const Navbar = () => {
 
       {/* Login-Signup Form, User Menu, and Hamburger Menu */}
       <div className="flex items-center space-x-3 flex-shrink-0">
-        {isLoggedIn && studentData ? (
+        {isLoggedIn && parentData ? (
           <div className="flex items-center space-x-2 relative">
             <p className="text-lg text-gray-800 font-semibold hidden md:block">
-              {studentData.firstName} {studentData.lastName}
+              {parentData.firstName} {parentData.lastName}
             </p>
             <div className="relative">
               <img

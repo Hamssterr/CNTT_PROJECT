@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import { connectDB } from "./Src/lib/db.js"; // Import kết nối DB
 import authRoutes from "./Src/routes/auth.routes.js";
 import studentRoutes from "./Src/routes/student.routes.js";
+import parentRoutes from "./Src/routes/parent.routes.js";
 import adminRoutes from "./Src/routes/admin.routes.js";
 import courseRoutes from "./Src/routes/course.routes.js";
 import teacherRoutes from "./Src/routes/teacher.routes.js";
@@ -46,6 +47,7 @@ app.use(bodyParser.json());
 // Định tuyến API
 app.use("/api/auth", authRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/parent", parentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/teacher", teacherRoutes);

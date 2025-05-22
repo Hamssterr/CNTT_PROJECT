@@ -1,21 +1,16 @@
 import React from "react";
-import { Home, Route, BookOpen, School , Database, AppWindow  } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Home, Calendar, Wallet, Smile  } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
 
-  // Danh sách các mục trong Sidebar với đường dẫn tương ứng
   const sidebarItems = [
-    { path: "/admin/dashboard", icon: Home, label: "Home" },
-    { path: "/admin/course", icon: Route, label: "Course" },
-    { path: "/admin/user-management", icon: BookOpen, label: "User" },
-    {path: "/admin/registration-information", icon: Database, label: "Registration"},
-    {path: "/admin/banner", icon: AppWindow , label: "Banner"},
-    {path: "/admin/class", icon: School, label: "Class"}
-    // { path: "/admin/timetable", icon: Calendar, label: "Time Table" },
-   
+    { path: "/parent/dashboard", icon: Home, label: "Home" },
+    { path: "/parent/timetable", icon: Calendar, label: "Time Table" },
+    { path: "/parent/tuition", icon: Wallet, label: "Tuition" },
+    { path: "/parent/children-management", icon: Smile , label: "Children" },
   ];
 
   return (
@@ -23,7 +18,7 @@ const Sidebar = () => {
       {/* Sidebar Items */}
       <div className="flex flex-col items-center space-y-8 mt-6 pr-7">
         {sidebarItems.map((item, index) => {
-          const isActive = location.pathname === item.path; // Kiểm tra mục đang active
+          const isActive = location.pathname === item.path;
           return (
             <div
               key={index}
