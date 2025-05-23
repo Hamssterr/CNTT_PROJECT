@@ -74,12 +74,70 @@ function LectureMaterials() {
     setIsDragging(false);
   };
 
-  const handleDrop = (e, classId) => {
+  const handleDrop = async (e, classId) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    console.log("Dropped files for class", classId, files);
-    // Handle file upload logic here
+
+    try {
+      const uploadedMaterials = await Promise.all(
+        files.map((file) => uploadFile(file, classId))
+      );
+
+      // Cập nhật danh sách tài liệu của lớp
+      setClasses((prevClasses) =>
+        prevClasses.map((cls) =>
+          cls._id === classId
+            ? { ...cls, materials: [...cls.materials, ...uploadedMaterials] }
+            : cls
+        )
+      );
+    } catch (error) {
+      console.error("Error uploading files:", error);
+    }
+  };
+
+  const handleFileSelect = async (e, classId) => {
+    const files = Array.from(e.target.files);
+
+    try {
+      const uploadedMaterials = await Promise.all(
+        files.map((file) => uploadFile(file, classId))
+      );
+
+      // Cập nhật danh sách tài liệu của lớp
+      setClasses((prevClasses) =>
+        prevClasses.map((cls) =>
+          cls._id === classId
+            ? { ...cls, materials: [...cls.materials, ...uploadedMaterials] }
+            : cls
+        )
+      );
+    } catch (error) {
+      console.error("Error uploading files:", error);
+    }
+  };
+
+  const uploadFile = async (file, classId) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/class/${classId}/upload`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+      return data.material; // Trả về thông tin tài liệu đã upload
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      throw error;
+    }
   };
 
   return (
@@ -189,7 +247,7 @@ function LectureMaterials() {
                       }`}
                     />
                     <p className="text-gray-600 mb-2">
-                      Drag and drop your PDF files here, or
+                      Drag and drop your files here, or
                     </p>
                     <label className="inline-block">
                       <input
@@ -197,11 +255,7 @@ function LectureMaterials() {
                         className="hidden"
                         accept=".pdf"
                         multiple
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files);
-                          console.log("Selected files:", files);
-                          // Handle file upload logic here
-                        }}
+                        onChange={(e) => handleFileSelect(e, selectedClass)}
                       />
                       <span className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition-colors">
                         Browse Files
@@ -215,13 +269,13 @@ function LectureMaterials() {
                   {/* Recently Uploaded Files */}
                   <div className="mt-8">
                     <h3 className="text-lg font-medium text-gray-700 mb-4">
-                      Recently Uploaded
+                      Uploaded Materials
                     </h3>
                     {classes
                       .find((c) => c._id === selectedClass)
                       ?.materials.map((material) => (
                         <div
-                          key={material.id}
+                          key={material.url}
                           className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
                         >
                           <div className="flex items-center">
@@ -232,14 +286,21 @@ function LectureMaterials() {
                               </p>
                               <p className="text-xs text-gray-500">
                                 Uploaded on{" "}
-                                {new Date(material.date).toLocaleDateString()}
+                                {new Date(
+                                  material.uploadedAt
+                                ).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <button className="p-1 hover:text-blue-500">
+                            <a
+                              href={material.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1 hover:text-blue-500"
+                            >
                               <Download size={18} />
-                            </button>
+                            </a>
                             <button className="p-1 hover:text-red-500">
                               <Trash2 size={18} />
                             </button>

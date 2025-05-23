@@ -2,6 +2,51 @@ import User from "../model/user.model.js";
 import Class from "../model/class.model.js";
 import Course from "../model/course.model.js";
 import mongoose from "mongoose";
+import { v2 as cloudinary } from "cloudinary";
+
+export const uploadMaterial = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded" });
+    }
+
+    // Upload file lên Cloudinary
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: `class_materials/${classId}`,
+    });
+
+    // Tìm lớp học và thêm tài liệu vào danh sách
+    const classObj = await Class.findById(classId);
+    if (!classObj) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Class not found" });
+    }
+
+    const newMaterial = {
+      name: file.originalname,
+      url: result.secure_url,
+      uploadedAt: new Date(),
+    };
+
+    classObj.materials.push(newMaterial);
+    await classObj.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Material uploaded successfully",
+      material: newMaterial,
+    });
+  } catch (error) {
+    console.error("Error uploading material:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 export const getClasses = async (req, res) => {
   const classes = await Class.find({})
@@ -321,11 +366,9 @@ export const deleteClass = async (req, res) => {
   }
 };
 
-
 // API: Lấy danh sách lớp học của giảng viên đăng nhập
 export const getClassesByInstructor = async (req, res) => {
   try {
-
     const instructorId = req.user?.userId;
 
     // Kiểm tra xem instructorId có tồn tại không

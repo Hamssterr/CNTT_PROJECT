@@ -212,7 +212,7 @@ function MyClasses() {
                         <div>
                           <div className="font-medium text-gray-800">
                             {student.name ||
-                              `${student.firstName} ${student.lastName}`}
+                              `${student.lastName} ${student.firstName}`}
                           </div>
                           <div className="text-sm text-gray-500">
                             {student.email}

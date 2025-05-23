@@ -58,6 +58,13 @@ const ClassSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  materials: [
+    {
+      name: { type: String, required: true }, // Tên tài liệu
+      url: { type: String, required: true }, // URL của tài liệu
+      uploadedAt: { type: Date, default: Date.now }, // Ngày upload
+    },
+  ]
 });
 
 // Middleware để cập nhật updatedAt trước khi lưu
