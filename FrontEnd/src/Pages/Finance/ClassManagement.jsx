@@ -1,7 +1,7 @@
 import React from "react";
 
 import NavBar from "../../Components/Academic-Finance/NavBar";
-import SideBar from "../../Components/Academic-Finance/Sidebar";
+import SideBar from "../../Components/Academic-Finance/SideBar";
 import ClassTableList from "../../Components/Admin/classManagement/ClassTableList";
 
 const ClassManagement = () => {
