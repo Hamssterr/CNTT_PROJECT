@@ -5,7 +5,7 @@ import { Users, BookOpen, Calendar, Clock, Check, X, Save } from "lucide-react";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../Components/Loading";
-
+import Swal from "sweetalert2";
 function Attendance() {
   const { backendUrl, user } = useContext(AppContext);
   const [loading, setLoading] = useState(true);
@@ -60,13 +60,37 @@ function Attendance() {
   };
 
   // Lưu điểm danh (có thể gọi API ở đây)
-  const handleSaveAttendance = (classId) => {
-    setSavedAttendance((prev) => ({
-      ...prev,
-      [`${classId}-${currentDate}`]: true,
-    }));
-    // Gửi attendanceData lên backend nếu cần
-    // console.log("Saving attendance for class:", classId, attendanceData);
+  const handleSaveAttendance = async (classId) => {
+    try {
+      // Gửi dữ liệu điểm danh lên backend
+      await axios.post(`${backendUrl}/api/teacher/save`, {
+        classId,
+        date: currentDate,
+        attendanceData,
+      });
+
+      // Cập nhật trạng thái đã lưu
+      setSavedAttendance((prev) => ({
+        ...prev,
+        [`${classId}-${currentDate}`]: true,
+      }));
+
+      // Hiển thị thông báo thành công
+      Swal.fire({
+        icon: "success",
+        title: "Attendance Saved",
+        text: "Attendance has been successfully saved for today.",
+        confirmButtonText: "OK",
+      });
+    } catch (error) {
+      console.error("Error saving attendance:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to save attendance. Please try again.",
+        confirmButtonText: "OK",
+      });
+    }
   };
 
   // Thống kê điểm danh

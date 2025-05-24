@@ -13,6 +13,7 @@ import {
   updateTeacher,
 } from "../controller/teacherFinance.controller.js";
 import { verifyFinance } from "../middleware/verifyFinance.js";
+import { getAttendanceReports } from "../controller/attendance.controller.js";
 
 const financeRouter = express.Router();
 financeRouter.get("/getClasses", verifyFinance, getClasses);
@@ -28,4 +29,5 @@ financeRouter.post(
   verifyFinance,
   checkTeacherAvailability
 );
+financeRouter.get("/report", getAttendanceReports);
 export default financeRouter;
