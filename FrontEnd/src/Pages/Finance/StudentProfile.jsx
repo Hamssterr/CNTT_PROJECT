@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import Navbar from "../../Components/Academic-Finance/NavBar";
-import Sidebar from "../../Components/Academic-Finance/Sidebar";
+import Sidebar from "../../Components/Academic-Finance/SideBar";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../Components/Loading";
