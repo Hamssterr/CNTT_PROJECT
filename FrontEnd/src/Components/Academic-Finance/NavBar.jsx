@@ -6,7 +6,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import logo from "../../assets/logo_2.png";
 
-const Navbar = () => {
+const NavBar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showChatbox, setShowChatbox] = useState(false);
@@ -185,4 +185,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default NavBar;

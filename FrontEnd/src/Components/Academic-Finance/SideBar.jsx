@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const Sidebar = () => {
+const SideBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -111,4 +111,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SideBar;
