@@ -439,7 +439,7 @@ export const getClassByIdStudent = async (req, res) => {
 
     // Tìm tất cả các lớp học mà student.id khớp với userId
     const classes = await Class.find({ "students.userId": studentId })
-      .populate("courseId", "title")
+      .populate("courseId", "title category level duration")
       .lean();
 
     // Kiểm tra xem có lớp học nào không
@@ -451,11 +451,22 @@ export const getClassByIdStudent = async (req, res) => {
       });
     }
 
+    // Lọc mảng students để chỉ giữ lại thông tin của studentId hiện tại
+    const filterClasses = classes.map((classItem) => {
+      const filteredStudents = classItem.students.filter(
+        (student) => student.userId.toString() === studentId.toString()
+      );
+      return{
+        ...classItem,
+        students: filteredStudents,
+      }
+    });
+
     // Trả về danh sách lớp học
     return res.status(200).json({
       success: true,
       message: "Classes retrieved successfully",
-      classes,
+      classes: filterClasses,
     });
   } catch (error) {
     console.error("Error retrieving classes by instructor:", error);
@@ -468,50 +479,76 @@ export const getClassByIdStudent = async (req, res) => {
 
 export const getClassWithHaveChildren = async (req, res) => {
   try {
-    const parents = await User.find({ role: "parent" }).select("children");
+    // Lấy ID của phụ huynh từ req.user (do middleware verifyParent cung cấp)
+    const parentId = req.user.userId;
 
-    // Lấy danh sách tất cả children của parents
-    const studentId = parents
-      .flatMap((parent) => parent.children.map((child) => child.id.toString()))
-      .filter((id) => id);
+    // Tìm document của phụ huynh
+    const parent = await User.findById(parentId).select("children");
 
-    // Tìm tất cả classes có chứa children trong mảng students
-    const classes = await Class.find({ "students.userId": studentId })
-      .populate("courseId", "title")
-      .lean();
-
-    // Kiểm tra lớp học có tồn tại children không
-    if (classes.length === 0) {
+    // Kiểm tra xem phụ huynh có tồn tại không
+    if (!parent) {
       return res.status(404).json({
-        message: "No classes found with students who are children of parent.",
+        success: false,
+        message: "Parent not found",
       });
     }
 
-    // Lọc kết quả chỉ chứa childrenId có trong thông tin parent thôi
-    const filterClasses = classes.map((classItem) => {
-      const filterStudents = classItem.students.filter((student) => {
-        const userId = student.userId.toString();
-        return studentId.includes(userId);
+    // Lấy danh sách ID của children
+    const studentIds = parent.children
+      .map((child) => child.id?.toString())
+      .filter((id) => id);
+
+    // Nếu không có children, trả về mảng rỗng
+    if (studentIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No children found for this parent",
+        data: [],
       });
-      return {
-        ...classItem,
-        students: filterStudents,
-      };
-    });
+    }
+
+    // Tìm tất cả classes có chứa children trong mảng students
+    const classes = await Class.find({ "students.userId": { $in: studentIds } })
+      .populate("courseId", "title category level duration")
+      .lean();
+
+    // Kiểm tra lớp học có tồn tại không
+    if (classes.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No classes found for the children of this parent",
+        data: [],
+      });
+    }
+
+    // Lọc kết quả để chỉ chứa các học sinh là children của phụ huynh
+    const filterClasses = classes
+      .map((classItem) => {
+        const filterStudents = classItem.students.filter((student) =>
+          studentIds.includes(student.userId.toString())
+        );
+        if (filterStudents.length === 0) {
+          return null; // Loại bỏ lớp không chứa children của phụ huynh
+        }
+        return {
+          ...classItem,
+          students: filterStudents,
+        };
+      })
+      .filter((classItem) => classItem !== null); // Loại bỏ các lớp null
 
     // Trả kết quả
     res.status(200).json({
-      message: "List of classes with students who are children of parent",
+      success: true,
+      message: "List of classes with students who are children of the parent",
       data: filterClasses,
     });
   } catch (error) {
-    console.error(
-      "Error Error retrieving classes by parent with have childrenId:",
-      error
-    );
+    console.error("Error retrieving classes for parent's children:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve classes",
+      error: error.message,
     });
   }
 };

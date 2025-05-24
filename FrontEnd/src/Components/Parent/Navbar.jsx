@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Search, UserPlus, LogIn } from "lucide-react"; // Import biểu tượng từ Lucide
+import { Search, UserPlus, LogIn, Smile } from "lucide-react"; // Import biểu tượng từ Lucide
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo.png";
 import { AppContext } from "../../context/AppContext";
@@ -89,6 +89,7 @@ const Navbar = () => {
     { path: "/parent/dashboard", icon: Home, label: "Home" },
     { path: "/parent/timetable", icon: Calendar, label: "Time Table" },
     { path: "/parent/tuition", icon: Wallet, label: "Tuition" },
+    { path: "/parent/children-management", icon: Smile , label: "Children" },
   ];
 
   return (
