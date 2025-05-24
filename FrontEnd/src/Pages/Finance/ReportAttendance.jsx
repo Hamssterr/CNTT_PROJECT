@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "framer-motion";
+import Loading from "../../Components/Loading";
 
 function ReportAttendance() {
   const { backendUrl } = useContext(AppContext);
@@ -29,6 +30,9 @@ function ReportAttendance() {
   useEffect(() => {
     const fetchAttendanceReports = async () => {
       try {
+        setLoading(true);
+        await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate loading
+
         const { data } = await axios.get(
           `${backendUrl}/api/academic-finance/report`,
           {
@@ -85,7 +89,7 @@ function ReportAttendance() {
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              <Loading />
             </div>
           ) : filteredReports.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-xl shadow-sm">
@@ -110,9 +114,7 @@ function ReportAttendance() {
                         {/* Thêm phần hiển thị instructor */}
                         <div className="flex items-center mt-1 text-sm text-gray-600">
                           <FiUser className="mr-1" size={14} />
-                          <span>
-                            Instructor: {report.instructor?.name}
-                          </span>
+                          <span>Instructor: {report.instructor?.name}</span>
                         </div>
                       </div>
                       <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">

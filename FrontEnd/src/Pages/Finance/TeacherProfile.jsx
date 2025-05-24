@@ -18,6 +18,8 @@ function TeacherProfile() {
   const fetchTeachers = async () => {
     try {
       setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate loading
+
       const { data } = await axios.get(
         `${backendUrl}/api/admin/getInstructors`
       );
