@@ -61,37 +61,57 @@ function Attendance() {
 
   // Lưu điểm danh (có thể gọi API ở đây)
   const handleSaveAttendance = async (classId) => {
-    try {
-      // Gửi dữ liệu điểm danh lên backend
-      await axios.post(`${backendUrl}/api/teacher/save`, {
-        classId,
-        date: currentDate,
-        attendanceData,
-      });
+  const cls = classes.find((c) => c._id === classId);
+  if (!cls) return;
 
-      // Cập nhật trạng thái đã lưu
-      setSavedAttendance((prev) => ({
-        ...prev,
-        [`${classId}-${currentDate}`]: true,
-      }));
+  // Kiểm tra tất cả học sinh đã được điểm danh chưa
+  const allMarked = (cls.students || []).every(
+    (student) =>
+      attendanceData[`${classId}-${student._id}`] === "present" ||
+      attendanceData[`${classId}-${student._id}`] === "absent"
+  );
 
-      // Hiển thị thông báo thành công
-      Swal.fire({
-        icon: "success",
-        title: "Attendance Saved",
-        text: "Attendance has been successfully saved for today.",
-        confirmButtonText: "OK",
-      });
-    } catch (error) {
-      console.error("Error saving attendance:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to save attendance. Please try again.",
-        confirmButtonText: "OK",
-      });
-    }
-  };
+  if (!allMarked) {
+    Swal.fire({
+      icon: "error",
+      title: "Incomplete Attendance",
+      text: "Please mark attendance for all students before saving.",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+
+  try {
+    // Gửi dữ liệu điểm danh lên backend
+    await axios.post(`${backendUrl}/api/teacher/save`, {
+      classId,
+      date: currentDate,
+      attendanceData,
+    });
+
+    // Cập nhật trạng thái đã lưu
+    setSavedAttendance((prev) => ({
+      ...prev,
+      [`${classId}-${currentDate}`]: true,
+    }));
+
+    // Hiển thị thông báo thành công
+    Swal.fire({
+      icon: "success",
+      title: "Attendance Saved",
+      text: "Attendance has been successfully saved for today.",
+      confirmButtonText: "OK",
+    });
+  } catch (error) {
+    console.error("Error saving attendance:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Failed to save attendance. Please try again.",
+      confirmButtonText: "OK",
+    });
+  }
+};
 
   // Thống kê điểm danh
   const getAttendanceStats = (cls) => {
@@ -179,10 +199,10 @@ function Attendance() {
                     <button
                       onClick={() => handleSaveAttendance(selectedClass._id)}
                       disabled={
-                        savedAttendance[`${selectedClass._id}-${currentDate}`]
+                        savedAttendance[`${selectedClass._id}-${currentDate}`] || !selectedClass.students || selectedClass.students.length === 0
                       }
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                        savedAttendance[`${selectedClass._id}-${currentDate}`]
+                        savedAttendance[`${selectedClass._id}-${currentDate}`] || !selectedClass.students || selectedClass.students.length === 0
                           ? "bg-gray-100 text-gray-500 cursor-not-allowed"
                           : "bg-green-500 text-white hover:bg-green-600"
                       }`}
