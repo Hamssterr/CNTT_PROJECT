@@ -8,7 +8,7 @@ import logo from "../../assets/logo_2.png";
 import mailIcon from "../../assets/mail_icon.svg";
 import lockIcon from "../../assets/lock_icon.svg";
 import userIcon from "../../assets/person.png"; // Thêm icon cho name fields
-
+import { ArrowLeft } from "lucide-react";
 const Signup = () => {
   const navigate = useNavigate();
   const { backendUrl, setIsLoggedIn } = useContext(AppContext);
@@ -70,6 +70,13 @@ const Signup = () => {
 
       {/* Right Side */}
       <div className="w-full md:w-1/2 bg-gray-800 flex flex-col justify-center items-center px-6 sm:px-12 py-10">
+        <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 flex items-center gap-2 text-blue-900 hover:text-blue-300 transition-colors duration-300"
+      >
+        <ArrowLeft size={20} />
+        <span className="font-medium">Back to Home</span>
+      </button>
         <h2 className="text-3xl text-yellow-400 font-semibold mb-2">
           JOIN US!
         </h2>

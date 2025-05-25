@@ -177,7 +177,7 @@ const LoginPage = () => {
       <div className="w-full md:w-1/2 bg-gray-800 flex flex-col justify-center items-center px-6 sm:px-12 py-10">
         <button
         onClick={() => navigate('/')}
-        className="absolute top-6 left-6 flex items-center gap-2 text-blue-900 hover:text-blue-500 transition-colors duration-300"
+        className="absolute top-6 left-6 flex items-center gap-2 text-blue-900 hover:text-blue-300 transition-colors duration-300"
       >
         <ArrowLeft size={20} />
         <span className="font-medium">Back to Home</span>
