@@ -13,6 +13,26 @@ export const AppProvider = ({ children }) => {
   const [schedules, setSchedules] = useState([]);
   const [user, setUser] = useState(null); // Thêm dòng này
 
+  const [input, setInput] = useState("");
+  const [recentPrompt, setRecentPrompt] = useState("");
+  const [prevPrompts, setPrevPrompts] = useState([]);
+  const [showResult, setShowResult] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [resultData, setResultData] = useState("");
+
+  const [authLoading, setAuthLoading] = useState(true);
+
+  const onSent = async (prompt) => {
+    setResultData("");
+    setLoading(true);
+    setShowResult(true);
+    setRecentPrompt(input);
+    const response = await run(input);
+    setResultData(response);
+    setLoading(false);
+    setInput("");
+  };
+
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -139,7 +159,17 @@ export const AppProvider = ({ children }) => {
         updateLeads,
         updateSchedules,
         user, // Thêm dòng này
-        setUser, // Nếu cần cập nhật user ở nơi khác
+        setUser, // Nếu cần cập nhật user ở nơi khác,
+        onSent,
+        setRecentPrompt,
+        recentPrompt,
+        showResult,
+        loading,
+        resultData,
+        setInput,
+        prevPrompts,
+        setPrevPrompts,
+        authLoading
       }}
     >
       {children}
