@@ -80,7 +80,7 @@ const RegistrationDetail = ({ isOpen, onClose, registrationDetail }) => {
                     Phone Number
                   </p>
                   <p className="text-base font-semibold text-gray-900">
-                    {registrationDetail.phoneNumber || "N/A"}
+                    {registrationDetail.phone || "N/A"}
                   </p>
                 </div>
               </div>
@@ -94,9 +94,9 @@ const RegistrationDetail = ({ isOpen, onClose, registrationDetail }) => {
                     Registration Date
                   </p>
                   <p className="text-base font-semibold text-gray-900">
-                    {registrationDetail.registeredAt
+                    {registrationDetail.registrationDate
                       ? new Date(
-                          registrationDetail.registeredAt
+                          registrationDetail.registrationDate
                         ).toLocaleDateString("vi-VN", {
                           day: "2-digit",
                           month: "2-digit",
