@@ -4,6 +4,7 @@ import axios from "axios";
 import Navbar from "../../Components/Teacher/NavBar";
 import Loading from "../../Components/Loading";
 import Sidebar from "../../Components/Teacher/SideBar";
+import UploadProgress from "../../Components/Teacher/UploadProgress";
 import {
   FolderOpen,
   File,
@@ -13,6 +14,7 @@ import {
   Trash2,
   Download,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 function LectureMaterials() {
   const { backendUrl, user } = useContext(AppContext);
@@ -21,6 +23,8 @@ function LectureMaterials() {
   const [selectedClass, setSelectedClass] = useState(null);
   const [expandedFolders, setExpandedFolders] = useState({});
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
+  const [uploadStatus, setUploadStatus] = useState({});
 
   // Fetch classes từ API
   const fetchClasses = async () => {
@@ -100,12 +104,24 @@ function LectureMaterials() {
   const handleFileSelect = async (e, classId) => {
     const files = Array.from(e.target.files);
 
+    // Validate files
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type === "application/pdf";
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
+      return isValidType && isValidSize;
+    });
+
+    if (validFiles.length !== files.length) {
+      toast.error(
+        "Some files were skipped. Only PDF files under 5MB are allowed."
+      );
+    }
+
     try {
       const uploadedMaterials = await Promise.all(
-        files.map((file) => uploadFile(file, classId))
+        validFiles.map((file) => uploadFile(file, classId))
       );
 
-      // Cập nhật danh sách tài liệu của lớp
       setClasses((prevClasses) =>
         prevClasses.map((cls) =>
           cls._id === classId
@@ -113,8 +129,15 @@ function LectureMaterials() {
             : cls
         )
       );
+
+      // Clear progress after successful upload
+      setTimeout(() => {
+        setUploadProgress({});
+        setUploadStatus({});
+      }, 2000);
     } catch (error) {
       console.error("Error uploading files:", error);
+      toast.error("Error uploading files. Please try again.");
     }
   };
 
@@ -123,6 +146,16 @@ function LectureMaterials() {
     formData.append("file", file);
 
     try {
+      // Initialize progress for this file
+      setUploadProgress((prev) => ({
+        ...prev,
+        [file.name]: 0,
+      }));
+      setUploadStatus((prev) => ({
+        ...prev,
+        [file.name]: "uploading",
+      }));
+
       const { data } = await axios.post(
         `${backendUrl}/api/class/${classId}/upload`,
         formData,
@@ -131,10 +164,31 @@ function LectureMaterials() {
             "Content-Type": "multipart/form-data",
           },
           withCredentials: true,
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress((prev) => ({
+              ...prev,
+              [file.name]: percentCompleted,
+            }));
+          },
         }
       );
-      return data.material; // Trả về thông tin tài liệu đã upload
+
+      // Update status on success
+      setUploadStatus((prev) => ({
+        ...prev,
+        [file.name]: "completed",
+      }));
+
+      return data.material;
     } catch (error) {
+      // Update status on error
+      setUploadStatus((prev) => ({
+        ...prev,
+        [file.name]: "error",
+      }));
       console.error("Error uploading file:", error);
       throw error;
     }
@@ -197,9 +251,13 @@ function LectureMaterials() {
                       </div>
                       {expandedFolders[cls._id] && (
                         <div className="ml-9 mt-2 space-y-1">
-                          {cls.materials?.map((material) => (
+                          {cls.materials?.map((material, index) => (
                             <div
-                              key={material.id}
+                              key={
+                                material._id ||
+                                material.id ||
+                                `${material.name}-${index}`
+                              }
                               className="flex items-center p-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
                             >
                               <File size={16} className="text-blue-500 mr-2" />
@@ -230,40 +288,62 @@ function LectureMaterials() {
                     Upload Materials for{" "}
                     {classes.find((c) => c._id === selectedClass)?.className}
                   </h2>
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-8 text-center ${
-                      isDragging
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300 hover:border-blue-500"
-                    }`}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, selectedClass)}
-                  >
-                    <Upload
-                      size={48}
-                      className={`mx-auto mb-4 ${
-                        isDragging ? "text-blue-500" : "text-gray-400"
+                  <div className="space-y-4">
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-8 text-center ${
+                        isDragging
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-300 hover:border-blue-500"
                       }`}
-                    />
-                    <p className="text-gray-600 mb-2">
-                      Drag and drop your files here, or
-                    </p>
-                    <label className="inline-block">
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".pdf"
-                        multiple
-                        onChange={(e) => handleFileSelect(e, selectedClass)}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, selectedClass)}
+                    >
+                      <Upload
+                        size={48}
+                        className={`mx-auto mb-4 ${
+                          isDragging ? "text-blue-500" : "text-gray-400"
+                        }`}
                       />
-                      <span className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition-colors">
-                        Browse Files
-                      </span>
-                    </label>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Supported file type: PDF
-                    </p>
+                      <p className="text-gray-600 mb-2">
+                        Drag and drop your files here, or
+                      </p>
+                      <label className="inline-block">
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf"
+                          multiple
+                          onChange={(e) => handleFileSelect(e, selectedClass)}
+                        />
+                        <span className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition-colors">
+                          Browse Files
+                        </span>
+                      </label>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Supported file type: PDF
+                      </p>
+                    </div>
+
+                    {/* Upload Progress Section */}
+                    <div className="space-y-2">
+                      {Object.keys(uploadProgress).map((fileName) => (
+                        <UploadProgress
+                          key={fileName}
+                          file={
+                            Array.from(
+                              document.querySelector('input[type="file"]')
+                                ?.files || []
+                            ).find((f) => f.name === fileName) || {
+                              name: fileName,
+                              size: 0,
+                            }
+                          }
+                          progress={uploadProgress[fileName]}
+                          status={uploadStatus[fileName]}
+                        />
+                      ))}
+                    </div>
                   </div>
 
                   {/* Recently Uploaded Files */}
@@ -273,9 +353,9 @@ function LectureMaterials() {
                     </h3>
                     {classes
                       .find((c) => c._id === selectedClass)
-                      ?.materials.map((material) => (
+                      ?.materials.map((material, index) => (
                         <div
-                          key={material.url}
+                          key={material._id || `${material.name}-${index}`}
                           className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
                         >
                           <div className="flex items-center">

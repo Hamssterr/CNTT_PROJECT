@@ -14,6 +14,8 @@ import {
   Filter,
   RefreshCcw,
   Download,
+  GraduationCap,
+  BookOpen
 } from "lucide-react";
 import "../../public/ModalStyle.css";
 import axios from "axios";
@@ -22,7 +24,7 @@ import Swal from "sweetalert2";
 import { useContext } from "react";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../Components/Loading";
-import { set } from "date-fns";
+import { motion } from "framer-motion";
 
 Modal.setAppElement("#root");
 
@@ -49,7 +51,7 @@ const customModalStyles = {
   },
 };
 
-function LeadManagement() {
+const LeadManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -356,301 +358,578 @@ function LeadManagement() {
   );
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex">
         <Sidebar />
-        <div className="flex-1 p-8 ml-20">
-          {/* Enhanced Header Section */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  Lead Management
-                </h1>
-                <p className="text-gray-600">
-                  Manage and track potential students
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => fetchLeads()}
-                  className="p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg shadow-sm hover:shadow transition-all"
-                  title="Refresh"
-                >
-                  <RefreshCcw size={20} />
-                </button>
-                <button
-                  className="p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg shadow-sm hover:shadow transition-all"
-                  title="Export"
-                >
-                  <Download size={20} />
-                </button>
-              </div>
-            </div>
 
-            {/* Search and Filters Bar */}
-            <div className="flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm">
-              <div className="flex-1 min-w-[300px] relative">
-                <input
-                  type="text"
-                  placeholder="Search by name, email, phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full py-2.5 pl-10 pr-4 rounded-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                />
-                <Search
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={20}
-                />
+        {/* Main Content */}
+        <div className="flex-1 ml-25">
+          {/* Elegant Header Section */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+            <div className="px-8 py-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold">Lead Management</h1>
+                  <p className="mt-1 text-blue-100">
+                    {filteredLeads.length} total leads • {courses.length}{" "}
+                    courses available
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => fetchLeads()}
+                    className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                    title="Refresh"
+                  >
+                    <RefreshCcw size={20} />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                    title="Export"
+                  >
+                    <Download size={20} />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleAdd}
+                    className="flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Plus size={20} />
+                    Add New Lead
+                  </motion.button>
+                </div>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleAdd}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm hover:shadow transition-all"
-                >
-                  <Plus size={20} />
-                  Add New Lead
-                </button>
+
+              {/* Enhanced Search Bar */}
+              <div className="flex gap-4 items-center">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, phone..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-white/10 text-white placeholder-blue-100 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                  />
+                  <Search
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-100"
+                    size={20}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  {["All", "Contacted", "Pending", "Not Responding"].map(
+                    (status) => (
+                      <motion.button
+                        key={status}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-4 py-2 text-sm font-medium text-blue-100 bg-white/10 rounded-lg hover:bg-white/20 transition-all"
+                      >
+                        {status}
+                      </motion.button>
+                    )
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Enhanced Table Section */}
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64 bg-gray-100/50">
-              <Loading />
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="bg-gray-50 text-gray-600 text-sm">
-                      <th className="py-4 px-6 text-left font-semibold">
-                        Name
-                      </th>
-                      <th className="py-4 px-6 text-left font-semibold">
-                        Student
-                      </th>
-                      <th className="py-4 px-6 text-left font-semibold">
-                        Contact
-                      </th>
-                      <th className="py-4 px-6 text-left font-semibold">
-                        Course
-                      </th>
-                      <th className="py-4 px-6 text-left font-semibold">
-                        Registration
-                      </th>
-                      <th className="py-4 px-6 text-left font-semibold">
-                        Status
-                      </th>
-                      <th className="py-4 px-6 text-center font-semibold">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredLeads.map((lead, index) => (
-                      <tr
-                        key={lead._id}
-                        className={`border-t border-gray-100 hover:bg-blue-50/30 transition-colors ${
-                          index % 2 === 0 ? "bg-gray-50/30" : ""
-                        }`}
-                      >
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
-                              {lead.name.charAt(0)}
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {lead.name}
+          {/* Content Area */}
+          <div className="p-8">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loading />
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden"
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50/50">
+                        {[
+                          "Name",
+                          "Student",
+                          "Contact",
+                          "Course",
+                          "Registration",
+                          "Status",
+                          "Actions",
+                        ].map((header) => (
+                          <th
+                            key={header}
+                            className="px-6 py-4 text-left text-sm font-semibold text-gray-600"
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredLeads.map((lead, index) => (
+                        <motion.tr
+                          key={lead._id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={`border-t border-gray-100 hover:bg-blue-50/30 transition-all ${
+                            index % 2 === 0 ? "bg-gray-50/30" : ""
+                          }`}
+                        >
+                          {/* Name Column */}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
+                                {lead.name.charAt(0)}
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">
+                                  {lead.name}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {lead.email}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6 text-gray-600">
-                          {lead.studentName}
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <Phone size={16} className="text-blue-500" />
-                              {lead.phone}
+                          </td>
+
+                          {/* Student Column */}
+                          <td className="px-6 py-4">
+                            <span className="font-medium text-gray-700">
+                              {lead.studentName}
+                            </span>
+                          </td>
+
+                          {/* Contact Column */}
+                          <td className="px-6 py-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <Phone size={16} className="text-blue-500" />
+                                {lead.phone}
+                              </div>
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <Mail size={16} className="text-blue-500" />
+                                {lead.email}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <Mail size={16} className="text-blue-500" />
-                              {lead.email}
+                          </td>
+
+                          {/* Course Column */}
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-blue-100 text-blue-800 font-medium">
+                              {lead.course}
+                            </span>
+                          </td>
+
+                          {/* Registration Date Column */}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <Clock size={16} className="text-gray-400" />
+                              <span className="text-gray-600">
+                                {new Date(
+                                  lead.registrationDate
+                                ).toLocaleDateString()}
+                              </span>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                            {lead.course}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 text-gray-600">
-                          {new Date(lead.registrationDate).toLocaleDateString()}
-                        </td>
-                        <td className="py-4 px-6">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-                              lead.status === "Contacted"
-                                ? "bg-green-100 text-green-700"
-                                : lead.status === "Not Responding"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-yellow-100 text-yellow-700"
-                            }`}
-                          >
-                            {lead.status === "Contacted" && (
-                              <CircleCheck size={16} />
-                            )}
-                            {lead.status === "Not Responding" && (
-                              <UserX size={16} />
-                            )}
-                            {lead.status === "Pending" && <Clock size={16} />}
-                            {lead.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleEdit(lead)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleDelete(lead)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M3 6h18" />
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                              </svg>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                          </td>
+
+                          {/* Status Column */}
+                          <td className="px-6 py-4">
+                            <StatusBadge status={lead.status} />
+                          </td>
+
+                          {/* Actions Column */}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <ActionButton
+                                icon="edit"
+                                onClick={() => handleEdit(lead)}
+                                className="text-blue-600 hover:bg-blue-50"
+                              />
+                              <ActionButton
+                                icon="delete"
+                                onClick={() => handleDelete(lead)}
+                                className="text-red-600 hover:bg-red-50"
+                              />
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Enhanced Modal styling in your CSS file */}
-      <style jsx>{`
-        .myModal {
-          background: white;
-          border-radius: 1rem;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-          max-width: 42rem;
-          width: 90%;
-          margin: 2rem auto;
-          animation: modalEntry 0.3s ease-out;
-        }
-
-        @keyframes modalEntry {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-
-        .myOverlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.75);
-          backdrop-filter: blur(5px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-      `}</style>
-
+      {/* Enhanced Modal Component */}
       <Modal
         isOpen={showModal}
         onRequestClose={handleClose}
         style={customModalStyles}
         contentLabel="Lead Form"
       >
-        <div className="bg-white rounded-xl overflow-hidden">
-          {/* Modal Header */}
-          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="bg-white rounded-2xl overflow-hidden shadow-xl"
+        >
+          {/* Header with Gradient */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {addNew ? "Add New Lead" : "Edit Lead"}
-              </h2>
-              <button
+              <div>
+                <h2 className="text-2xl font-bold text-white">
+                  {addNew ? "Add New Lead" : "Edit Lead"}
+                </h2>
+                <p className="mt-1 text-blue-100 text-sm">
+                  {addNew
+                    ? "Create a new lead entry"
+                    : "Modify existing lead information"}
+                </p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all"
               >
-                <X size={24} />
-              </button>
+                <X size={20} />
+              </motion.button>
             </div>
           </div>
 
-          {/* Modal Body */}
-          {renderModalBody()}
+          {/* Form Content */}
+          <div className="p-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              {selectedLead && (
+                <>
+                  {/* Personal Information Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200">
+                      Personal Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Name <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            value={selectedLead.name}
+                            onChange={(e) =>
+                              setSelectedLead({
+                                ...selectedLead,
+                                name: e.target.value,
+                              })
+                            }
+                            placeholder="Enter name"
+                          />
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg
+                              className="w-5 h-5 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </motion.div>
 
-          {/* Modal Footer */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Student's Name <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            value={selectedLead.studentName}
+                            onChange={(e) =>
+                              setSelectedLead({
+                                ...selectedLead,
+                                studentName: e.target.value,
+                              })
+                            }
+                            placeholder="Enter student's name"
+                          />
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <GraduationCap className="w-5 h-5 text-gray-400" />
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200">
+                      Contact Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Phone <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="tel"
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            value={selectedLead.phone}
+                            onChange={(e) =>
+                              setSelectedLead({
+                                ...selectedLead,
+                                phone: e.target.value,
+                              })
+                            }
+                            placeholder="Enter phone number"
+                          />
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Phone className="w-5 h-5 text-gray-400" />
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Email <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="email"
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            value={selectedLead.email}
+                            onChange={(e) =>
+                              setSelectedLead({
+                                ...selectedLead,
+                                email: e.target.value,
+                              })
+                            }
+                            placeholder="Enter email"
+                          />
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Mail className="w-5 h-5 text-gray-400" />
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Course and Status Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200">
+                      Course & Status
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Course <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <select
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none"
+                            value={selectedLead.course}
+                            onChange={(e) =>
+                              setSelectedLead({
+                                ...selectedLead,
+                                course: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">Select a course</option>
+                            {courses.map((course) => (
+                              <option key={course.id} value={course.title}>
+                                {course.title}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <BookOpen className="w-5 h-5 text-gray-400" />
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 }}
+                      >
+                        <label className="block mb-2 text-sm font-medium text-gray-700">
+                          Status
+                        </label>
+                        <div className="relative">
+                          <select
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none"
+                            value={selectedLead.status}
+                            onChange={(e) =>
+                              setSelectedLead({
+                                ...selectedLead,
+                                status: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Not Responding">
+                              Not Responding
+                            </option>
+                          </select>
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Clock className="w-5 h-5 text-gray-400" />
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="px-8 py-4 bg-gray-50 border-t border-gray-200">
             <div className="flex justify-end gap-3">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleClose}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
               >
                 Cancel
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleSave}
-                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
               >
                 {addNew ? "Add Lead" : "Save Changes"}
-              </button>
+              </motion.button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </Modal>
     </div>
   );
-}
+};
+
+// Helper Components
+const StatusBadge = ({ status }) => {
+  const statusConfig = {
+    Contacted: {
+      bg: "bg-green-100",
+      text: "text-green-700",
+      icon: CircleCheck,
+    },
+    "Not Responding": {
+      bg: "bg-red-100",
+      text: "text-red-700",
+      icon: UserX,
+    },
+    Pending: {
+      bg: "bg-yellow-100",
+      text: "text-yellow-700",
+      icon: Clock,
+    },
+  };
+
+  const config = statusConfig[status];
+  const Icon = config.icon;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${config.bg} ${config.text}`}
+    >
+      <Icon size={16} />
+      {status}
+    </span>
+  );
+};
+
+const ActionButton = ({ icon, onClick, className }) => {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      onClick={onClick}
+      className={`p-2 rounded-lg transition-all ${className}`}
+    >
+      {icon === "edit" ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+        </svg>
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        </svg>
+      )}
+    </motion.button>
+  );
+};
 
 export default LeadManagement;

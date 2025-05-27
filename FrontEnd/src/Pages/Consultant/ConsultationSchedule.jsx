@@ -6,7 +6,8 @@ import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import Modal from "react-modal";
 import Swal from "sweetalert2";
-import { Search, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { Calendar as CalendarIcon, Clock, Info, Search, X } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "../../public/ModalStyle.css";
 import enUS from "date-fns/locale/en-US";
@@ -14,6 +15,7 @@ import { useContext } from "react";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../Components/Loading";
 import axios from "axios";
+import "../../public/ModalStyle.css"; // Tạo file CSS riêng cho custom styles
 
 const locales = {
   "en-US": enUS,
@@ -199,36 +201,69 @@ function ConsultationSchedule() {
   );
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar />
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex">
         <Sidebar />
-        <div className="flex-1 p-8 ml-20">
-          <div className="mb-6 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-800">
-              Consultation Schedule
-            </h1>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search schedules..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="py-2 pl-10 pr-4 rounded-lg shadow-sm border border-gray-300"
-              />
-              <Search
-                className="absolute left-3 top-2.5 text-gray-400"
-                size={20}
-              />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex-1 p-8 ml-20"
+        >
+          {/* Header Section */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                  Consultation Schedule
+                </h1>
+                <p className="text-gray-500 mt-1">
+                  Manage your consultation appointments
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-4"
+              >
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search schedules..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-64 py-2 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  />
+                  <Search
+                    className="absolute left-3 top-2.5 text-gray-400"
+                    size={20}
+                  />
+                </div>
+              </motion.div>
             </div>
           </div>
 
+          {/* Calendar Section */}
           {isLoading ? (
-            <div className="flex justify-center items-center h-64 bg-gray-100/50">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-center items-center h-[calc(100vh-280px)] bg-white rounded-2xl shadow-lg"
+            >
               <Loading />
-            </div>
+            </motion.div>
           ) : (
-            <div className="bg-white p-6 rounded-lg shadow flex-1">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="bg-white rounded-2xl shadow-lg p-6"
+            >
               <Calendar
                 localizer={localizer}
                 events={filteredEvents}
@@ -248,31 +283,43 @@ function ConsultationSchedule() {
                 showMultiDayTimes
                 className="custom-calendar"
               />
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </div>
       <Footer />
 
+      {/* Enhanced Modal */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
         className="myModal"
         overlayClassName="myOverlay"
       >
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-xl mx-auto">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="bg-white  shadow-xl w-full overflow-hidden"
+        >
           {/* Modal Header */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {selectedEvent?._id ? "Edit Schedule" : "Add New Schedule"}{" "}
-                {/* Changed from .id to ._id */}
-              </h2>
+              <div>
+                <h2 className="text-xl font-semibold text-white">
+                  {selectedEvent?._id ? "Edit Schedule" : "Add New Schedule"}
+                </h2>
+                <p className="text-blue-100 text-sm mt-1">
+                  {selectedEvent?._id
+                    ? "Modify existing schedule"
+                    : "Create a new schedule"}
+                </p>
+              </div>
               <button
                 onClick={closeModal}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={20} className="text-white" />
               </button>
             </div>
           </div>
@@ -280,119 +327,156 @@ function ConsultationSchedule() {
           {/* Modal Body */}
           <div className="p-6">
             {selectedEvent && (
-              <div className="space-y-5">
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="space-y-6"
+              >
                 {/* Title Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Title <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    value={selectedEvent.title}
-                    onChange={(e) =>
-                      setSelectedEvent({
-                        ...selectedEvent,
-                        title: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="Enter schedule title"
-                  />
+                  <div className="relative">
+                    <CalendarIcon
+                      className="absolute left-3 top-3 text-gray-400"
+                      size={20}
+                    />
+                    <input
+                      type="text"
+                      value={selectedEvent.title}
+                      onChange={(e) =>
+                        setSelectedEvent({
+                          ...selectedEvent,
+                          title: e.target.value,
+                        })
+                      }
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      placeholder="Enter schedule title"
+                    />
+                  </div>
                 </div>
 
                 {/* Description Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description
                   </label>
-                  <textarea
-                    value={selectedEvent.desc}
-                    onChange={(e) =>
-                      setSelectedEvent({
-                        ...selectedEvent,
-                        desc: e.target.value,
-                      })
-                    }
-                    rows="4"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                    placeholder="Enter schedule description"
-                  />
+                  <div className="relative">
+                    <Info
+                      className="absolute left-3 top-3 text-gray-400"
+                      size={20}
+                    />
+                    <textarea
+                      value={selectedEvent.desc}
+                      onChange={(e) =>
+                        setSelectedEvent({
+                          ...selectedEvent,
+                          desc: e.target.value,
+                        })
+                      }
+                      rows="4"
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
+                      placeholder="Enter schedule description"
+                    />
+                  </div>
                 </div>
 
                 {/* Date and Time Fields */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Start Time <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="datetime-local"
-                      value={
-                        selectedEvent?.start
-                          ? format(
-                              new Date(selectedEvent.start),
-                              "yyyy-MM-dd'T'HH:mm"
-                            )
-                          : ""
-                      }
-                      onChange={(e) =>
-                        setSelectedEvent({
-                          ...selectedEvent,
-                          start: new Date(e.target.value),
-                        })
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+                    <div className="relative">
+                      <Clock
+                        className="absolute left-3 top-3 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type="datetime-local"
+                        value={
+                          selectedEvent?.start
+                            ? format(
+                                new Date(selectedEvent.start),
+                                "yyyy-MM-dd'T'HH:mm"
+                              )
+                            : ""
+                        }
+                        onChange={(e) =>
+                          setSelectedEvent({
+                            ...selectedEvent,
+                            start: new Date(e.target.value),
+                          })
+                        }
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      />
+                    </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       End Time <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="datetime-local"
-                      value={
-                        selectedEvent.end
-                          ? format(selectedEvent.end, "yyyy-MM-dd'T'HH:mm")
-                          : ""
-                      }
-                      onChange={(e) =>
-                        setSelectedEvent({
-                          ...selectedEvent,
-                          end: new Date(e.target.value),
-                        })
-                      }
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    />
+                    <div className="relative">
+                      <Clock
+                        className="absolute left-3 top-3 text-gray-400"
+                        size={20}
+                      />
+                      <input
+                        type="datetime-local"
+                        value={
+                          selectedEvent.end
+                            ? format(selectedEvent.end, "yyyy-MM-dd'T'HH:mm")
+                            : ""
+                        }
+                        onChange={(e) =>
+                          setSelectedLead({
+                            ...selectedEvent,
+                            end: new Date(e.target.value),
+                          })
+                        }
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
 
           {/* Modal Footer */}
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
-            {selectedEvent?._id && (
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-white border border-red-500 text-red-500 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex justify-end gap-3">
+              {selectedEvent?._id && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-white border border-red-500 text-red-500 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
+                >
+                  Delete Schedule
+                </motion.button>
+              )}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={closeModal}
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
               >
-                Delete Schedule
-              </button>
-            )}
-            <button
-              onClick={closeModal}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              {selectedEvent?._id ? "Update Schedule" : "Add Schedule"}
-            </button>
+                Cancel
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSave}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+              >
+                {selectedEvent?._id ? "Update Schedule" : "Add Schedule"}
+              </motion.button>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </Modal>
     </div>
   );
