@@ -39,6 +39,8 @@ import {
 
 import {createClass, getClasses, getClassesById, updateClass, deleteClass} from "../controller/class.controller.js"
 
+import {getLeadUsers, updateLeadUser} from "../controller/lead.controller.js"
+
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
 const router = express.Router();
@@ -67,7 +69,6 @@ router.get("/checkParent/:phoneNumber", verifyAdmin, checkParent);
 router.get("/getStudents", verifyAdmin, getStudents)
 
 // Course
-
 router.get("/getCourse", verifyAdmin, getAllCourse);
 
 router.post(
@@ -132,5 +133,11 @@ router.get("/getClassesById/:id", verifyAdmin, getClassesById)
 router.put("/updateClass/:id", verifyAdmin, updateClass)
 
 router.delete("/deleteClass/:id", verifyAdmin, deleteClass)
+
+// Tuition and Payment
+
+router.get("/getLeadUsers", verifyAdmin, getLeadUsers);
+
+router.put("/updateLeadUser/:id", verifyAdmin, updateLeadUser);
 
 export default router;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Route, BookOpen, School , Database, AppWindow  } from "lucide-react";
+import { Home, Route, School , Database, AppWindow, User, BadgeDollarSign   } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
@@ -10,11 +10,11 @@ const Sidebar = () => {
   const sidebarItems = [
     { path: "/admin/dashboard", icon: Home, label: "Home" },
     { path: "/admin/course", icon: Route, label: "Course" },
-    { path: "/admin/user-management", icon: BookOpen, label: "User" },
+    { path: "/admin/user-management", icon: User, label: "User" },
     {path: "/admin/registration-information", icon: Database, label: "Registration"},
     {path: "/admin/banner", icon: AppWindow , label: "Banner"},
-    {path: "/admin/class", icon: School, label: "Class"}
-    // { path: "/admin/timetable", icon: Calendar, label: "Time Table" },
+    {path: "/admin/class", icon: School, label: "Class"},
+    { path: "/admin/tuition", icon: BadgeDollarSign , label: "Time Table" },
    
   ];
 
