@@ -15,6 +15,10 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
+import { AlertTriangle } from "lucide-react";
 
 function LectureMaterials() {
   const { backendUrl, user } = useContext(AppContext);
@@ -25,6 +29,14 @@ function LectureMaterials() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [uploadStatus, setUploadStatus] = useState({});
+  const [deleteModal, setDeleteModal] = useState({
+    show: false,
+    materialId: null,
+    className: "",
+    classId: null,
+    materialName: "",
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch classes từ API
   const fetchClasses = async () => {
@@ -194,6 +206,67 @@ function LectureMaterials() {
     }
   };
 
+  const handleDeleteMaterial = async (
+    classId,
+    materialId,
+    className,
+    materialName
+  ) => {
+    setDeleteModal({
+      show: true,
+      materialId,
+      className,
+      classId,
+      materialName,
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setIsDeleting(true); // Bắt đầu deleting
+      const classId = deleteModal.classId || selectedClass;
+      const response = await axios.delete(
+        `${backendUrl}/api/teacher/class/${classId}/material/${deleteModal.materialId}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        // Add small delay for better UX
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        setClasses((prevClasses) =>
+          prevClasses.map((cls) =>
+            cls._id === classId
+              ? {
+                  ...cls,
+                  materials: cls.materials.filter(
+                    (m) => m._id !== deleteModal.materialId
+                  ),
+                }
+              : cls
+          )
+        );
+
+        toast.success("Material deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting material:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Error deleting material. Please try again."
+      );
+    } finally {
+      setIsDeleting(false); // Kết thúc deleting
+      setDeleteModal({
+        show: false,
+        materialId: null,
+        classId: null,
+        className: "",
+        materialName: "",
+      });
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -270,6 +343,14 @@ function LectureMaterials() {
                                 <Trash2
                                   size={16}
                                   className="text-gray-400 hover:text-red-500 cursor-pointer"
+                                  onClick={() =>
+                                    handleDeleteMaterial(
+                                      cls._id,
+                                      material._id,
+                                      cls.className,
+                                      material.name
+                                    )
+                                  }
                                 />
                               </div>
                             </div>
@@ -377,13 +458,26 @@ function LectureMaterials() {
                               href={material.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1 hover:text-blue-500"
+                              className="p-1 hover:text-blue-500 transition-colors"
                             >
                               <Download size={18} />
                             </a>
-                            <button className="p-1 hover:text-red-500">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() =>
+                                handleDeleteMaterial(
+                                  selectedClass,
+                                  material._id,
+                                  classes.find((c) => c._id === selectedClass)
+                                    ?.className,
+                                  material.name
+                                )
+                              }
+                              className="p-1 hover:text-red-500 transition-colors"
+                            >
                               <Trash2 size={18} />
-                            </button>
+                            </motion.button>
                           </div>
                         </div>
                       ))}
@@ -394,6 +488,135 @@ function LectureMaterials() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Transition appear show={deleteModal.show} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() =>
+            setDeleteModal({
+              show: false,
+              materialId: null,
+              className: "",
+              materialName: "",
+            })
+          }
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                      <AlertTriangle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div>
+                      <Dialog.Title
+                        as="h3"
+                        className="text-lg font-semibold leading-6 text-gray-900"
+                      >
+                        Delete Material
+                      </Dialog.Title>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Are you sure you want to delete "
+                          {deleteModal.materialName}" from{" "}
+                          {deleteModal.className}? This action cannot be undone.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={isDeleting}
+                      onClick={() =>
+                        setDeleteModal({
+                          show: false,
+                          materialId: null,
+                          className: "",
+                          materialName: "",
+                        })
+                      }
+                      className={`inline-flex justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium
+                        ${isDeleting
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-700 hover:bg-gray-50"
+                        }
+                        focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      whileHover={!isDeleting ? { scale: 1.02 } : {}}
+                      whileTap={!isDeleting ? { scale: 0.98 } : {}}
+                      disabled={isDeleting}
+                      onClick={confirmDelete}
+                      className={`inline-flex justify-center items-center rounded-lg border border-transparent px-4 py-2 text-sm font-medium
+                        ${isDeleting
+                          ? "bg-red-500 text-white cursor-not-allowed"
+                          : "bg-red-600 text-white hover:bg-red-700"
+                        }
+                        focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2`}
+                    >
+                      {isDeleting ? (
+                        <>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                          Deleting...
+                        </>
+                      ) : (
+                        "Delete Material"
+                      )}
+                    </motion.button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 }

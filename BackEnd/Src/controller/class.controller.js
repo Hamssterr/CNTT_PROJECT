@@ -4,6 +4,56 @@ import Course from "../model/course.model.js";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 
+// Thêm hàm mới này vào file
+export const deleteMaterial = async (req, res) => {
+  try {
+    const { classId, materialId } = req.params;
+
+    // Tìm lớp học
+    const classObj = await Class.findById(classId);
+    if (!classObj) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found"
+      });
+    }
+
+    // Tìm tài liệu trong mảng materials
+    const material = classObj.materials.id(materialId);
+    if (!material) {
+      return res.status(404).json({
+        success: false,
+        message: "Material not found"
+      });
+    }
+
+    // Xóa file từ Cloudinary nếu có public_id
+    if (material.url) {
+      const publicId = material.url.split('/').slice(-1)[0].split('.')[0];
+      try {
+        await cloudinary.uploader.destroy(`class_materials/${classId}/${publicId}`);
+      } catch (cloudinaryError) {
+        console.error("Error deleting from Cloudinary:", cloudinaryError);
+      }
+    }
+
+    // Xóa tài liệu khỏi mảng materials
+    classObj.materials.pull(materialId);
+    await classObj.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Material deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting material:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete material"
+    });
+  }
+};
+
 export const uploadMaterial = async (req, res) => {
   try {
     const { classId } = req.params;
