@@ -113,52 +113,11 @@ function LectureMaterials() {
     }
   };
 
-  const handleFileSelect = async (e, classId) => {
-    const files = Array.from(e.target.files);
-
-    // Validate files
-    const validFiles = files.filter((file) => {
-      const isValidType = file.type === "application/pdf";
-      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
-      return isValidType && isValidSize;
-    });
-
-    if (validFiles.length !== files.length) {
-      toast.error(
-        "Some files were skipped. Only PDF files under 5MB are allowed."
-      );
-    }
-
-    try {
-      const uploadedMaterials = await Promise.all(
-        validFiles.map((file) => uploadFile(file, classId))
-      );
-
-      setClasses((prevClasses) =>
-        prevClasses.map((cls) =>
-          cls._id === classId
-            ? { ...cls, materials: [...cls.materials, ...uploadedMaterials] }
-            : cls
-        )
-      );
-
-      // Clear progress after successful upload
-      setTimeout(() => {
-        setUploadProgress({});
-        setUploadStatus({});
-      }, 2000);
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      toast.error("Error uploading files. Please try again.");
-    }
-  };
-
   const uploadFile = async (file, classId) => {
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      // Initialize progress for this file
       setUploadProgress((prev) => ({
         ...prev,
         [file.name]: 0,
@@ -188,21 +147,88 @@ function LectureMaterials() {
         }
       );
 
-      // Update status on success
       setUploadStatus((prev) => ({
         ...prev,
         [file.name]: "completed",
       }));
 
-      return data.material;
+      return data.material; // Không fetch lại materials ở đây!
     } catch (error) {
-      // Update status on error
       setUploadStatus((prev) => ({
         ...prev,
         [file.name]: "error",
       }));
       console.error("Error uploading file:", error);
       throw error;
+    }
+  };
+
+  const handleFileSelect = async (e, classId) => {
+    const files = Array.from(e.target.files);
+
+    // Validate files
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type === "application/pdf";
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
+      return isValidType && isValidSize;
+    });
+
+    if (validFiles.length !== files.length) {
+      toast.error(
+        "Some files were skipped. Only PDF files under 5MB are allowed."
+      );
+    }
+
+    let uploadError = false;
+
+    try {
+      // Upload từng file, nếu lỗi thì chỉ báo lỗi cho file đó, không throw toàn bộ
+      for (const file of validFiles) {
+        try {
+          await uploadFile(file, classId);
+        } catch (err) {
+          uploadError = true;
+          // Báo lỗi riêng cho từng file
+          toast.error(`Error uploading file "${file.name}". Please try again.`);
+        }
+      }
+
+      // Sau khi upload xong hết, fetch lại materials 1 lần duy nhất
+      try {
+        const updatedClass = await axios.get(
+          `${backendUrl}/api/teacher/class/${classId}`,
+          { withCredentials: true }
+        );
+        if (updatedClass.data.success) {
+          setClasses((prevClasses) =>
+            prevClasses.map((cls) =>
+              cls._id === classId
+                ? { ...cls, materials: updatedClass.data.class.materials }
+                : cls
+            )
+          );
+        }
+      } catch (fetchErr) {
+        // Nếu chỉ fetch lại materials lỗi thì chỉ cảnh báo nhẹ
+        toast.warn(
+          "Uploaded, but failed to refresh materials list. Please reload."
+        );
+      }
+
+      setTimeout(() => {
+        setUploadProgress({});
+        setUploadStatus({});
+      }, 2000);
+
+      // Nếu có file nào lỗi thì báo lỗi tổng quát
+      if (uploadError) {
+        throw new Error("Some files failed to upload.");
+      }
+    } catch (error) {
+      // Chỉ báo lỗi nếu thực sự không upload được file nào
+      if (!uploadError) {
+        toast.error("Error to upload file. Please try again");
+      }
     }
   };
 
@@ -562,9 +588,10 @@ function LectureMaterials() {
                         })
                       }
                       className={`inline-flex justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium
-                        ${isDeleting
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
+                        ${
+                          isDeleting
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-white text-gray-700 hover:bg-gray-50"
                         }
                         focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
                     >
@@ -576,9 +603,10 @@ function LectureMaterials() {
                       disabled={isDeleting}
                       onClick={confirmDelete}
                       className={`inline-flex justify-center items-center rounded-lg border border-transparent px-4 py-2 text-sm font-medium
-                        ${isDeleting
-                          ? "bg-red-500 text-white cursor-not-allowed"
-                          : "bg-red-600 text-white hover:bg-red-700"
+                        ${
+                          isDeleting
+                            ? "bg-red-500 text-white cursor-not-allowed"
+                            : "bg-red-600 text-white hover:bg-red-700"
                         }
                         focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2`}
                     >
