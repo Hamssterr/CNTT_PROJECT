@@ -41,11 +41,17 @@ import {createClass, getClasses, getClassesById, updateClass, deleteClass} from 
 
 import {getLeadUsers, updateLeadUser} from "../controller/lead.controller.js"
 
+import {getPersonalData} from "../controller/auth.controller.js"
+
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
 const router = express.Router();
 
 router.get("/dashboard", verifyAdmin, getDataAdmin);
+
+// Personal Data 
+
+router.get("/profile", verifyAdmin ,getPersonalData);
 
 // User, employee, parent, student account
 router.get("/getDataUsers", verifyAdmin, getDataUsers);

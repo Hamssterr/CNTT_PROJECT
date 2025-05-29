@@ -112,6 +112,7 @@ export const login = async (req, res) => {
 
     // Create token
     const token = generateToken(user._id, user.role, res);
+    
 
     // Return response
     res.status(200).json({
@@ -158,23 +159,27 @@ export const checkAuth = (req, res) => {
     console.log("Error in checkAuth controller: ", error.message);
     res.status(400).json({ message: "Internal server error" });
   }
-}
+};
 
 export const verifyToken = async (req, res, next) => {
   try {
     const token =
-    req.cookies?.jwt ||
-    req.headers.authorization?.split(" ")[1] ||
-    req.headers["x-access-token"];
+      req.cookies?.jwt ||
+      req.headers.authorization?.split(" ")[1] ||
+      req.headers["x-access-token"];
     if (!token) {
-      return res.status(401).json({ success: false, message: "No token provided" });
+      return res
+        .status(401)
+        .json({ success: false, message: "No token provided" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     res.status(200).json({
@@ -233,3 +238,30 @@ export const verify = async (req, res) => {
   }
 };
 
+export const getPersonalData = async (req, res) => {
+  try {
+    const userId = req.user?.userId; 
+
+    // Truy vấn người dùng
+    const personalData = await User.findOne({ _id: userId });
+
+    if (!personalData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Get data successfully",
+      data: personalData,
+    });
+  } catch (error) {
+    console.error("Error in getPersonalData:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error in get data",
+    });
+  }
+};
