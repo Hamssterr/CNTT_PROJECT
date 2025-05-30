@@ -27,7 +27,7 @@ const UserSchema = new Schema(
       enum: ["parent", "student", "consultant", "admin", "finance", "teacher"],
       required: true,
     },
-    thumbnail: String,
+    profileImage: { type: String, default: "" },
     isAdultStudent: { type: Boolean, default: false },
     phoneNumber: {
       type: String,

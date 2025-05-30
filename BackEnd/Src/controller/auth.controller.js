@@ -265,3 +265,65 @@ export const getPersonalData = async (req, res) => {
     });
   }
 };
+
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user?.userId; 
+    const { data } = req.body; // JSON string from FormData
+    const profileImage = req.file; // Uploaded file from Multer
+
+    if (!data) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile data is required",
+      });
+    }
+
+    const parsedData = JSON.parse(data);
+    const updateData = {
+      ...parsedData,
+      degree: Array.isArray(parsedData.degree)
+        ? parsedData.degree.map((deg, index) => ({
+            ...deg,
+            id: deg.id || `deg-${Date.now()}-${index}`,
+          }))
+        : [],
+      experience: Array.isArray(parsedData.experience)
+        ? parsedData.experience.map((exp, index) => ({
+            ...exp,
+            id: exp.id || `exp-${Date.now()}-${index}`,
+          }))
+        : [],
+    };
+
+    if (profileImage) {
+      updateData.profileImage = profileImage.path; // Cloudinary URL
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error in updateUserProfile:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update profile",
+    });
+  }
+};

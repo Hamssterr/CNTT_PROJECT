@@ -1,5 +1,17 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Search, UserPlus, LogIn } from "lucide-react"; // Import biểu tượng từ Lucide
+import {
+  Search,
+  UserPlus,
+  LogIn,
+  Home,
+  Route,
+  School,
+  Database,
+  AppWindow,
+  User,
+  BadgeDollarSign,
+  Menu,
+} from "lucide-react"; // Import biểu tượng từ Lucide
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo.png";
 import { AppContext } from "../../context/AppContext";
@@ -13,6 +25,7 @@ const Navbar = () => {
   const { backendUrl, isLoggedIn, logout } = useContext(AppContext);
   const [adminData, setAdminData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Trạng thái menu mobile
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -50,6 +63,10 @@ const Navbar = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   const handleLogout = async () => {
     try {
       const { data } = await axios.post(
@@ -74,13 +91,30 @@ const Navbar = () => {
     }
   };
 
+  const sidebarItems = [
+    { path: "/admin/dashboard", icon: Home, label: "Home" },
+    { path: "/admin/course", icon: Route, label: "Course" },
+    { path: "/admin/user-management", icon: User, label: "User" },
+    {
+      path: "/admin/registration-information",
+      icon: Database,
+      label: "Registration",
+    },
+    { path: "/admin/banner", icon: AppWindow, label: "Banner" },
+    { path: "/admin/class", icon: School, label: "Class" },
+    { path: "/admin/tuition", icon: BadgeDollarSign, label: "Time Table" },
+  ];
+
   return (
     <nav className="bg-white py-4 px-6 flex items-center justify-between border-b border-gray-300">
       {/* Logo */}
       <div className="flex-shrink-0 flex">
         <img className="h-12 w-12 rounded-sm" src={logo} alt="Logo" />
         <span className=" hidden md:flex justify-center text-center pl-5 pt-2 text-2xl font-bold">
-        Hello {isLoggedIn && adminData?.role ? adminData.role.charAt(0).toUpperCase() + adminData.role.slice(1) : ""}
+          Hello{" "}
+          {isLoggedIn && adminData?.role
+            ? adminData.role.charAt(0).toUpperCase() + adminData.role.slice(1)
+            : ""}
         </span>
       </div>
 
@@ -108,7 +142,7 @@ const Navbar = () => {
             </p>
             <div className=" relative">
               <img
-                src={userImage}
+                src={adminData.profileImage || userImage}
                 alt="User Profile"
                 className="h-10 w-10 rounded-full object-cover cursor-pointer"
                 onClick={toggleDropdown}
@@ -163,7 +197,53 @@ const Navbar = () => {
             </button>
           </>
         )}
+
+        {/* Hamburger Menu Button (hiển thị trên màn hình nhỏ) */}
+        {isLoggedIn && (
+          <button
+            className="md:hidden p-2 rounded-full hover:bg-gray-100 transition"
+            onClick={toggleMobileMenu}
+          >
+            <Menu size={25} className="text-gray-600" />
+          </button>
+        )}
       </div>
+      {/* Mobile Menu (hiển thị khi nhấn hamburger) */}
+      {isMobileMenuOpen && isLoggedIn && (
+        <div className="md:hidden absolute right-0 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10 top-20">
+          <div className="flex flex-col items-center space-y-4 py-4">
+            {sidebarItems.map((item, index) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <div
+                  key={index}
+                  onClick={() => {
+                    navigate(item.path);
+                    setIsMobileMenuOpen(false); // Đóng menu sau khi chọn
+                  }}
+                  className={`flex items-center space-x-2 p-3 rounded-xl transition cursor-pointer ${
+                    isActive
+                      ? "bg-orange-200 text-orange-700"
+                      : "hover:bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  <item.icon
+                    size={24}
+                    className={isActive ? "text-orange-700" : "text-gray-600"}
+                  />
+                  <span
+                    className={`text-sm ${
+                      isActive ? "text-orange-700" : "text-gray-600"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

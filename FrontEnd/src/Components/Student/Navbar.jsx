@@ -126,7 +126,7 @@ const Navbar = () => {
             </p>
             <div className="relative">
               <img
-                src={userImage}
+                src={studentData.profileImage||userImage}
                 alt="User Profile"
                 className="h-10 w-10 rounded-full object-cover cursor-pointer"
                 onClick={toggleDropdown}

@@ -4,6 +4,7 @@ import HomeParent from "../Pages/Parent/HomeParent";
 import TimeTableForParent from "../Pages/Parent/TimeTableForParent";
 import TuitionForParent from "../Pages/Parent/TuitionForParent";
 import ChildrenForParent from "../Pages/Parent/ChildrenForParent";
+import ProfileParent from "../Pages/Parent/ProfileParent"
 
 const ParentRoutes = [
   { path: "/parent/dashboard", element: <HomeParent />, role: "parent" },
@@ -16,6 +17,11 @@ const ParentRoutes = [
   {
     path: "/parent/children-management",
     element: <ChildrenForParent />,
+    role: "parent",
+  },
+  {
+    path: "/parent/profile",
+    element: <ProfileParent />,
     role: "parent",
   },
 ];

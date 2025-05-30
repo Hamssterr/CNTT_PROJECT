@@ -127,7 +127,7 @@ const Navbar = () => {
             </p>
             <div className="relative">
               <img
-                src={userImage}
+                src={parentData.profileImage ||userImage}
                 alt="User Profile"
                 className="h-10 w-10 rounded-full object-cover cursor-pointer"
                 onClick={toggleDropdown}
@@ -138,7 +138,7 @@ const Navbar = () => {
                     <li
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
-                        navigate("/student/profile");
+                        navigate("/parent/profile");
                         setIsDropdownOpen(false);
                       }}
                     >

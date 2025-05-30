@@ -41,7 +41,7 @@ import {createClass, getClasses, getClassesById, updateClass, deleteClass} from 
 
 import {getLeadUsers, updateLeadUser} from "../controller/lead.controller.js"
 
-import {getPersonalData} from "../controller/auth.controller.js"
+import {getPersonalData, updateUserProfile} from "../controller/auth.controller.js"
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
@@ -52,6 +52,8 @@ router.get("/dashboard", verifyAdmin, getDataAdmin);
 // Personal Data 
 
 router.get("/profile", verifyAdmin ,getPersonalData);
+
+router.put("/profile", verifyAdmin, cloudinaryFileUploader.single("profileImage"), updateUserProfile)
 
 // User, employee, parent, student account
 router.get("/getDataUsers", verifyAdmin, getDataUsers);

@@ -26,7 +26,6 @@ const UserProfile = () => {
   );
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [idCounter, setIdCounter] = useState(0);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -53,7 +52,7 @@ const UserProfile = () => {
       setLoading(true);
       axios.defaults.withCredentials = true;
 
-      const { data } = await axios.get(`${backendUrl}/api/admin/profile`);
+      const { data } = await axios.get(`${backendUrl}/api/parent/profile`);
 
       console.log("Get Data:", data);
       if (data.success) {
@@ -125,7 +124,7 @@ const UserProfile = () => {
       }
 
       const response = await axios.put(
-        `${backendUrl}/api/admin/profile`,
+        `${backendUrl}/api/parent/profile`,
         formDataToSend,
         {
           withCredentials: true,
@@ -176,55 +175,6 @@ const UserProfile = () => {
     }
   };
 
-  const addDegree = () => {
-    setFormData((prev) => ({
-      ...prev,
-      degree: [
-        ...(prev.degree || []),
-        {
-          id: `deg-${idCounter}-${Date.now()}`,
-          name: "",
-          institution: "",
-          year: new Date().getFullYear().toString(),
-          major: "",
-        },
-      ],
-    }));
-    setIdCounter((prev) => prev + 1);
-  };
-
-  const addExperience = () => {
-    setFormData((prev) => ({
-      ...prev,
-      experience: [
-        ...(prev.experience || []),
-        {
-          id: `exp-${idCounter}-${Date.now()}`,
-          position: "",
-          company: "",
-          startDate: "",
-          endDate: "",
-          description: "",
-        },
-      ],
-    }));
-    setIdCounter((prev) => prev + 1);
-  };
-
-  const removeDegree = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      degree: prev.degree.filter((_, i) => i !== index),
-    }));
-  };
-
-  const removeExperience = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      experience: prev.experience.filter((_, i) => i !== index),
-    }));
-  };
-
   const formatAddress = (address) => {
     if (!address) return "";
     const parts = [
@@ -237,24 +187,6 @@ const UserProfile = () => {
       address.country,
     ].filter(Boolean);
     return parts.join(", ");
-  };
-
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return "";
-
-    try {
-      // Tạo Date object từ ISO string
-      const date = new Date(dateString);
-
-      // Check if date is valid
-      if (isNaN(date.getTime())) return "";
-
-      // Format thành YYYY-MM-DD
-      return date.toISOString().split("T")[0];
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "";
-    }
   };
 
   if (loading) {
@@ -273,7 +205,7 @@ const UserProfile = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <button
-            onClick={() => (window.location.href = "/admin/dashboard")}
+            onClick={() => (window.location.href = "/parent/dashboard")}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
               darkMode
                 ? "bg-gray-700 hover:bg-gray-600 text-white"
@@ -634,347 +566,6 @@ const UserProfile = () => {
                       />
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Education Section */}
-              <div
-                className={`rounded-2xl shadow-xl p-8 transition-all duration-300 ${
-                  darkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
-                }`}
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold flex items-center space-x-2">
-                    <GraduationCap className="w-6 h-6 text-purple-500" />
-                    <span>Education</span>
-                  </h3>
-                  {editMode && (
-                    <button
-                      type="button"
-                      onClick={addDegree}
-                      className="flex items-center space-x-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-                      disabled={loading}
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Add Degree</span>
-                    </button>
-                  )}
-                </div>
-                <div className="space-y-6">
-                  {(formData.degree || []).map((degree, index) => (
-                    <div
-                      key={degree.id || `deg-${index}-${Date.now()}`}
-                      className={`p-6 border-2 rounded-xl ${
-                        darkMode
-                          ? "border-gray-600 bg-gray-700"
-                          : "border-gray-200 bg-gray-50"
-                      }`}
-                    >
-                      {editMode && (
-                        <div className="flex justify-end mb-4">
-                          <button
-                            type="button"
-                            onClick={() => removeDegree(index)}
-                            className="text-red-500 hover:text-red-700 p-2"
-                            disabled={loading}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Degree Name
-                          </label>
-                          <input
-                            type="text"
-                            value={degree.name || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newDegree = [...(prev.degree || [])];
-                                newDegree[index] = {
-                                  ...newDegree[index],
-                                  name: e.target.value,
-                                };
-                                return { ...prev, degree: newDegree };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Institution
-                          </label>
-                          <input
-                            type="text"
-                            value={degree.institution || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newDegree = [...(prev.degree || [])];
-                                newDegree[index] = {
-                                  ...newDegree[index],
-                                  institution: e.target.value,
-                                };
-                                return { ...prev, degree: newDegree };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Graduation Year
-                          </label>
-                          <input
-                            type="number"
-                            value={degree.year || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newDegree = [...(prev.degree || [])];
-                                newDegree[index] = {
-                                  ...newDegree[index],
-                                  year: e.target.value,
-                                };
-                                return { ...prev, degree: newDegree };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Major
-                          </label>
-                          <input
-                            type="text"
-                            value={degree.major || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newDegree = [...(prev.degree || [])];
-                                newDegree[index] = {
-                                  ...newDegree[index],
-                                  major: e.target.value,
-                                };
-                                return { ...prev, degree: newDegree };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Experience Section */}
-              <div
-                className={`rounded-2xl shadow-xl p-8 transition-all duration-300 ${
-                  darkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
-                }`}
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold flex items-center space-x-2">
-                    <Building className="w-6 h-6 text-green-500" />
-                    <span>Professional Experience</span>
-                  </h3>
-                  {editMode && (
-                    <button
-                      type="button"
-                      onClick={addExperience}
-                      className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                      disabled={loading}
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Add Experience</span>
-                    </button>
-                  )}
-                </div>
-                <div className="space-y-6">
-                  {(formData.experience || []).map((exp, index) => (
-                    <div
-                      key={exp.id || `exp-${index}-${Date.now()}`}
-                      className={`p-6 border-2 rounded-xl ${
-                        darkMode
-                          ? "border-gray-600 bg-gray-700"
-                          : "border-gray-200 bg-gray-50"
-                      }`}
-                    >
-                      {editMode && (
-                        <div className="flex justify-end mb-4">
-                          <button
-                            type="button"
-                            onClick={() => removeExperience(index)}
-                            className="text-red-500 hover:text-red-700 p-2"
-                            disabled={loading}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Position
-                          </label>
-                          <input
-                            type="text"
-                            value={exp.position || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newExperience = [
-                                  ...(prev.experience || []),
-                                ];
-                                newExperience[index] = {
-                                  ...newExperience[index],
-                                  position: e.target.value,
-                                };
-                                return { ...prev, experience: newExperience };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Company
-                          </label>
-                          <input
-                            type="text"
-                            value={exp.company || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newExperience = [
-                                  ...(prev.experience || []),
-                                ];
-                                newExperience[index] = {
-                                  ...newExperience[index],
-                                  company: e.target.value,
-                                };
-                                return { ...prev, experience: newExperience };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Start Date
-                          </label>
-                          <input
-                            type="date"
-                            value={formatDateForInput(exp.startDate)}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newExperience = [
-                                  ...(prev.experience || []),
-                                ];
-                                newExperience[index] = {
-                                  ...newExperience[index],
-                                  startDate: e.target.value
-                                    ? new Date(e.target.value).toISOString()
-                                    : null,
-                                };
-                                return { ...prev, experience: newExperience };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            End Date (Leave empty if current)
-                          </label>
-                          <input
-                            type="date"
-                            value={formatDateForInput(exp.endDate)}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newExperience = [
-                                  ...(prev.experience || []),
-                                ];
-                                newExperience[index] = {
-                                  ...newExperience[index],
-                                  endDate: e.target.value,
-                                };
-                                return { ...prev, experience: newExperience };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-medium mb-2">
-                            Description
-                          </label>
-                          <textarea
-                            rows="3"
-                            value={exp.description || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => {
-                                const newExperience = [
-                                  ...(prev.experience || []),
-                                ];
-                                newExperience[index] = {
-                                  ...newExperience[index],
-                                  description: e.target.value,
-                                };
-                                return { ...prev, experience: newExperience };
-                              })
-                            }
-                            disabled={!editMode || loading}
-                            className={`w-full p-3 border rounded-lg ${
-                              darkMode
-                                ? "bg-gray-600 border-gray-500 text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
 

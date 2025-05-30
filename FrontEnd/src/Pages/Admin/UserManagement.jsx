@@ -648,7 +648,7 @@ const UserManagement = () => {
                               <div className="flex items-center gap-3">
                                 <img
                                   src={
-                                    user.img ||
+                                    user.profileImage ||
                                     "https://res.cloudinary.com/df9ibpz4g/image/upload/v1743752097/uploads/3.png"
                                   }
                                   alt={user.name}
