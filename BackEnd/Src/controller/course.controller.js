@@ -4,7 +4,7 @@ import RegisterCourse from "../model/registerCourse.model.js";
 import Class from "../model/class.model.js";
 import mongoose from "mongoose";
 import leadUser from "../model/lead.model.js";
-
+import Notification from "../model/notification.model.js";
 export const createCourse = async (req, res) => {
   try {
     const {
@@ -194,6 +194,20 @@ export const updateCourseById = async (req, res) => {
     const updatedCourse = await Course.findByIdAndUpdate(id, updateData, {
       new: true,
     });
+
+    // Kiểm tra nếu có thay đổi về instructor
+    if (updateData.instructor && updateData.instructor.id) {
+      // Tạo thông báo cho giáo viên
+      const notification = new Notification({
+        userId: updateData.instructor.id,
+        type: "info",
+        title: "Course Assignment",
+        message: `You have been assigned as an instructor to the course: ${updatedCourse.title}`,
+        sender: "Admin",
+      });
+
+      await notification.save();
+    }
 
     if (!updatedCourse) {
       return res
@@ -734,7 +748,7 @@ export const removeEnrollStudent = async (req, res) => {
 };
 
 export const registerCourse = async (req, res) => {
-  const { courseId, parentName, studentName , email, phoneNumber } = req.body;
+  const { courseId, parentName, studentName, email, phoneNumber } = req.body;
 
   try {
     const newRegistration = new RegisterCourse({

@@ -2,6 +2,8 @@ import express, { Router } from "express";
 
 import {
   getMyCourses,
+  getNotifications,
+  markAsRead,
   saveAttendance,
 } from "../controller/teacher.controller.js";
 import {
@@ -25,5 +27,6 @@ router.delete(
 );
 
 router.get("/class/:id", verifyTeacher, getClassesById);
-
+router.get("/notifications", verifyTeacher, getNotifications);
+router.put("/:id/read", verifyTeacher, markAsRead);
 export default router;

@@ -1,11 +1,14 @@
 import Course from "../model/course.model.js";
 import Attendance from "../model/attendance.model.js";
+import Notification from "../model/notification.model.js";
 export const getMyCourses = async (req, res) => {
   try {
     const instructorId = req.user.userId; // ID giáo viên đang đăng nhập
 
     // Tìm các khóa học có instructor.id trùng với instructorId
-    const courses = await Course.find({ "instructor.id": instructorId }).sort({ createdAt: -1 });
+    const courses = await Course.find({ "instructor.id": instructorId }).sort({
+      createdAt: -1,
+    });
 
     res.status(200).json({
       success: true,
@@ -27,12 +30,10 @@ export const saveAttendance = async (req, res) => {
     // Kiểm tra nếu đã lưu điểm danh cho ngày hôm nay
     const existingAttendance = await Attendance.findOne({ classId, date });
     if (existingAttendance) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Attendance already saved for today.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Attendance already saved for today.",
+      });
     }
 
     // Lưu điểm danh mới
@@ -52,4 +53,44 @@ export const saveAttendance = async (req, res) => {
   }
 };
 
+export const getNotifications = async (req, res) => {
+  try {
+    const userId = req.user.userId; // Lấy từ middleware auth
+    const notifications = await Notification.find({ userId }).sort({
+      timestamp: -1,
+    });
 
+    res.status(200).json({
+      success: true,
+      notifications,
+    });
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch notifications",
+    });
+  }
+};
+
+export const markAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await Notification.findByIdAndUpdate(
+      id,
+      { read: true },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      notification,
+    });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to mark notification as read",
+    });
+  }
+};

@@ -29,8 +29,6 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "class_materials",
     resource_type: "image",
-    allowed_formats: ["pdf"],
-    format: "pdf",
     public_id: (req, file) => {
       const timestamp = Date.now();
       const originalName = file.originalname.replace(/\.[^/.]+$/, "");
@@ -39,17 +37,8 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "application/pdf") {
-    cb(null, true);
-  } else {
-    cb(new Error("Only PDF files are allowed!"), false);
-  }
-};
-
 export const cloudinaryFileUploader = multer({
   storage,
-  fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // Limit file size to 5MB
   },
