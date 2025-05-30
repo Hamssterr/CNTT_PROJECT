@@ -14,7 +14,7 @@ export const deleteMaterial = async (req, res) => {
     if (!classObj) {
       return res.status(404).json({
         success: false,
-        message: "Class not found"
+        message: "Class not found",
       });
     }
 
@@ -23,33 +23,53 @@ export const deleteMaterial = async (req, res) => {
     if (!material) {
       return res.status(404).json({
         success: false,
-        message: "Material not found"
+        message: "Material not found",
       });
     }
 
     // Xóa file từ Cloudinary nếu có public_id
+    // if (material.url) {
+    //   const publicId = material.url.split('/').slice(-1)[0].split('.')[0];
+    //   try {
+    //     await cloudinary.uploader.destroy(`class_materials/${classId}/${publicId}`);
+    //   } catch (cloudinaryError) {
+    //     console.error("Error deleting from Cloudinary:", cloudinaryError);
+    //   }
+    // }
+
     if (material.url) {
-      const publicId = material.url.split('/').slice(-1)[0].split('.')[0];
       try {
-        await cloudinary.uploader.destroy(`class_materials/${classId}/${publicId}`);
+        // Extract public_id from Cloudinary URL using regex
+        const publicId = material.url.match(/\/upload\/v\d+\/(.+?)\.[^.]+$/)[1];
+
+        // Delete file from Cloudinary with resource_type: "image"
+        const result = await cloudinary.uploader.destroy(publicId, {
+          resource_type: "image",
+          invalidate: true,
+        });
+
+        if (result.result === "ok") {
+          console.log("Successfully deleted from Cloudinary:", publicId);
+        } else {
+          console.error("Failed to delete from Cloudinary:", result);
+        }
       } catch (cloudinaryError) {
         console.error("Error deleting from Cloudinary:", cloudinaryError);
       }
     }
-
     // Xóa tài liệu khỏi mảng materials
     classObj.materials.pull(materialId);
     await classObj.save();
 
     return res.status(200).json({
       success: true,
-      message: "Material deleted successfully"
+      message: "Material deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting material:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to delete material"
+      message: "Failed to delete material",
     });
   }
 };
@@ -506,10 +526,10 @@ export const getClassByIdStudent = async (req, res) => {
       const filteredStudents = classItem.students.filter(
         (student) => student.userId.toString() === studentId.toString()
       );
-      return{
+      return {
         ...classItem,
         students: filteredStudents,
-      }
+      };
     });
 
     // Trả về danh sách lớp học
