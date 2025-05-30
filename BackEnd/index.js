@@ -66,6 +66,11 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  next();
+});
+
 connectDB()
   .then(() => {
     app.listen(PORT, () => {

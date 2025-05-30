@@ -13,12 +13,14 @@ import {
   ChevronDown,
   Trash2,
   Download,
+  Eye,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import { AlertTriangle } from "lucide-react";
+import PdfViewer from "../../Components/Teacher/PdfViewer";
 
 function LectureMaterials() {
   const { backendUrl, user } = useContext(AppContext);
@@ -29,6 +31,11 @@ function LectureMaterials() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [uploadStatus, setUploadStatus] = useState({});
+  const [pdfViewer, setPdfViewer] = useState({
+    open: false,
+    url: "",
+    name: "",
+  });
   const [deleteModal, setDeleteModal] = useState({
     show: false,
     materialId: null,
@@ -362,10 +369,14 @@ function LectureMaterials() {
                               <File size={16} className="text-blue-500 mr-2" />
                               <span>{material.name}</span>
                               <div className="ml-auto flex items-center gap-2">
-                                <Download
-                                  size={16}
+                                <a
+                                  href={material.url}
+                                  download={material.name}
                                   className="text-gray-400 hover:text-blue-500 cursor-pointer"
-                                />
+                                  title="Download file"
+                                >
+                                  <Download size={16} />
+                                </a>
                                 <Trash2
                                   size={16}
                                   className="text-gray-400 hover:text-red-500 cursor-pointer"
@@ -480,14 +491,18 @@ function LectureMaterials() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <a
-                              href={material.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1 hover:text-blue-500 transition-colors"
+                            <span
+                              className="p-1 hover:text-blue-500 transition-colors cursor-pointer"
+                              onClick={() =>
+                                setPdfViewer({
+                                  open: true,
+                                  url: material.url,
+                                  name: material.name,
+                                })
+                              }
                             >
-                              <Download size={18} />
-                            </a>
+                              <Eye size={18} />
+                            </span>
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
@@ -645,6 +660,15 @@ function LectureMaterials() {
           </div>
         </Dialog>
       </Transition>
+
+      {/* PDF Viewer */}
+      {pdfViewer.open && (
+        <PdfViewer
+          fileUrl={pdfViewer.url}
+          fileName={pdfViewer.name}
+          onClose={() => setPdfViewer({ open: false, url: "", name: "" })}
+        />
+      )}
     </div>
   );
 }
