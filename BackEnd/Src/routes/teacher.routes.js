@@ -12,8 +12,19 @@ import {
 } from "../controller/class.controller.js";
 import { verifyTeacher } from "../middleware/verifyTeacher.js";
 import { deleteMaterial } from "../controller/class.controller.js";
+
+import {getPersonalData, updateUserProfile} from "../controller/auth.controller.js"
+
+import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
+
 const router = express.Router();
 
+// Personal Data 
+router.get("/profile", verifyTeacher ,getPersonalData);
+
+router.put("/profile", verifyTeacher, cloudinaryFileUploader.single("profileImage"), updateUserProfile)
+
+// 
 router.get("/getCourse", verifyTeacher, getMyCourses);
 
 router.get("/getClassesByInstructor", verifyTeacher, getClassesByInstructor);

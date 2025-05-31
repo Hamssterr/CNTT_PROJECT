@@ -172,6 +172,15 @@ const Navbar = () => {
           {showProfileMenu && (
             <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10">
               <button
+                className="flex items-center w-full text-left px-4 py-2 text-sm text-white-600 hover:bg-gray-100"
+                onClick={() => {
+                  navigate("/consultant/profile");
+                }}
+              >
+                Profile
+              </button>
+
+              <button
                 className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                 onClick={handleLogout}
               >

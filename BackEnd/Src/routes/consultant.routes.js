@@ -10,7 +10,16 @@ import {
 
 import {getSchedules, addSchedule, updateSchedule, deleteSchedule} from "../controller/consultantSchedule.controller.js";
 
+import {getPersonalData, updateUserProfile} from "../controller/auth.controller.js"
+
+import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
+
 const consultantRouter = express.Router();
+
+// Personal Data 
+consultantRouter.get("/profile", verifyConsultant ,getPersonalData);
+
+consultantRouter.put("/profile", verifyConsultant, cloudinaryFileUploader.single("profileImage"), updateUserProfile)
 
 consultantRouter.get("/getLeadUsers", getLeadUsers);
 consultantRouter.post("/addNewLeadUser", addNewLeadUser);

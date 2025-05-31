@@ -4,6 +4,8 @@ import TeacherManagement from "../Pages/Finance/TeacherProfile";
 import ReportAttendance from "../Pages/Finance/ReportAttendance";
 import PaymentManagement from "../Pages/Finance/TuitionAndPayment";
 import StudentProfile from "../Pages/Finance/StudentProfile";
+import ProfileFinance from "../Pages/Finance/ProfileFinance";
+
 const AcademicFinanceRoutes = [
   {
     path: "/academic-finance/dashboard",
@@ -33,6 +35,11 @@ const AcademicFinanceRoutes = [
   {
     path: "/academic-finance/payment-management",
     element: <PaymentManagement />,
+    role: "finance",
+  },
+  {
+    path: "/academic-finance/profile",
+    element: <ProfileFinance />,
     role: "finance",
   },
 ];
