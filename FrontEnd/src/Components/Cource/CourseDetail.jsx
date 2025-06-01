@@ -117,8 +117,11 @@ const CourseDetail = () => {
       const response = await axios.get(
         `${backendUrl}/api/course/getCourse/${id}`
       );
+
+     
       if (response.data.success) {
         setCourse(response.data.data);
+         console.log("data: ", response.data.data)
       } else {
         toast.error(response.data.message || "Can not found the course.");
       }
@@ -199,7 +202,7 @@ const CourseDetail = () => {
               </div>
 
               {/* Course Description */}
-              <p className="text-gray-600 mb-6">{course.description}</p>
+              <p className="text-gray-600 mb-6" style={{ whiteSpace: "pre-line" }}>{course.description}</p>
 
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-700 mb-3">
@@ -224,7 +227,7 @@ const CourseDetail = () => {
                 <div className="flex items-center">
                   <img
                     src={
-                      course.instructor.image ||
+                      course.instructor.profileImage ||
                       "https://via.placeholder.com/150"
                     }
                     alt={course.instructor.name}

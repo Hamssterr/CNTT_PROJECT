@@ -5,6 +5,7 @@ import Class from "../model/class.model.js";
 import mongoose from "mongoose";
 import leadUser from "../model/lead.model.js";
 import Notification from "../model/notification.model.js";
+
 export const createCourse = async (req, res) => {
   try {
     const {
@@ -25,10 +26,38 @@ export const createCourse = async (req, res) => {
 
     const thumbnailUrl = req.file?.path;
 
+    // Parse instructor data
+    let instructorData = instructor ? JSON.parse(instructor) : {};
+
+    // Validate instructor ID
+    if (!instructorData.id || !mongoose.isValidObjectId(instructorData.id)) {
+      return res.status(400).json({
+        message: "Invalid or missing instructor ID",
+        success: false,
+      });
+    }
+
+    // Fetch instructor from database
+    const instructorDoc = await User.findById(instructorData.id).select("name profileImage");
+    if (!instructorDoc) {
+      return res.status(404).json({
+        message: "Instructor not found",
+        success: false,
+      });
+    }
+
+    // Prepare instructor object for course
+    const instructorForCourse = {
+      id: instructorDoc._id.toString(),
+      name: instructorDoc.name || instructorData.name || "",
+      profileImage: instructorDoc.profileImage || "",
+    };
+
+    // Create new course
     const newCourse = new Course({
       title,
       description,
-      instructor: instructor ? JSON.parse(instructor) : {},
+      instructor: instructorForCourse,
       category,
       level,
       duration: duration ? JSON.parse(duration) : {},
@@ -50,10 +79,11 @@ export const createCourse = async (req, res) => {
       course: newCourse,
     });
   } catch (error) {
-    console.error("Error creating Course", error);
+    console.error("Error creating Course:", error);
     res.status(400).json({
       message: "Failed to create Course",
       success: false,
+      error: error.message,
     });
   }
 };
@@ -190,10 +220,46 @@ export const updateCourseById = async (req, res) => {
       updateData.target = JSON.parse(updateData.target);
     }
 
+    // Handle instructor data
+    if (updateData.instructor && updateData.instructor.id) {
+      // Validate instructor ID
+      if (!mongoose.isValidObjectId(updateData.instructor.id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid instructor ID",
+        });
+      }
+
+      // Fetch instructor from database
+      const instructorDoc = await User.findById(updateData.instructor.id).select(
+        "name profileImage"
+      );
+      if (!instructorDoc) {
+        return res.status(404).json({
+          success: false,
+          message: "Instructor not found",
+        });
+      }
+
+      // Prepare instructor object
+      updateData.instructor = {
+        id: instructorDoc._id.toString(),
+        name: instructorDoc.name || updateData.instructor.name || "",
+        profileImage: instructorDoc.profileImage || "",
+      };
+    }
+
     //  Tiến hành cập nhật
     const updatedCourse = await Course.findByIdAndUpdate(id, updateData, {
       new: true,
     });
+
+    if (!updatedCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
 
     // Kiểm tra nếu có thay đổi về instructor
     if (updateData.instructor && updateData.instructor.id) {

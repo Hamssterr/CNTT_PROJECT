@@ -9,7 +9,7 @@ const CourseSchema = new mongoose.Schema({
       description: { type: String, required: true },
     },
   ],
-  instructor: { id: String, name: String },
+  instructor: { id: String, name: String, profileImage: { type: String, default: "" }},
   category: String,
   level: String,
   duration: {
