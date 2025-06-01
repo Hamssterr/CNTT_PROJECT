@@ -14,7 +14,7 @@ const Sidebar = () => {
     {path: "/admin/registration-information", icon: Database, label: "Registration"},
     {path: "/admin/banner", icon: AppWindow , label: "Banner"},
     {path: "/admin/class", icon: School, label: "Class"},
-    { path: "/admin/tuition", icon: BadgeDollarSign , label: "Time Table" },
+    { path: "/admin/tuition", icon: BadgeDollarSign , label: "Tuition" },
    
   ];
 
