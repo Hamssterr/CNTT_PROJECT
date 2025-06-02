@@ -38,7 +38,9 @@ export const createCourse = async (req, res) => {
     }
 
     // Fetch instructor from database
-    const instructorDoc = await User.findById(instructorData.id).select("name profileImage");
+    const instructorDoc = await User.findById(instructorData.id).select(
+      "name profileImage"
+    );
     if (!instructorDoc) {
       return res.status(404).json({
         message: "Instructor not found",
@@ -72,6 +74,18 @@ export const createCourse = async (req, res) => {
     });
 
     await newCourse.save();
+
+    if (instructorForCourse.id) {
+      const notification = new Notification({
+        userId: instructorForCourse.id,
+        type: "info",
+        title: "New Course Assignment",
+        message: `You have been assigned as an instructor to the new course: ${newCourse.title}`,
+        sender: "Admin",
+      });
+
+      await notification.save();
+    }
 
     res.status(201).json({
       message: "Course created",
@@ -231,9 +245,9 @@ export const updateCourseById = async (req, res) => {
       }
 
       // Fetch instructor from database
-      const instructorDoc = await User.findById(updateData.instructor.id).select(
-        "name profileImage"
-      );
+      const instructorDoc = await User.findById(
+        updateData.instructor.id
+      ).select("name profileImage");
       if (!instructorDoc) {
         return res.status(404).json({
           success: false,
