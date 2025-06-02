@@ -56,23 +56,54 @@ function ReportAttendance() {
   );
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <Navbar />
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex flex-col md:flex-row min-h-screen">
         <Sidebar />
-        <div className="flex-1 p-8 ml-25">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <div className="flex-1 p-4 md:p-8 md:ml-25">
+          {/* Enhanced Header Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 md:mb-8"
+          >
+            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
               Attendance Reports
             </h1>
             <p className="text-gray-600">
               Monitor class attendance and student participation
             </p>
+          </motion.div>
+
+          {/* Statistics Overview */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Classes</p>
+                  <p className="text-xl font-bold text-gray-800">
+                    {filteredReports.length}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+            {/* Add more statistics cards as needed */}
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-6 relative">
-            <div className="relative">
+          {/* Enhanced Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="relative max-w-xl mx-auto md:mx-0">
               <Search
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 size={20}
@@ -80,41 +111,46 @@ function ReportAttendance() {
               <input
                 type="text"
                 placeholder="Search by class name..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all shadow-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-          </div>
+          </motion.div>
 
+          {/* Content Section */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <Loading />
             </div>
           ) : filteredReports.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-12 bg-white rounded-xl shadow-sm"
+            >
               <UserX size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 text-lg">
-                No attendance reports found
-              </p>
-            </div>
+              <p className="text-gray-500 text-lg">No attendance reports found</p>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredReports.map((report) => (
-                <div
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {filteredReports.map((report, index) => (
+                <motion.div
                   key={report._id}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300"
                 >
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="text-xl font-bold text-gray-800">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-1">
                           {report.className}
                         </h3>
-                        {/* Thêm phần hiển thị instructor */}
-                        <div className="flex items-center mt-1 text-sm text-gray-600">
-                          <FiUser className="mr-1" size={14} />
-                          <span>Instructor: {report.instructor?.name}</span>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <FiUser className="mr-1.5" size={14} />
+                          <span>{report.instructor?.name}</span>
                         </div>
                       </div>
                       <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
@@ -122,51 +158,40 @@ function ReportAttendance() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-500">Total</p>
-                        <p className="text-xl font-bold text-gray-700">
+                        <p className="text-xs text-gray-500 mb-1">Total</p>
+                        <p className="text-lg font-bold text-gray-700">
                           {report.totalStudents}
                         </p>
                       </div>
                       <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <p className="text-sm text-green-600">Present</p>
-                        <p className="text-xl font-bold text-green-700">
+                        <p className="text-xs text-green-600 mb-1">Present</p>
+                        <p className="text-lg font-bold text-green-700">
                           {report.present}
                         </p>
                       </div>
                       <div className="text-center p-3 bg-red-50 rounded-lg">
-                        <p className="text-sm text-red-600">Absent</p>
-                        <p className="text-xl font-bold text-red-700">
+                        <p className="text-xs text-red-600 mb-1">Absent</p>
+                        <p className="text-lg font-bold text-red-700">
                           {report.absent}
                         </p>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="px-6 py-3 bg-gray-50 flex justify-between items-center">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Calendar size={16} className="mr-2" />
-                      {new Date(report.date).toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </div>
                     <button
                       onClick={() => setSelectedReport(report)}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      className="w-full py-2 px-4 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 text-sm font-medium"
                     >
-                      View Details
+                      <span>View Details</span>
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
 
-          {/* Modal for Absent Students Details */}
+          {/* Enhanced Modal */}
           {selectedReport && (
             <Transition appear show={Boolean(selectedReport)} as={Fragment}>
               <Dialog

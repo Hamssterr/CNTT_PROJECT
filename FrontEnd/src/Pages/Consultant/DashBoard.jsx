@@ -10,6 +10,12 @@ import {
   UserPlus,
   Users2,
   CalendarDays,
+  TrendingUp,
+  Activity,
+  Clock,
+  Phone,
+  Mail,
+  Star,
 } from "lucide-react";
 import axios from "axios";
 
@@ -104,156 +110,236 @@ function DashBoard() {
   }, []);
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen">
         <Sidebar />
-        <div className="flex-1 p-8 ml-20">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 ml-0 sm:ml-20">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">
-              Advisor Dashboard
-            </h1>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-2">
+                Advisor Dashboard
+              </h1>
+              <p className="text-slate-600 text-sm sm:text-base">
+                Welcome back! Here's what's happening today.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-4 sm:mt-0 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+              <Activity className="w-4 h-4" />
+              Live Dashboard
+            </div>
           </div>
 
           {/* Main Content */}
           {isLoading ? (
-            <div className="flex justify-center items-center h-64 bg-gray-100/50">
+            <div className="flex justify-center items-center h-64 bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl">
               <Loading />
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
               {/* Left Column - Cards & Tables */}
-              <div className="lg:col-span-2">
-                {/* Statistic Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <Card
-                    icon={<UserPlus />}
+              <div className="xl:col-span-3 space-y-6">
+                {/* Enhanced Statistic Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  <StatCard
+                    icon={<UserPlus className="w-6 h-6" />}
                     title="New Leads Today"
                     number={dashboardData.newLeadsToday}
-                    color="bg-blue-500"
+                    gradient="from-emerald-500 to-teal-600"
+                    shadowColor="shadow-emerald-200"
+                    trend="+12%"
+                    trendIcon={<TrendingUp className="w-3 h-3" />}
                   />
-                  <Card
-                    icon={<Users />}
+                  <StatCard
+                    icon={<Users className="w-6 h-6" />}
                     title="Total Leads"
                     number={dashboardData.totalLeads}
-                    color="bg-purple-500"
+                    gradient="from-blue-500 to-indigo-600"
+                    shadowColor="shadow-blue-200"
+                    trend="+8%"
+                    trendIcon={<TrendingUp className="w-3 h-3" />}
                   />
-                  <Card
-                    icon={<CalendarCheck />}
+                  <StatCard
+                    icon={<CalendarCheck className="w-6 h-6" />}
                     title="Appointments Today"
                     number={dashboardData.appointmentsToday}
-                    color="bg-green-500"
+                    gradient="from-violet-500 to-purple-600"
+                    shadowColor="shadow-violet-200"
+                    trend="+15%"
+                    trendIcon={<TrendingUp className="w-3 h-3" />}
                   />
-                  <Card
-                    icon={<Users2 />}
+                  <StatCard
+                    icon={<Users2 className="w-6 h-6" />}
                     title="Total Students"
                     number={dashboardData.totalStudents}
-                    color="bg-orange-500"
+                    gradient="from-orange-500 to-red-500"
+                    shadowColor="shadow-orange-200"
+                    trend="+5%"
+                    trendIcon={<TrendingUp className="w-3 h-3" />}
                   />
                 </div>
 
-                {/* Tables */}
-                <div className="grid grid-cols-1 gap-4">
+                {/* Enhanced Tables */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Today's Appointments Table */}
-                  <div className="bg-white p-4 rounded-xl shadow">
-                    <h2 className="text-lg font-semibold mb-4">
-                      Today's Appointments
-                    </h2>
-                    <table className="w-full text-left">
-                      <thead className="text-sm font-semibold text-gray-600 border-b">
-                        <tr>
-                          <th className="py-2">Time</th>
-                          <th>Title</th>
-                          <th>Description</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {dashboardData.todayAppointments.length > 0 ? (
-                          dashboardData.todayAppointments.map((apt, index) => (
-                            <tr
-                              key={index}
-                              className="border-b hover:bg-gray-100"
-                            >
-                              <td className="py-2">{apt.time}</td>
-                              <td>{apt.title}</td>
-                              <td>{apt.desc}</td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td
-                              colSpan="3"
-                              className="py-4 text-center text-gray-500"
-                            >
-                              No appointments scheduled for today
-                            </td>
+                  <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
+                        <Clock className="w-5 h-5 text-white" />
+                      </div>
+                      <h2 className="text-xl font-bold text-slate-800">
+                        Today's Appointments
+                      </h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200">
+                            <th className="text-left py-3 px-2 text-sm font-semibold text-slate-600">
+                              Time
+                            </th>
+                            <th className="text-left py-3 px-2 text-sm font-semibold text-slate-600">
+                              Title
+                            </th>
+                            <th className="text-left py-3 px-2 text-sm font-semibold text-slate-600 hidden sm:table-cell">
+                              Description
+                            </th>
                           </tr>
-                        )}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {dashboardData.todayAppointments.length > 0 ? (
+                            dashboardData.todayAppointments.map(
+                              (apt, index) => (
+                                <tr
+                                  key={index}
+                                  className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
+                                >
+                                  <td className="py-4 px-2">
+                                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                      {apt.time}
+                                    </span>
+                                  </td>
+                                  <td className="py-4 px-2 font-medium text-slate-800">
+                                    {apt.title}
+                                  </td>
+                                  <td className="py-4 px-2 text-slate-600 text-sm hidden sm:table-cell">
+                                    {apt.desc}
+                                  </td>
+                                </tr>
+                              )
+                            )
+                          ) : (
+                            <tr>
+                              <td
+                                colSpan="3"
+                                className="py-8 text-center text-slate-500"
+                              >
+                                <div className="flex flex-col items-center gap-2">
+                                  <CalendarCheck className="w-8 h-8 text-slate-300" />
+                                  <span>
+                                    No appointments scheduled for today
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
                   {/* Recent Leads Table */}
-                  <div className="bg-white p-4 rounded-xl shadow">
-                    <h2 className="text-lg font-semibold mb-4">Recent Leads</h2>
-                    <table className="w-full text-left">
-                      <thead className="text-sm font-semibold text-gray-600 border-b">
-                        <tr>
-                          <th className="py-2">Name</th>
-                          <th>Phone</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {dashboardData.recentLeads.length > 0 ? (
-                          dashboardData.recentLeads.map((lead, index) => (
-                            <tr
-                              key={index}
-                              className="border-b hover:bg-gray-100"
-                            >
-                              <td className="py-2">{lead.name}</td>
-                              <td>{lead.phone}</td>
-                              <td>
-                                <span
-                                  className={`${
-                                    lead.status === "Contacted"
-                                      ? "text-blue-600"
-                                      : lead.status === "Not Responding"
-                                      ? "text-red-500"
-                                      : "text-yellow-500"
-                                  }`}
-                                >
-                                  {lead.status}
-                                </span>
+                  <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/20">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg">
+                        <UserPlus className="w-5 h-5 text-white" />
+                      </div>
+                      <h2 className="text-xl font-bold text-slate-800">
+                        Recent Leads
+                      </h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200">
+                            <th className="text-left py-3 px-2 text-sm font-semibold text-slate-600">
+                              Name
+                            </th>
+                            <th className="text-left py-3 px-2 text-sm font-semibold text-slate-600 hidden sm:table-cell">
+                              Phone
+                            </th>
+                            <th className="text-left py-3 px-2 text-sm font-semibold text-slate-600">
+                              Status
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dashboardData.recentLeads.length > 0 ? (
+                            dashboardData.recentLeads.map((lead, index) => (
+                              <tr
+                                key={index}
+                                className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
+                              >
+                                <td className="py-4 px-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                      {lead.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="font-medium text-slate-800">
+                                      {lead.name}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-2 text-slate-600 hidden sm:table-cell">
+                                  <div className="flex items-center gap-2">
+                                    <Phone className="w-4 h-4" />
+                                    {lead.phone}
+                                  </div>
+                                </td>
+                                <td className="py-4 px-2">
+                                  <StatusBadge status={lead.status} />
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td
+                                colSpan="3"
+                                className="py-8 text-center text-slate-500"
+                              >
+                                <div className="flex flex-col items-center gap-2">
+                                  <Users className="w-8 h-8 text-slate-300" />
+                                  <span>No new leads today</span>
+                                </div>
                               </td>
                             </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td
-                              colSpan="3"
-                              className="py-4 text-center text-gray-500"
-                            >
-                              No new leads today
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right Column - Calendar */}
-              <div className="bg-white p-4 rounded-xl shadow h-120">
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <CalendarDays /> Calendar
-                </h2>
-                <iframe
-                  src="https://calendar.google.com/calendar/embed?height=400&wkst=1&bgcolor=%23ffffff&ctz=Asia%2FHo_Chi_Minh&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH"
-                  className="w-full h-[400px] rounded-lg border-0"
-                ></iframe>
+              {/* Right Column - Enhanced Calendar */}
+              <div className="xl:col-span-1">
+                <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/20 h-fit">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg">
+                      <CalendarDays className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-800">
+                      Calendar
+                    </h2>
+                  </div>
+                  <div className="rounded-xl overflow-hidden shadow-inner">
+                    <iframe
+                      src="https://calendar.google.com/calendar/embed?height=400&wkst=1&bgcolor=%23ffffff&ctz=Asia%2FHo_Chi_Minh&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH"
+                      className="w-full h-[400px] border-0"
+                    ></iframe>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -264,18 +350,84 @@ function DashBoard() {
   );
 }
 
-// Card Component
-function Card({ icon, title, number, color }) {
+// Enhanced Card Component
+function StatCard({
+  icon,
+  title,
+  number,
+  gradient,
+  shadowColor,
+  trend,
+  trendIcon,
+}) {
   return (
     <div
-      className={`flex items-center gap-4 p-4 ${color} rounded-xl shadow text-white`}
+      className={`relative group cursor-pointer transform hover:scale-105 transition-all duration-300`}
     >
-      <div className="p-3 bg-white/30 rounded-full">{icon}</div>
-      <div>
-        <div className="text-xl font-semibold">{number}</div>
-        <div className="text-sm">{title}</div>
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${gradient} rounded-2xl opacity-90 group-hover:opacity-100 transition-opacity ${shadowColor} shadow-lg group-hover:shadow-xl`}
+      ></div>
+      <div className="relative bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
+        <div className="flex items-center justify-between mb-4">
+          <div className="p-3 bg-white/20 rounded-xl">{icon}</div>
+          {trend && (
+            <div className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full">
+              {trendIcon}
+              <span className="text-xs font-medium">{trend}</span>
+            </div>
+          )}
+        </div>
+        <div className="text-white">
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{number}</div>
+          <div className="text-sm opacity-90 font-medium">{title}</div>
+        </div>
       </div>
     </div>
+  );
+}
+
+// Status Badge Component
+function StatusBadge({ status }) {
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case "Contacted":
+        return {
+          bg: "bg-blue-100",
+          text: "text-blue-800",
+          border: "border-blue-200",
+        };
+      case "Not Responding":
+        return {
+          bg: "bg-red-100",
+          text: "text-red-800",
+          border: "border-red-200",
+        };
+      default:
+        return {
+          bg: "bg-yellow-100",
+          text: "text-yellow-800",
+          border: "border-yellow-200",
+        };
+    }
+  };
+
+  const config = getStatusConfig(status);
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${config.bg} ${config.text} ${config.border}`}
+    >
+      <div
+        className={`w-2 h-2 rounded-full ${
+          status === "Contacted"
+            ? "bg-blue-500"
+            : status === "Not Responding"
+            ? "bg-red-500"
+            : "bg-yellow-500"
+        }`}
+      ></div>
+      {status}
+    </span>
   );
 }
 

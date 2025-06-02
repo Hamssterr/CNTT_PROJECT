@@ -14,6 +14,7 @@ import { jsPDF } from "jspdf";
 import axios from "axios";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../Components/Loading";
+import { motion } from "framer-motion";
 
 function TuitionAndPayment() {
   const { backendUrl } = useContext(AppContext);
@@ -155,255 +156,441 @@ function TuitionAndPayment() {
 
   // Handle printing the invoice
   const handlePrintInvoice = (student) => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Invoice for Tuition Payment", 14, 22);
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // Định nghĩa màu sắc và font chữ
+    const colors = {
+      primary: "#2563EB", // Blue-600
+      secondary: "#1E40AF", // Blue-800
+      accent: "#60A5FA", // Blue-400
+      text: "#1F2937", // Gray-800
+      lightGray: "#F3F4F6", // Gray-100
+    };
+
+    // Thêm logo và header
+    doc.setFillColor(colors.primary);
+    doc.rect(0, 0, 210, 45, "F");
+
+    // Header text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.text("INVOICE", 105, 20, { align: "center" });
+
     doc.setFontSize(12);
-    doc.text(`Student: ${student.studentName}`, 14, 30);
-    doc.text(`Class: ${student.className}`, 14, 38);
-    doc.text(`Amount Due: $${student.amountDue}`, 14, 46);
-    doc.text(`Due Date: ${student.dueDate}`, 14, 54);
-    doc.text(`Status: ${student.paymentStatus}`, 14, 62);
-    doc.save(`invoice_${student.studentName}_${student.id}.pdf`);
-  };
+    doc.setFont("helvetica", "normal");
+    doc.text("TP Education", 105, 30, { align: "center" });
+    doc.setFontSize(10);
+    doc.text("For all students in the world", 105, 38, { align: "center" });
 
-  // Handle notifying the parent
-  const handleNotifyParent = (student) => {
-    const today = new Date().toISOString().split("T")[0];
+    // Invoice details box
+    doc.setFillColor(colors.lightGray);
+    doc.roundedRect(15, 55, 180, 40, 3, 3, "F");
 
-    if (notifiedStudents[student.id] === today) {
-      Swal.fire(
-        "Notification Already Sent",
-        `A notification has already been sent to the parent of ${student.studentName} today.`,
-        "warning"
-      );
-      return;
+    doc.setTextColor(colors.text);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+
+    // Left column
+    doc.text("INVOICE TO:", 25, 65);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Student name: ${student.studentName}`, 25, 73);
+    doc.text(`Parent name: ${student.parentName}`, 25, 81);
+    doc.text(`ID: ${student.id}`, 25, 89);
+
+    // Right column
+    doc.setFont("helvetica", "bold");
+    doc.text("INVOICE DETAILS:", 120, 65);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Invoice Date: ${new Date().toLocaleDateString()}`, 120, 73);
+    doc.text(`Due Date: ${student.dueDate}`, 120, 81);
+    doc.text(`Invoice: INV-${Date.now().toString().slice(-6)}`, 120, 89);
+
+    // Course details
+    doc.setFillColor(colors.primary);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(15, 105, 180, 10, "F");
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("COURSE DETAILS", 20, 112);
+
+    // Table headers
+    const tableHeaders = ["Description", "Duration", "Amount"];
+    const headerPositions = [20, 120, 160];
+
+    doc.setFillColor(colors.lightGray);
+    doc.rect(15, 115, 180, 10, "F");
+    doc.setTextColor(colors.text);
+    doc.setFontSize(10);
+    tableHeaders.forEach((header, i) => {
+      doc.text(header, headerPositions[i], 122);
+    });
+
+    // Table content
+    doc.setFont("helvetica", "normal");
+    doc.text(student.className, 20, 132);
+    doc.text("3 months", 120, 132);
+    doc.text(`$${student.amountDue}`, 160, 132);
+
+    // Total amount
+    doc.setFillColor(colors.lightGray);
+    doc.rect(15, 140, 180, 25, "F");
+    doc.setFont("helvetica", "bold");
+    doc.text("Total Amount:", 120, 155);
+    doc.setTextColor(colors.secondary);
+    doc.setFontSize(14);
+    doc.text(`$${student.amountDue}`, 160, 155);
+
+    // Payment information
+    doc.setTextColor(colors.text);
+    doc.setFontSize(11);
+    doc.text("PAYMENT INFORMATION", 20, 185);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const bankDetails = [
+      "Bank Name: Education Bank",
+      "Account Name: TP Education Center",
+      "Account Number: 1234-5678-9012-3456",
+      "Swift Code: EDBNK123",
+      `Payment Reference: INV_${student.id}`,
+    ];
+
+    bankDetails.forEach((detail, index) => {
+      doc.text(detail, 20, 195 + index * 7);
+    });
+
+    // Footer
+    doc.setFillColor(colors.primary);
+    doc.rect(0, 267, 210, 30, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Thank you for choosing TP Education Center", 105, 278, {
+      align: "center",
+    });
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      "123 Learning Street, Education City | Phone: +1-123-456-7890",
+      105,
+      285,
+      { align: "center" }
+    );
+    doc.text("Email: contact@educenter.com | www.educenter.com", 105, 291, {
+      align: "center",
+    });
+
+    // Watermark if paid
+    if (student.paymentStatus === "Paid") {
+      doc.setGState(new doc.GState({ opacity: 0.3 }));
+      doc.setTextColor(0, 150, 0);
+      doc.setFontSize(72);
+      doc.setFont("helvetica", "bold");
+      doc.text("PAID", 105, 160, {
+        align: "center",
+        angle: 45,
+      });
     }
 
-    setNotifiedStudents((prev) => ({
-      ...prev,
-      [student.id]: today,
-    }));
-
-    Swal.fire(
-      "Notification Sent",
-      `A notification has been sent to the parent of ${student.studentName}.`,
-      "info"
-    );
-  };
+    // Save PDF
+    doc.save(`Invoice_${student.studentName}_${student.id}.pdf`);
+  };  
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <Navbar />
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex flex-col md:flex-row min-h-screen">
         <Sidebar />
-        <div className="flex-1 p-8 ml-25">
-          {/* Header Section */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <div className="flex-1 p-4 md:p-8 md:ml-25">
+          {/* Enhanced Header Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 md:mb-8"
+          >
+            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
               Tuition Management
             </h1>
             <p className="text-gray-600">
               Monitor and manage student tuition payments
             </p>
-          </div>
+          </motion.div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Total Students Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          {/* Enhanced Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+            {/* Students Card */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 md:p-6 border border-gray-100"
+            >
               <div className="flex items-center">
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <Users className="h-6 w-6 text-blue-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Students with Debt
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-800">
-                    {totalStudents}
-                  </h3>
+                  <p className="text-sm font-medium text-gray-600">Students with Debt</p>
+                  <h3 className="text-2xl font-bold text-gray-800">{totalStudents}</h3>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Outstanding Amount Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 md:p-6 border border-gray-100"
+            >
               <div className="flex items-center">
                 <div className="p-3 bg-green-50 rounded-lg">
                   <DollarSign className="h-6 w-6 text-green-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Outstanding Amount
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-800">
-                    ${totalOutstanding}
-                  </h3>
+                  <p className="text-sm font-medium text-gray-600">Outstanding Amount</p>
+                  <h3 className="text-2xl font-bold text-gray-800">${totalOutstanding}</h3>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Alert Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {/* Due Date Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 md:p-6 border border-gray-100"
+            >
               <div className="flex items-center">
                 <div className="p-3 bg-yellow-50 rounded-lg">
                   <AlertCircle className="h-6 w-6 text-yellow-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    Payment Due
-                  </p>
+                  <p className="text-sm font-medium text-gray-600">Payment Due</p>
                   <h3 className="text-2xl font-bold text-gray-800">Today</h3>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Search and Filter Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+          {/* Enhanced Search Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-xl shadow-md p-4 md:p-6 mb-6 md:mb-8 border border-gray-100"
+          >
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="relative w-full md:w-96">
-                <Search
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
                   placeholder="Search by student or class..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
-
               {searchQuery && (
-                <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-lg">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-lg"
+                >
                   <Users className="h-5 w-5 text-blue-500" />
                   <span className="text-blue-700 font-medium">
-                    {filteredStudents.length} result
-                    {filteredStudents.length !== 1 ? "s" : ""} found
+                    {filteredStudents.length} result{filteredStudents.length !== 1 ? 's' : ''} found
                   </span>
-                </div>
+                </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Tuition Table */}
+          {/* Content Section */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <Loading />
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                      Student
-                    </th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                      Class
-                    </th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                      Amount Due
-                    </th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                      Due Date
-                    </th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredStudents.length > 0 ? (
-                    filteredStudents.map((student) => (
-                      <tr
-                        key={student.id}
-                        className="hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Users className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {student.studentName}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden"
+            >
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                        Student
+                      </th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                        Class
+                      </th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                        Amount Due
+                      </th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                        Due Date
+                      </th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredStudents.length > 0 ? (
+                      filteredStudents.map((student) => (
+                        <tr
+                          key={student.id}
+                          className="hover:bg-gray-50 transition-colors duration-200"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <Users className="h-5 w-5 text-blue-600" />
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {student.parentName}
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {student.studentName}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {student.parentName}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {student.className}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-medium text-gray-900">
-                            ${student.amountDue}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {student.dueDate}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            {student.paymentStatus === "Unpaid" ? (
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {student.className}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-medium text-gray-900">
+                              ${student.amountDue}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {student.dueDate}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-2">
+                              {student.paymentStatus === "Unpaid" ? (
+                                <button
+                                  onClick={() => handlePayment(student.id)}
+                                  className="inline-flex items-center px-3 py-1.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                                >
+                                  Mark as Paid
+                                </button>
+                              ) : (
+                                <span className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-sm font-medium rounded-lg">
+                                  Paid ✓
+                                </span>
+                              )}
                               <button
-                                onClick={() => handlePayment(student.id)}
-                                className="inline-flex items-center px-3 py-1.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                                onClick={() => handlePrintInvoice(student)}
+                                className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
                               >
-                                Mark as Paid
+                                <Download className="h-4 w-4 mr-1" />
+                                Invoice
                               </button>
-                            ) : (
-                              <span className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-sm font-medium rounded-lg">
-                                Paid ✓
-                              </span>
-                            )}
-                            <button
-                              onClick={() => handlePrintInvoice(student)}
-                              className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
-                            >
-                              <Download className="h-4 w-4 mr-1" />
-                              Invoice
-                            </button>
-                            <button
-                              onClick={() => handleNotifyParent(student)}
-                              disabled={student.paymentStatus === "Paid"}
-                              className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                                student.paymentStatus === "Paid"
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-red-100 text-red-700 hover:bg-red-200"
-                              }`}
-                            >
-                              <Bell className="h-4 w-4 mr-1" />
-                              Notify
-                            </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-8 text-center">
+                          <div className="flex flex-col items-center">
+                            <Users className="h-12 w-12 text-gray-400 mb-4" />
+                            <p className="text-gray-500 text-lg mb-1">
+                              No students found
+                            </p>
+                            <p className="text-gray-400 text-sm">
+                              Try adjusting your search
+                            </p>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center">
-                        <div className="flex flex-col items-center">
-                          <Users className="h-12 w-12 text-gray-400 mb-4" />
-                          <p className="text-gray-500 text-lg mb-1">
-                            No students found
-                          </p>
-                          <p className="text-gray-400 text-sm">
-                            Try adjusting your search
-                          </p>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4 p-4">
+                {filteredStudents.length > 0 ? (
+                  filteredStudents.map((student, index) => (
+                    <motion.div
+                      key={student.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-4 border border-gray-100"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Users className="h-6 w-6 text-blue-600" />
                         </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{student.studentName}</div>
+                          <div className="text-sm text-gray-500">{student.parentName}</div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 border-t border-gray-100 pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Class:</span>
+                          <span className="font-medium text-gray-900">{student.className}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Amount Due:</span>
+                          <span className="font-medium text-gray-900">${student.amountDue}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Due Date:</span>
+                          <span className="font-medium text-gray-900">{student.dueDate}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                        {student.paymentStatus === "Unpaid" ? (
+                          <button
+                            onClick={() => handlePayment(student.id)}
+                            className="flex-1 px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center"
+                          >
+                            Mark as Paid
+                          </button>
+                        ) : (
+                          <span className="flex-1 flex items-center justify-center px-4 py-2 bg-green-100 text-green-800 text-sm font-medium rounded-lg">
+                            Paid ✓
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handlePrintInvoice(student)}
+                          className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Invoice
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-8"
+                  >
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500 text-lg mb-1">No students found</p>
+                    <p className="text-gray-400 text-sm">Try adjusting your search</p>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
           )}
         </div>
       </div>

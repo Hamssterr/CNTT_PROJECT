@@ -15,7 +15,7 @@ import {
   RefreshCcw,
   Download,
   GraduationCap,
-  BookOpen
+  BookOpen,
 } from "lucide-react";
 import "../../public/ModalStyle.css";
 import axios from "axios";
@@ -234,131 +234,8 @@ const LeadManagement = () => {
     );
   });
 
-  const renderModalBody = () => (
-    <div className="px-6 py-4">
-      {selectedLead && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-600">
-              Name *
-            </label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedLead.name}
-              onChange={(e) =>
-                setSelectedLead({
-                  ...selectedLead,
-                  name: e.target.value,
-                })
-              }
-              placeholder="Enter name"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-600">
-              Student's Name *
-            </label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedLead.studentName}
-              onChange={(e) =>
-                setSelectedLead({
-                  ...selectedLead,
-                  studentName: e.target.value,
-                })
-              }
-              placeholder="Enter student's name"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-600">
-              Phone *
-            </label>
-            <input
-              type="tel"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedLead.phone}
-              onChange={(e) =>
-                setSelectedLead({
-                  ...selectedLead,
-                  phone: e.target.value,
-                })
-              }
-              placeholder="Enter phone number"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-600">
-              Email *
-            </label>
-            <input
-              type="email"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedLead.email}
-              onChange={(e) =>
-                setSelectedLead({
-                  ...selectedLead,
-                  email: e.target.value,
-                })
-              }
-              placeholder="Enter email"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-600">
-              Course *
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedLead.course}
-              onChange={(e) =>
-                setSelectedLead({
-                  ...selectedLead,
-                  course: e.target.value,
-                })
-              }
-            >
-              <option value="">Select a course</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.title}>
-                  {course.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-600">
-              Status
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedLead.status}
-              onChange={(e) =>
-                setSelectedLead({
-                  ...selectedLead,
-                  status: e.target.value,
-                })
-              }
-            >
-              <option value="Pending">Pending</option>
-              <option value="Contacted">Contacted</option>
-              <option value="Not Responding">Not Responding</option>
-            </select>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <div className="flex">
         <Sidebar />
@@ -367,16 +244,18 @@ const LeadManagement = () => {
         <div className="flex-1 ml-25">
           {/* Elegant Header Section */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-            <div className="px-8 py-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="px-4 sm:px-8 py-4 sm:py-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold">Lead Management</h1>
-                  <p className="mt-1 text-blue-100">
+                  <h1 className="text-2xl sm:text-3xl font-bold">
+                    Lead Management
+                  </h1>
+                  <p className="mt-1 text-sm sm:text-base text-blue-100">
                     {filteredLeads.length} total leads • {courses.length}{" "}
                     courses available
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex w-full sm:w-auto items-center gap-2 sm:gap-3">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -389,7 +268,7 @@ const LeadManagement = () => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                    className="hidden sm:block p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                     title="Export"
                   >
                     <Download size={20} />
@@ -398,49 +277,35 @@ const LeadManagement = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleAdd}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all text-sm sm:text-base"
                   >
                     <Plus size={20} />
-                    Add New Lead
+                    <span className="hidden sm:inline">Add New Lead</span>
+                    <span className="sm:hidden">Add</span>
                   </motion.button>
                 </div>
               </div>
-
-              {/* Enhanced Search Bar */}
-              <div className="flex gap-4 items-center">
-                <div className="flex-1 relative">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+                <div className="w-full relative">
                   <input
                     type="text"
                     placeholder="Search by name, email, phone..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-white/10 text-white placeholder-blue-100 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                    className="w-full pl-12 pr-4 py-2.5 sm:py-3 bg-white/10 text-white placeholder-blue-100 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm sm:text-base"
                   />
                   <Search
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-100"
                     size={20}
                   />
                 </div>
-                <div className="flex gap-2">
-                  {["All", "Contacted", "Pending", "Not Responding"].map(
-                    (status) => (
-                      <motion.button
-                        key={status}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 text-sm font-medium text-blue-100 bg-white/10 rounded-lg hover:bg-white/20 transition-all"
-                      >
-                        {status}
-                      </motion.button>
-                    )
-                  )}
-                </div>
+                
               </div>
             </div>
           </div>
 
           {/* Content Area */}
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
                 <Loading />
@@ -451,7 +316,8 @@ const LeadManagement = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden"
               >
-                <div className="overflow-x-auto">
+                {/* Desktop Table */}
+                <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50/50">
@@ -565,6 +431,63 @@ const LeadManagement = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+                {/* Mobile Card View */}
+                <div className="sm:hidden space-y-4 p-2">
+                  {filteredLeads.map((lead, index) => (
+                    <motion.div
+                      key={lead._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-white rounded-lg shadow p-4 border border-gray-100"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
+                          {lead.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {lead.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {lead.studentName}
+                          </div>
+                        </div>
+                        <StatusBadge status={lead.status} className="ml-auto" />
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Phone size={16} className="text-blue-500" />
+                          {lead.phone}
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Mail size={16} className="text-blue-500" />
+                          {lead.email}
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <BookOpen size={16} className="text-blue-500" />
+                          {lead.course}
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Clock size={16} className="text-gray-400" />
+                          {new Date(lead.registrationDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="mt-3 flex justify-end gap-2">
+                        <ActionButton
+                          icon="edit"
+                          onClick={() => handleEdit(lead)}
+                          className="text-blue-600 hover:bg-blue-50"
+                        />
+                        <ActionButton
+                          icon="delete"
+                          onClick={() => handleDelete(lead)}
+                          className="text-red-600 hover:bg-red-50"
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
               </motion.div>
             )}
