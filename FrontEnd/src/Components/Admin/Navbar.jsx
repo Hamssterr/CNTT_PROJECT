@@ -95,12 +95,13 @@ const Navbar = () => {
     { path: "/admin/dashboard", icon: Home, label: "Home" },
     { path: "/admin/course", icon: Route, label: "Course" },
     { path: "/admin/user-management", icon: User, label: "User" },
+    { path: "/admin/banner", icon: AppWindow, label: "Banner" },
     {
       path: "/admin/registration-information",
       icon: Database,
       label: "Registration",
     },
-    { path: "/admin/banner", icon: AppWindow, label: "Banner" },
+
     { path: "/admin/class", icon: School, label: "Class" },
     { path: "/admin/tuition", icon: BadgeDollarSign, label: "Tuition" },
   ];

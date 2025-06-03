@@ -1,9 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-
-import NavbarAdmin from "../../Components/Admin/Navbar";
-import SidebarAdmin from "../../Components/Admin/Sidebar";
-
-import { motion } from "framer-motion";
 import {
   Search,
   ChevronUp,
@@ -17,12 +12,13 @@ import {
   Users,
   Book,
 } from "lucide-react";
-
+import { motion } from "framer-motion";
+import NavbarAdmin from "../../Components/Admin/Navbar";
+import SidebarAdmin from "../../Components/Admin/Sidebar";
 import Loading from "../../Components/Loading";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
 import axios from "axios";
-
 import AddClassModal from "../../Components/Admin/classManagement/Modal/AddClassModal";
 import ViewClassModal from "../../Components/Admin/classManagement/Modal/ViewClassModal";
 import EditClassModal from "../../Components/Admin/classManagement/Modal/EditClassModal";
@@ -59,6 +55,7 @@ const ClassManagement = () => {
   const { backendUrl } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
   const [classData, setClassData] = useState([]);
+  const [filteredClasses, setFilteredClasses] = useState([]); // For filtered data
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,8 +64,10 @@ const ClassManagement = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Pagination state
+  const [itemsPerPage] = useState(5); // Items per page
 
-  // Hàm lấy dữ liệu lớp học
+  // Fetch classes data
   const fetchClassData = async () => {
     try {
       setLoading(true);
@@ -77,8 +76,10 @@ const ClassManagement = () => {
       const { data } = response;
       if (data.success && Array.isArray(data.classes)) {
         setClassData(data.classes);
+        setFilteredClasses(data.classes); // Initialize filteredClasses
       } else {
         setClassData([]);
+        setFilteredClasses([]);
         toast.error(data.message || "No classes found");
       }
     } catch (error) {
@@ -88,7 +89,7 @@ const ClassManagement = () => {
     }
   };
 
-  // Hàm lấy danh sách khóa học
+  // Fetch courses data
   const fetchCourses = async () => {
     try {
       axios.defaults.withCredentials = true;
@@ -105,7 +106,7 @@ const ClassManagement = () => {
     }
   };
 
-  // Hàm lấy danh sách người dùng
+  // Fetch students data
   const fetchUsers = async () => {
     try {
       axios.defaults.withCredentials = true;
@@ -122,36 +123,43 @@ const ClassManagement = () => {
     }
   };
 
-  // Lọc dữ liệu theo searchQuery
+  // Filter classes based on searchQuery
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      fetchClassData(); // Làm mới classData khi không có query
-      return;
-    }
     const query = searchQuery.trim().toLowerCase();
-    const filtered = classData.filter(
-      (cls) =>
-        cls.className?.toLowerCase().includes(query) ||
-        cls.room?.toLowerCase().includes(query) ||
-        cls.courseId?.title?.toLowerCase().includes(query)
-    );
-    setClassData(filtered);
-  }, [searchQuery]);
+    if (query === "") {
+      setFilteredClasses(classData);
+    } else {
+      const filtered = classData.filter(
+        (cls) =>
+          cls.className?.toLowerCase().includes(query) ||
+          cls.room?.toLowerCase().includes(query) ||
+          cls.courseId?.title?.toLowerCase().includes(query)
+      );
+      setFilteredClasses(filtered);
+    }
+    setCurrentPage(1); // Reset to page 1 on search
+  }, [searchQuery, classData]);
 
-  // Gọi API khi component mount
+  // Fetch data on mount
   useEffect(() => {
     fetchClassData();
     fetchCourses();
     fetchUsers();
   }, [backendUrl]);
 
-  // Định dạng lịch học
+  // Pagination logic
+  const totalPages = Math.ceil(filteredClasses.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredClasses.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Format schedule
   const formatSchedule = (schedule) => {
     if (!schedule || !schedule.daysOfWeek?.length) return "N/A";
     return `${schedule.daysOfWeek.join(", ")} - ${schedule.shift || "N/A"}`;
   };
 
-  // Xử lý thêm lớp học
+  // Handle add class
   const handleAddClass = async (formData) => {
     try {
       setLoading(true);
@@ -160,9 +168,7 @@ const ClassManagement = () => {
         `${backendUrl}/api/admin/createClass`,
         formData,
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
       const { data } = response;
@@ -180,10 +186,9 @@ const ClassManagement = () => {
     }
   };
 
-  // Xử lý xem chi tiết lớp học
+  // Handle view class details
   const handleViewDetails = async (cls) => {
     try {
-      // setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.get(
         `${backendUrl}/api/admin/getClassesById/${cls._id}`
@@ -196,15 +201,13 @@ const ClassManagement = () => {
         toast.error(data.message || "Failed to load class details");
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to load class details"
-      );
+      toast.error(error.response?.data?.message || "Failed to load class details");
     } finally {
       setLoading(false);
     }
   };
 
-  // Xử lý chỉnh sửa lớp học
+  // Handle edit class
   const handleEditClass = async (cls) => {
     if (!cls || !cls._id) {
       toast.error("Invalid class data");
@@ -224,15 +227,13 @@ const ClassManagement = () => {
         toast.error(data.message || "Failed to load class details");
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to load class details"
-      );
+      toast.error(error.response?.data?.message || "Failed to load class details");
     } finally {
       setLoading(false);
     }
   };
 
-  // Xử lý cập nhật lớp học
+  // Handle update class
   const handleUpdateClass = async (formData) => {
     try {
       setLoading(true);
@@ -241,9 +242,7 @@ const ClassManagement = () => {
         `${backendUrl}/api/admin/updateClass/${selectedClass._id}`,
         formData,
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
       const { data } = response;
@@ -262,27 +261,19 @@ const ClassManagement = () => {
     }
   };
 
-  // Xử lý thêm học viên
+  // Handle add student
   const handleAddStudent = async (studentId) => {
     try {
       setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.post(
         `${backendUrl}/api/admin/registerEnrollStudentById/${selectedClass.courseId._id}`,
-        {
-          userId: studentId,
-          courseId: selectedClass.courseId._id,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { userId: studentId, courseId: selectedClass.courseId._id },
+        { headers: { "Content-Type": "application/json" } }
       );
       const { data } = response;
       if (data.success) {
         toast.success(data.message || "Student enrolled successfully");
-        // Refresh class details
         const classResponse = await axios.get(
           `${backendUrl}/api/admin/getClassesById/${selectedClass._id}`
         );
@@ -300,7 +291,7 @@ const ClassManagement = () => {
     }
   };
 
-  // Xử lý xóa học viên
+  // Handle remove student
   const handleRemoveStudent = async (studentId) => {
     try {
       setLoading(true);
@@ -308,19 +299,13 @@ const ClassManagement = () => {
       const response = await axios.delete(
         `${backendUrl}/api/admin/${selectedClass.courseId._id}/removeEnrollStudent/${studentId}`,
         {
-          userId: studentId,
-          courseId: selectedClass.courseId._id,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          data: { userId: studentId, courseId: selectedClass.courseId._id },
+          headers: { "Content-Type": "application/json" },
         }
       );
       const { data } = response;
       if (data.success) {
         toast.success(data.message || "Student removed successfully");
-        // Refresh class details
         const classResponse = await axios.get(
           `${backendUrl}/api/admin/getClassesById/${selectedClass._id}`
         );
@@ -338,7 +323,7 @@ const ClassManagement = () => {
     }
   };
 
-  // Xử lý xóa lớp học
+  // Handle delete class
   const handleDeleteClass = async (classId) => {
     try {
       setLoading(true);
@@ -363,30 +348,33 @@ const ClassManagement = () => {
   };
 
   return (
-    <div className=" flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen">
       <NavbarAdmin />
-      <div className=" flex flex-1">
+      <div className="flex flex-1">
         <SidebarAdmin />
-
-        <main className="flex-1 p-5 md:ml-30">
+        <main className="flex-1 p-3 sm:p-5 md:ml-30">
           {/* Header Section */}
           <div className="mb-4">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
               Class Management
             </h1>
-            <p className="text-gray-600">Monitor and manage class</p>
+            <p className="text-sm sm:text-base text-gray-600">
+              Monitor and manage class
+            </p>
           </div>
 
-          {/* Ví dụ thêm nội dung */}
-          <div className=" mt-6">
-            <div className="space-y-6">
+          {/* Content */}
+          <div className="mt-4 sm:mt-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Dashboard Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl shadow-lg">
-                <div className="px-8 py-6">
-                  <div className="flex items-center justify-between mb-4">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl sm:rounded-2xl shadow-lg">
+                <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-0">
                     <div>
-                      <h1 className="text-2xl font-bold">Class Management</h1>
-                      <p className="text-blue-100 mt-1">
+                      <h1 className="text-xl sm:text-2xl font-bold">
+                        Class Management
+                      </h1>
+                      <p className="text-blue-100 mt-1 text-sm sm:text-base">
                         Total {classData.length} classes across {courses.length}{" "}
                         courses
                       </p>
@@ -394,44 +382,46 @@ const ClassManagement = () => {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-xl hover:bg-blue-50 transition-all shadow-md"
+                      className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-50 transition-all shadow-md text-sm sm:text-base w-full sm:w-auto"
                       onClick={() => setShowAddModal(true)}
                     >
-                      <UserPlus size={18} />
-                      Create New Class
+                      <UserPlus size={16} className="sm:w-[18px] sm:h-[18px]" />
+                      <span className="sm:hidden">Create Class</span>
+                      <span className="hidden sm:inline">Create New Class</span>
                     </motion.button>
                   </div>
 
                   {/* Search & Filter Bar */}
-                  <div className="flex flex-col md:flex-row items-center gap-4 mt-6">
-                    <div className="relative flex-1">
+                  <div className="flex flex-col gap-3 sm:gap-4 mt-4 sm:mt-6">
+                    <div className="relative">
                       <input
                         type="text"
-                        placeholder="Search by class name, room or course..."
+                        placeholder="Search classes..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-white/10 text-white placeholder-blue-100 border border-blue-400/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                        className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white/10 text-white placeholder-blue-100 border border-blue-400/30 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 transition-all text-sm sm:text-base"
                       />
                       <Search
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-100"
-                        size={20}
+                        className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-blue-100"
+                        size={16}
                       />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 sm:justify-start">
                       {TABS.map(({ label, value, icon: Icon }) => (
                         <button
                           key={value}
-                          className="px-6 py-3 text-sm font-medium text-blue-100 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-all flex items-center gap-2"
+                          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-blue-100 bg-blue-500/20 rounded-lg sm:rounded-xl hover:bg-blue-500/30 transition-all"
                         >
-                          <Icon size={16} />
-                          {label}
+                          <Icon size={14} className="sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">{label}</span>
+                          <span className="sm:hidden">{label.split(" ")[0]}</span>
                         </button>
                       ))}
-                      <button className="p-3 text-blue-100 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-all">
-                        <Filter size={16} />
+                      <button className="p-2 sm:p-2.5 text-blue-100 bg-blue-500/20 rounded-lg sm:rounded-xl hover:bg-blue-500/30 transition-all">
+                        <Filter size={14} className="sm:w-4 sm:h-4" />
                       </button>
-                      <button className="p-3 text-blue-100 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-all">
-                        <Download size={16} />
+                      <button className="p-2 sm:p-2.5 text-blue-100 bg-blue-500/20 rounded-lg sm:rounded-xl hover:bg-blue-500/30 transition-all">
+                        <Download size={14} className="sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   </div>
@@ -439,96 +429,52 @@ const ClassManagement = () => {
               </div>
 
               {/* Content Area */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200/50">
                 {loading ? (
-                  <div className="flex justify-center items-center h-64">
+                  <div className="flex justify-center items-center h-40 sm:h-64">
                     <Loading />
                   </div>
-                ) : classData.length === 0 ? (
+                ) : filteredClasses.length === 0 ? (
                   <EmptyState />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50/50">
-                          {TABLE_HEAD.map((head, index) => (
-                            <th
-                              key={head}
-                              className="px-6 py-4 text-sm font-semibold text-gray-700"
-                            >
-                              <div className="flex items-center gap-2">
-                                {head}
-                                {index !== TABLE_HEAD.length - 1 && (
-                                  <ChevronUp
-                                    size={16}
-                                    className="text-gray-400 cursor-pointer hover:text-blue-500"
-                                  />
-                                )}
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {classData.map((cls, idx) => (
-                          <motion.tr
+                  <>
+                    {/* Mobile Card View */}
+                    <div className="block sm:hidden">
+                      <div className="divide-y divide-gray-100">
+                        {currentItems.map((cls, idx) => (
+                          <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
                             key={cls._id}
-                            className={`hover:bg-blue-50/50 transition-all ${
-                              idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                            }`}
+                            className="p-4 hover:bg-blue-50/50 transition-all"
                           >
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                  <Book size={20} className="text-blue-600" />
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                  <Book size={18} className="text-blue-600" />
                                 </div>
-                                <div>
-                                  <p className="font-medium text-gray-800">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-gray-800 truncate">
                                     {cls.className || "N/A"}
                                   </p>
-                                  <p className="text-sm text-gray-500">
+                                  <p className="text-sm text-gray-500 truncate">
                                     {cls.courseId?.title || "N/A"}
                                   </p>
                                 </div>
                               </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                <span className="text-sm text-gray-600">
-                                  {cls.room || "N/A"}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm text-gray-600">
-                                {formatSchedule(cls.schedule)}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <Users size={16} className="text-gray-400" />
-                                <span className="text-sm text-gray-600">
-                                  {cls.students?.length || 0} students
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 ml-2">
                                 <ActionButton
                                   icon={Eye}
                                   onClick={() => handleViewDetails(cls)}
-                                  tooltip="View Details"
-                                  className="hover:text-blue-600 hover:bg-blue-50"
+                                  tooltip="View"
+                                  className="hover:text-blue-600 hover:bg-blue-50 p-1.5"
                                 />
                                 <ActionButton
                                   icon={Pencil}
                                   onClick={() => handleEditClass(cls)}
-                                  tooltip="Edit Class"
-                                  className="hover:text-green-600 hover:bg-green-50"
+                                  tooltip="Edit"
+                                  className="hover:text-green-600 hover:bg-green-50 p-1.5"
                                 />
                                 <ActionButton
                                   icon={Trash2}
@@ -536,16 +482,186 @@ const ClassManagement = () => {
                                     setSelectedClass(cls);
                                     setShowDeleteModal(true);
                                   }}
-                                  tooltip="Delete Class"
-                                  className="hover:text-red-600 hover:bg-red-50"
+                                  tooltip="Delete"
+                                  className="hover:text-red-600 hover:bg-red-50 p-1.5"
                                 />
                               </div>
-                            </td>
-                          </motion.tr>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span className="text-gray-600 truncate">
+                                  {cls.room || "N/A"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users
+                                  size={14}
+                                  className="text-gray-400 flex-shrink-0"
+                                />
+                                <span className="text-gray-600">
+                                  {cls.students?.length || 0} students
+                                </span>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="text-gray-600 text-xs">
+                                  {formatSchedule(cls.schedule)}
+                                </span>
+                              </div>
+                            </div>
+                          </motion.div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </div>
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <div className="hidden sm:block overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gray-50/50">
+                            {TABLE_HEAD.map((head, index) => (
+                              <th
+                                key={head}
+                                className="px-4 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm font-semibold text-gray-700 text-left"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {head}
+                                  {index !== TABLE_HEAD.length - 1 && (
+                                    <ChevronUp
+                                      size={14}
+                                      className="text-gray-400 cursor-pointer hover:text-blue-500"
+                                    />
+                                  )}
+                                </div>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentItems.map((cls, idx) => (
+                            <motion.tr
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              key={cls._id}
+                              className={`hover:bg-blue-50/50 transition-all ${
+                                idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                              }`}
+                            >
+                              <td className="px-4 lg:px-6 py-3 lg:py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                    <Book
+                                      size={16}
+                                      className="lg:w-5 lg:h-5 text-blue-600"
+                                    />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="font-medium text-gray-800 text-sm lg:text-base truncate">
+                                      {cls.className || "N/A"}
+                                    </p>
+                                    <p className="text-xs lg:text-sm text-gray-500 truncate">
+                                      {cls.courseId?.title || "N/A"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 lg:px-6 py-3 lg:py-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                  <span className="text-xs lg:text-sm text-gray-600">
+                                    {cls.room || "N/A"}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 lg:px-6 py-3 lg:py-4">
+                                <span className="text-xs lg:text-sm text-gray-600">
+                                  {formatSchedule(cls.schedule)}
+                                </span>
+                              </td>
+                              <td className="px-4 lg:px-6 py-3 lg:py-4">
+                                <div className="flex items-center gap-2">
+                                  <Users size={14} className="text-gray-400" />
+                                  <span className="text-xs lg:text-sm text-gray-600">
+                                    {cls.students?.length || 0} students
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 lg:px-6 py-3 lg:py-4">
+                                <div className="flex items-center gap-2 lg:gap-3">
+                                  <ActionButton
+                                    icon={Eye}
+                                    onClick={() => handleViewDetails(cls)}
+                                    tooltip="View Details"
+                                    className="hover:text-blue-600 hover:bg-blue-50"
+                                  />
+                                  <ActionButton
+                                    icon={Pencil}
+                                    onClick={() => handleEditClass(cls)}
+                                    tooltip="Edit Class"
+                                    className="hover:text-green-600 hover:bg-green-50"
+                                  />
+                                  <ActionButton
+                                    icon={Trash2}
+                                    onClick={() => {
+                                      setSelectedClass(cls);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    tooltip="Delete Class"
+                                    className="hover:text-red-600 hover:bg-red-50"
+                                  />
+                                </div>
+                              </td>
+                            </motion.tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Enhanced Footer */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 lg:p-6 bg-gray-50/50 backdrop-blur-sm border-t border-gray-200/50 gap-4">
+                      <div className="text-sm text-gray-600 font-medium order-2 sm:order-1">
+                        Showing{" "}
+                        <span className="text-gray-900 font-semibold">
+                          {currentItems.length > 0 ? indexOfFirstItem + 1 : 0}-
+                          {indexOfFirstItem + currentItems.length}
+                        </span>{" "}
+                        of{" "}
+                        <span className="text-gray-900 font-semibold">
+                          {filteredClasses.length}
+                        </span>{" "}
+                        classes
+                      </div>
+                      <div className="flex items-center gap-2 lg:gap-3 order-1 sm:order-2">
+                        <button
+                          className="px-3 lg:px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </button>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 lg:px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-100 rounded-xl">
+                            {currentPage}
+                          </span>
+                          <span className="text-gray-500 text-sm">
+                            of {totalPages}
+                          </span>
+                        </div>
+                        <button
+                          disabled={currentPage === totalPages || totalPages === 0}
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                          }
+                          className="px-3 lg:px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -579,12 +695,11 @@ const ClassManagement = () => {
                 onAddStudent={handleAddStudent}
                 onRemoveStudent={handleRemoveStudent}
               />
-
               <DeleteClassModal
                 show={showDeleteModal}
                 onClose={() => {
                   setShowDeleteModal(false);
-                  selectedClass(null);
+                  setSelectedClass(null);
                 }}
                 onConfirm={() => handleDeleteClass(selectedClass?._id)}
                 classData={selectedClass}

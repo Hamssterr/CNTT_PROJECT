@@ -529,7 +529,7 @@ const UserManagement = () => {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 lg:mb-6">
               <div className="mb-4 lg:mb-0">
                 <h2 className="text-xl lg:text-2xl font-bold mb-2">
-                  Course Directory
+                  Users Directory
                 </h2>
                 <p className="text-blue-100 text-sm lg:text-base">
                   Comprehensive overview of all educational content
