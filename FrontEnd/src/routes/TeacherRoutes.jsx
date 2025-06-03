@@ -2,7 +2,7 @@ import Attendance from "../Pages/Teacher/Attendance";
 import LectureMaterials from "../Pages/Teacher/LectureMaterials";
 import MyClasses from "../Pages/Teacher/MyClasses";
 import Notification from "../Pages/Teacher/Notification";
-import ProfileTeacher from "../Pages/Teacher/ProfileTeacher"
+import ProfileTeacher from "../Pages/Teacher/ProfileTeacher";
 
 const TeacherRoutes = [
   {
@@ -25,7 +25,7 @@ const TeacherRoutes = [
     element: <Attendance />,
     role: "teacher",
   },
-    {
+  {
     path: "/teacher/profile",
     element: <ProfileTeacher />,
     role: "teacher",
