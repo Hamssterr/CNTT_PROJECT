@@ -44,6 +44,8 @@ function LectureMaterials() {
     materialName: "",
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [showFolderView, setShowFolderView] = useState(true);
 
   // Fetch classes từ API
   const fetchClasses = async () => {
@@ -300,15 +302,61 @@ function LectureMaterials() {
     }
   };
 
+  // Add resize listener
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <div>
       <Navbar />
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar />
-        <div className="flex-1 p-8 ml-25">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
-            Lecture Materials
-          </h1>
+        <div className="flex-1 p-4 sm:p-6 md:p-8 md:ml-20">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                Lecture Materials
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Manage your materials for each class
+              </p>
+            </motion.div>
+
+            {/* Mobile Toggle Button */}
+            {isMobileView && (
+              <div className="flex gap-2 mt-4 w-full">
+                <button
+                  onClick={() => setShowFolderView(true)}
+                  className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                    showFolderView
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  Classes
+                </button>
+                <button
+                  onClick={() => setShowFolderView(false)}
+                  className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                    !showFolderView
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  Upload
+                </button>
+              </div>
+            )}
+          </div>
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -317,9 +365,14 @@ function LectureMaterials() {
           ) : classes.length === 0 ? (
             <div className="text-center text-gray-500">No classes found.</div>
           ) : (
-            <div className="flex gap-6">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6">
               {/* Left Side - Folder Structure */}
-              <div className="w-1/3 bg-white rounded-xl shadow-lg p-6">
+              <div
+                className={`
+                w-full md:w-1/3 bg-white rounded-xl shadow-lg p-4 md:p-6
+                ${isMobileView && !showFolderView ? "hidden" : "block"}
+              `}
+              >
                 <h2 className="text-xl font-semibold text-gray-700 mb-4">
                   Classes
                 </h2>
@@ -401,14 +454,21 @@ function LectureMaterials() {
 
               {/* Right Side - Upload Area */}
               {selectedClass && (
-                <div className="w-2/3 bg-white rounded-xl shadow-lg p-6">
-                  <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                <div
+                  className={`
+                  w-full md:w-2/3 bg-white rounded-xl shadow-lg p-4 md:p-6
+                  ${isMobileView && showFolderView ? "hidden" : "block"}
+                `}
+                >
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-700 mb-4">
                     Upload Materials for{" "}
                     {classes.find((c) => c._id === selectedClass)?.className}
                   </h2>
+
+                  {/* Upload Area */}
                   <div className="space-y-4">
                     <div
-                      className={`border-2 border-dashed rounded-lg p-8 text-center ${
+                      className={`border-2 border-dashed rounded-lg p-4 md:p-8 text-center ${
                         isDragging
                           ? "border-blue-500 bg-blue-50"
                           : "border-gray-300 hover:border-blue-500"
@@ -442,86 +502,68 @@ function LectureMaterials() {
                         Supported file type: PDF
                       </p>
                     </div>
-
-                    {/* Upload Progress Section */}
-                    <div className="space-y-2">
-                      {Object.keys(uploadProgress).map((fileName) => (
-                        <UploadProgress
-                          key={fileName}
-                          file={
-                            Array.from(
-                              document.querySelector('input[type="file"]')
-                                ?.files || []
-                            ).find((f) => f.name === fileName) || {
-                              name: fileName,
-                              size: 0,
-                            }
-                          }
-                          progress={uploadProgress[fileName]}
-                          status={uploadStatus[fileName]}
-                        />
-                      ))}
-                    </div>
                   </div>
 
                   {/* Recently Uploaded Files */}
-                  <div className="mt-8">
+                  <div className="mt-6 md:mt-8">
                     <h3 className="text-lg font-medium text-gray-700 mb-4">
                       Uploaded Materials
                     </h3>
-                    {classes
-                      .find((c) => c._id === selectedClass)
-                      ?.materials.map((material, index) => (
-                        <div
-                          key={material._id || `${material.name}-${index}`}
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
-                        >
-                          <div className="flex items-center">
-                            <File size={20} className="text-blue-500 mr-3" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">
-                                {material.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Uploaded on{" "}
-                                {new Date(
-                                  material.uploadedAt
-                                ).toLocaleDateString()}
-                              </p>
+                    <div className="space-y-2">
+                      {classes
+                        .find((c) => c._id === selectedClass)
+                        ?.materials.map((material, index) => (
+                          <div
+                            key={material._id || `${material.name}-${index}`}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-gray-50 rounded-lg gap-2"
+                          >
+                            <div className="flex items-center">
+                              <File
+                                size={20}
+                                className="text-blue-500 mr-3 flex-shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-gray-700 truncate">
+                                  {material.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(
+                                    material.uploadedAt
+                                  ).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 ml-8 sm:ml-0">
+                              <button
+                                onClick={() =>
+                                  setPdfViewer({
+                                    open: true,
+                                    url: material.url,
+                                    name: material.name,
+                                  })
+                                }
+                                className="p-2 hover:bg-blue-50 rounded-full transition-colors"
+                              >
+                                <Eye size={18} className="text-blue-500" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteMaterial(
+                                    selectedClass,
+                                    material._id,
+                                    classes.find((c) => c._id === selectedClass)
+                                      ?.className,
+                                    material.name
+                                  )
+                                }
+                                className="p-2 hover:bg-red-50 rounded-full transition-colors"
+                              >
+                                <Trash2 size={18} className="text-red-500" />
+                              </button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="p-1 hover:text-blue-500 transition-colors cursor-pointer"
-                              onClick={() =>
-                                setPdfViewer({
-                                  open: true,
-                                  url: material.url,
-                                  name: material.name,
-                                })
-                              }
-                            >
-                              <Eye size={18} />
-                            </span>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() =>
-                                handleDeleteMaterial(
-                                  selectedClass,
-                                  material._id,
-                                  classes.find((c) => c._id === selectedClass)
-                                    ?.className,
-                                  material.name
-                                )
-                              }
-                              className="p-1 hover:text-red-500 transition-colors"
-                            >
-                              <Trash2 size={18} />
-                            </motion.button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                    </div>
                   </div>
                 </div>
               )}

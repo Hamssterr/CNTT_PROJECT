@@ -53,9 +53,12 @@ function Notification() {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get(`${backendUrl}/api/teacher/notifications`, {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${backendUrl}/api/teacher/notifications`,
+          {
+            withCredentials: true,
+          }
+        );
         setNotifications(response.data.notifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -114,48 +117,42 @@ function Notification() {
   });
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <Navbar />
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex flex-col md:flex-row min-h-screen">
         <Sidebar />
-        <div className="flex-1 p-8 ml-25">
+        <div className="flex-1 p-4 sm:p-6 md:p-8 md:ml-20">
           <div className="max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-800">
-                Notifications
-              </h1>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setFilter("all")}
-                  className={`px-4 py-2 rounded-lg text-sm ${
-                    filter === "all"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setFilter("unread")}
-                  className={`px-4 py-2 rounded-lg text-sm ${
-                    filter === "unread"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  Unread
-                </button>
-                <button
-                  onClick={() => setFilter("read")}
-                  className={`px-4 py-2 rounded-lg text-sm ${
-                    filter === "read"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  Read
-                </button>
+            {/* Enhanced Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                  Notifications
+                </h1>
+                <p className="mt-1 text-gray-600 text-sm">
+                  Manage your notifications and updates
+                </p>
+              </div>
+
+              {/* Filter Buttons */}
+              <div className="flex gap-2 w-full sm:w-auto">
+                {["all", "unread", "read"].map((filterType) => (
+                  <button
+                    key={filterType}
+                    onClick={() => setFilter(filterType)}
+                    className={`
+                      flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium
+                      transition-all duration-200
+                      ${
+                        filter === filterType
+                          ? "bg-blue-500 text-white shadow-md"
+                          : "bg-white text-gray-600 hover:bg-gray-50"
+                      }
+                    `}
+                  >
+                    {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -165,35 +162,59 @@ function Notification() {
                 <div
                   key={notification._id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md cursor-pointer ${
-                    !notification.read ? "border-l-4 border-blue-500" : ""
-                  }`}
+                  className={`
+                    bg-white rounded-xl shadow-sm p-4 sm:p-6 
+                    transition-all duration-300 hover:shadow-md 
+                    cursor-pointer transform hover:scale-[1.01]
+                    ${!notification.read ? "border-l-4 border-blue-500" : ""}
+                  `}
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
-                      {getTypeIcon(notification.type)}
+                      <div
+                        className={`
+                        p-2 rounded-lg
+                        ${
+                          notification.type === "urgent"
+                            ? "bg-red-50"
+                            : notification.type === "info"
+                            ? "bg-blue-50"
+                            : "bg-green-50"
+                        }
+                      `}
+                      >
+                        {getTypeIcon(notification.type)}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <h3 className="text-lg font-semibold text-gray-800">
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate">
                           {notification.title}
                         </h3>
                         {!notification.read && (
                           <button
-                            onClick={() => markAsRead(notification._id)}
-                            className="text-blue-500 hover:text-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(notification._id);
+                            }}
+                            className="flex-shrink-0 p-1 hover:bg-blue-50 rounded-full transition-colors"
                           >
-                            <MailOpen size={18} />
+                            <MailOpen size={18} className="text-blue-500" />
                           </button>
                         )}
                       </div>
-                      <p className="text-gray-600 mt-1">
+
+                      <p className="text-gray-600 mt-1 text-sm sm:text-base line-clamp-2">
                         {notification.message}
                       </p>
-                      <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+
+                      <div className="flex flex-wrap items-center gap-3 mt-3 text-xs sm:text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <Mail size={14} />
-                          {notification.sender}
+                          <span className="truncate max-w-[150px]">
+                            {notification.sender}
+                          </span>
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock size={14} />
@@ -209,7 +230,7 @@ function Notification() {
         </div>
       </div>
 
-      {/* Notification Detail Modal */}
+      {/* Enhanced Modal */}
       <Modal
         isOpen={selectedNotification !== null}
         onRequestClose={() => setSelectedNotification(null)}
@@ -217,31 +238,37 @@ function Notification() {
         closeTimeoutMS={200}
         contentLabel="Notification Details"
       >
-        <div className="bg-white rounded-2xl overflow-hidden animate-modal-entry">
+        <div className="bg-white rounded-2xl overflow-hidden animate-modal-entry max-h-[90vh] overflow-y-auto">
           <div
-            className={`p-6 ${
+            className={`
+            p-6 relative
+            ${
               selectedNotification?.type === "urgent"
-                ? "bg-red-50"
+                ? "bg-gradient-to-r from-red-50 to-red-100"
                 : selectedNotification?.type === "info"
-                ? "bg-blue-50"
-                : "bg-green-50"
-            }`}
+                ? "bg-gradient-to-r from-blue-50 to-blue-100"
+                : "bg-gradient-to-r from-green-50 to-green-100"
+            }
+          `}
           >
             <button
               onClick={() => setSelectedNotification(null)}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors"
+              className="absolute right-4 top-4 p-1 hover:bg-white/20 rounded-full transition-colors"
             >
-              <X size={24} />
+              <X size={24} className="text-gray-600" />
             </button>
+
             <div className="flex items-center gap-3">
-              {selectedNotification && getTypeIcon(selectedNotification.type)}
-              <h2 className="text-2xl font-bold text-gray-800">
+              <div className="p-2 bg-white/50 rounded-lg">
+                {selectedNotification && getTypeIcon(selectedNotification.type)}
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                 {selectedNotification?.title}
               </h2>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="mb-6">
               <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                 <span className="flex items-center gap-1">
