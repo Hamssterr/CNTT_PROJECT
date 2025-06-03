@@ -47,6 +47,9 @@ function LectureMaterials() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [showFolderView, setShowFolderView] = useState(true);
 
+  // Thêm state để theo dõi files đang upload
+  const [uploadingFiles, setUploadingFiles] = useState([]);
+
   // Fetch classes từ API
   const fetchClasses = async () => {
     try {
@@ -126,16 +129,18 @@ function LectureMaterials() {
     const formData = new FormData();
     formData.append("file", file);
 
-    try {
-      setUploadProgress((prev) => ({
-        ...prev,
-        [file.name]: 0,
-      }));
-      setUploadStatus((prev) => ({
-        ...prev,
-        [file.name]: "uploading",
-      }));
+    // Thêm file vào danh sách đang upload
+    setUploadingFiles((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: file.name,
+        progress: 0,
+        status: "uploading",
+      },
+    ]);
 
+    try {
       const { data } = await axios.post(
         `${backendUrl}/api/class/${classId}/upload`,
         formData,
@@ -148,25 +153,36 @@ function LectureMaterials() {
             const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total
             );
-            setUploadProgress((prev) => ({
-              ...prev,
-              [file.name]: percentCompleted,
-            }));
+            // Cập nhật progress cho file
+            setUploadingFiles((prev) =>
+              prev.map((f) =>
+                f.name === file.name ? { ...f, progress: percentCompleted } : f
+              )
+            );
           },
         }
       );
 
-      setUploadStatus((prev) => ({
-        ...prev,
-        [file.name]: "completed",
-      }));
+      // Cập nhật trạng thái thành công
+      setUploadingFiles((prev) =>
+        prev.map((f) =>
+          f.name === file.name
+            ? { ...f, status: "completed", progress: 100 }
+            : f
+        )
+      );
 
-      return data.material; // Không fetch lại materials ở đây!
+      // Tự động xóa file khỏi danh sách sau 3 giây
+      setTimeout(() => {
+        setUploadingFiles((prev) => prev.filter((f) => f.name !== file.name));
+      }, 3000);
+
+      return data.material;
     } catch (error) {
-      setUploadStatus((prev) => ({
-        ...prev,
-        [file.name]: "error",
-      }));
+      // Cập nhật trạng thái lỗi
+      setUploadingFiles((prev) =>
+        prev.map((f) => (f.name === file.name ? { ...f, status: "error" } : f))
+      );
       console.error("Error uploading file:", error);
       throw error;
     }
@@ -710,6 +726,25 @@ function LectureMaterials() {
           fileName={pdfViewer.name}
           onClose={() => setPdfViewer({ open: false, url: "", name: "" })}
         />
+      )}
+
+      {/* Upload Progress Section */}
+      {uploadingFiles.length > 0 && (
+        <div className="fixed bottom-4 right-4 w-80 z-50">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              Uploading Files
+            </h3>
+            {uploadingFiles.map((file) => (
+              <UploadProgress
+                key={file.id}
+                fileName={file.name}
+                progress={file.progress}
+                status={file.status}
+              />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
