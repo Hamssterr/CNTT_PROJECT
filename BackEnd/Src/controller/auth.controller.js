@@ -1,7 +1,8 @@
 import User from "../model/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { generateToken } from "../lib/utils.js";
+import { generateToken, generateTokenForgotPassword } from "../lib/utils.js";
+import nodemailer from "nodemailer";
 
 export const signup = async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
@@ -324,6 +325,143 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update profile",
+    });
+  }
+};
+
+// Handle forgot password request
+export const forgetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate email input
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide an email",
+      });
+    }
+
+    // Normalize email
+    const normalizedEmail = email.toLowerCase();
+
+    // Find user
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this email",
+      });
+    }
+
+    // Generate token
+    const token = generateTokenForgotPassword(normalizedEmail);
+
+    // Set up nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      secure: true,
+      port: 465, // Gmail SMTP port for secure connection
+      auth: {
+        user: process.env.EMAIL_USER, // Your Gmail address
+        pass: process.env.EMAIL_PASS, // Your Gmail app password
+      },
+    });
+
+    // Define email content
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const mailOptions = {
+      from: `"Foreign-Computing Center" <${process.env.EMAIL_USER}>`,
+      to: normalizedEmail,
+      subject: "Password Reset Request",
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>Hello ${user.name || "User"},</p>
+        <p>You requested to reset your password. Click the link below to set a new password:</p>
+        <a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+        <p>This link will expire in 10 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <p>Best regards,<br>Your App Team</p>
+      `,
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    // Optionally set cookie (if needed for your app)
+    res.cookie("jwt_reset", token, {
+      maxAge: 10 * 60 * 1000, // 10 minutes in milliseconds
+      httpOnly: true, // Prevents client-side JavaScript access
+      secure: process.env.NODE_ENV !== "development", // HTTPS in production
+      sameSite: "strict", // Mitigates CSRF attacks
+      path: "/",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset link sent to your email",
+    });
+  } catch (error) {
+    console.error("Error in forgetPassword:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Something went wrong. Please try again later.",
+    });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password are required",
+      });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const normalizedEmail = decoded.email.toLowerCase();
+
+    // Find user
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update password (assuming you hash passwords with bcrypt)
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    // Clear the reset cookie if set
+    res.clearCookie("jwt_reset", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      sameSite: "strict",
+      path: "/",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Error in resetPassword:", error);
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Reset link has expired",
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again.",
     });
   }
 };
