@@ -22,18 +22,16 @@ function TuitionAndPayment() {
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [notifiedStudents, setNotifiedStudents] = useState({});
 
   // Fetch students with status "Contacted" from backend
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate loading
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const { data } = await axios.get(
         `${backendUrl}/api/consultant/getLeadUsers`
       );
       if (data.success) {
-        // Lọc chỉ những mục có status là "Contacted"
         const transformedData = data.leadUsers
           .filter((lead) => lead.status === "Contacted")
           .map((lead) => ({
@@ -42,7 +40,7 @@ function TuitionAndPayment() {
             parentName: lead.name,
             email: lead.email,
             phone: lead.phone,
-            className: lead.course,
+            courses: Array.isArray(lead.course) ? lead.course : [lead.course], // Đảm bảo courses là array
             paymentStatus: lead.paymentStatus,
           }));
         setStudents(transformedData);
@@ -76,19 +74,33 @@ function TuitionAndPayment() {
   // Filter students based on search query
   const filteredStudents = students
     .map((student) => {
-      const course = courses.find(
-        (course) => course.title === student.className
+      // Tính tổng học phí cho tất cả các khóa học
+      const coursesDetails = student.courses.map((courseName) => {
+        const course = courses.find((c) => c.title === courseName);
+        return {
+          name: courseName,
+          price: course ? course.price : 0,
+        };
+      });
+
+      const totalAmount = coursesDetails.reduce(
+        (sum, course) => sum + course.price,
+        0
       );
+
       return {
         ...student,
-        amountDue: course ? course.price : "N/A",
+        coursesDetails,
+        amountDue: totalAmount,
         dueDate: "2025-12-31",
       };
     })
     .filter(
       (student) =>
         student.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.className.toLowerCase().includes(searchQuery.toLowerCase())
+        student.courses.some((course) =>
+          course.toLowerCase().includes(searchQuery.toLowerCase())
+        )
     );
 
   // Only count unpaid students for summary
@@ -120,9 +132,9 @@ function TuitionAndPayment() {
           studentName: currentStudent.studentName,
           email: currentStudent.email,
           phone: currentStudent.phone,
-          course: currentStudent.className,
+          course: currentStudent.courses, // Gửi mảng courses
           registrationDate: new Date(),
-          status: currentStudent.status || "Pending",
+          status: "Contacted",
           paymentStatus: "Paid",
         }
       );
@@ -231,24 +243,32 @@ function TuitionAndPayment() {
     });
 
     // Table content
+    let yPosition = 130; // Starting y position for course details
     doc.setFont("helvetica", "normal");
-    doc.text(student.className, 20, 132);
-    doc.text("3 months", 120, 132);
-    doc.text(`$${student.amountDue}`, 160, 132);
 
-    // Total amount
+    // Draw each course detail
+    student.coursesDetails.forEach((course, index) => {
+      doc.text(course.name, 20, yPosition);
+      doc.text("3 months", 120, yPosition);
+      doc.text(`$${course.price}`, 160, yPosition);
+      yPosition += 10; // Increase y position for next course
+    });
+
+    // Total amount - Update position based on courses
     doc.setFillColor(colors.lightGray);
-    doc.rect(15, 140, 180, 25, "F");
+    doc.rect(15, yPosition + 10, 180, 25, "F");
     doc.setFont("helvetica", "bold");
-    doc.text("Total Amount:", 120, 155);
+    doc.text("Total Amount:", 120, yPosition + 25);
     doc.setTextColor(colors.secondary);
     doc.setFontSize(14);
-    doc.text(`$${student.amountDue}`, 160, 155);
+    doc.text(`$${student.amountDue}`, 160, yPosition + 25);
 
-    // Payment information
+    // Payment information - Update position
+    let bankDetailsY = yPosition + 55;
+
     doc.setTextColor(colors.text);
     doc.setFontSize(11);
-    doc.text("PAYMENT INFORMATION", 20, 185);
+    doc.text("PAYMENT INFORMATION", 20, bankDetailsY);
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
@@ -261,7 +281,7 @@ function TuitionAndPayment() {
     ];
 
     bankDetails.forEach((detail, index) => {
-      doc.text(detail, 20, 195 + index * 7);
+      doc.text(detail, 20, bankDetailsY + 10 + index * 7);
     });
 
     // Footer
@@ -293,7 +313,7 @@ function TuitionAndPayment() {
       doc.setTextColor(0, 150, 0);
       doc.setFontSize(72);
       doc.setFont("helvetica", "bold");
-      doc.text("PAID", 105, 160, {
+      doc.text("PAID", 105, yPosition + 40, {
         align: "center",
         angle: 45,
       });
@@ -301,7 +321,7 @@ function TuitionAndPayment() {
 
     // Save PDF
     doc.save(`Invoice_${student.studentName}_${student.id}.pdf`);
-  };  
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -336,8 +356,12 @@ function TuitionAndPayment() {
                   <Users className="h-6 w-6 text-blue-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Students with Debt</p>
-                  <h3 className="text-2xl font-bold text-gray-800">{totalStudents}</h3>
+                  <p className="text-sm font-medium text-gray-600">
+                    Students with Debt
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    {totalStudents}
+                  </h3>
                 </div>
               </div>
             </motion.div>
@@ -353,8 +377,12 @@ function TuitionAndPayment() {
                   <DollarSign className="h-6 w-6 text-green-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Outstanding Amount</p>
-                  <h3 className="text-2xl font-bold text-gray-800">${totalOutstanding}</h3>
+                  <p className="text-sm font-medium text-gray-600">
+                    Outstanding Amount
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    ${totalOutstanding}
+                  </h3>
                 </div>
               </div>
             </motion.div>
@@ -370,7 +398,9 @@ function TuitionAndPayment() {
                   <AlertCircle className="h-6 w-6 text-yellow-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Payment Due</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Payment Due
+                  </p>
                   <h3 className="text-2xl font-bold text-gray-800">Today</h3>
                 </div>
               </div>
@@ -385,7 +415,10 @@ function TuitionAndPayment() {
           >
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="relative w-full md:w-96">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
                   placeholder="Search by student or class..."
@@ -402,7 +435,8 @@ function TuitionAndPayment() {
                 >
                   <Users className="h-5 w-5 text-blue-500" />
                   <span className="text-blue-700 font-medium">
-                    {filteredStudents.length} result{filteredStudents.length !== 1 ? 's' : ''} found
+                    {filteredStudents.length} result
+                    {filteredStudents.length !== 1 ? "s" : ""} found
                   </span>
                 </motion.div>
               )}
@@ -465,7 +499,21 @@ function TuitionAndPayment() {
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600">
-                            {student.className}
+                            <div className="flex flex-col gap-1">
+                              {student.coursesDetails.map((course, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between"
+                                >
+                                  <span className="inline-flex items-center px-2.5 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                    {course.name}
+                                  </span>
+                                  <span className="text-gray-500 text-xs">
+                                    ${course.price}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-sm font-medium text-gray-900">
@@ -535,23 +583,41 @@ function TuitionAndPayment() {
                           <Users className="h-6 w-6 text-blue-600" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{student.studentName}</div>
-                          <div className="text-sm text-gray-500">{student.parentName}</div>
+                          <div className="font-medium text-gray-900">
+                            {student.studentName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {student.parentName}
+                          </div>
                         </div>
                       </div>
 
                       <div className="space-y-2 border-t border-gray-100 pt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Class:</span>
-                          <span className="font-medium text-gray-900">{student.className}</span>
+                        <div className="flex flex-col gap-2">
+                          <span className="text-sm text-gray-600">
+                            Courses:
+                          </span>
+                          {student.coursesDetails.map((course, idx) => (
+                            <div
+                              key={idx}
+                              className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"
+                            >
+                              <span className="inline-flex items-center px-2.5 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                {course.name}
+                              </span>
+                              <span className="font-medium text-gray-900">
+                                ${course.price}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Amount Due:</span>
-                          <span className="font-medium text-gray-900">${student.amountDue}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Due Date:</span>
-                          <span className="font-medium text-gray-900">{student.dueDate}</span>
+                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+                          <span className="text-sm font-semibold text-gray-600">
+                            Total Amount:
+                          </span>
+                          <span className="font-bold text-gray-900">
+                            ${student.amountDue}
+                          </span>
                         </div>
                       </div>
 
@@ -585,8 +651,12 @@ function TuitionAndPayment() {
                     className="text-center py-8"
                   >
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500 text-lg mb-1">No students found</p>
-                    <p className="text-gray-400 text-sm">Try adjusting your search</p>
+                    <p className="text-gray-500 text-lg mb-1">
+                      No students found
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      Try adjusting your search
+                    </p>
                   </motion.div>
                 )}
               </div>

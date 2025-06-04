@@ -26,20 +26,22 @@ function StudentProfile() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate loading
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const { data } = await axios.get(
         `${backendUrl}/api/consultant/getLeadUsers`
       );
       if (data.success) {
-        const transformedData = data.leadUsers.map((lead) => ({
-          id: lead._id,
-          studentName: lead.studentName,
-          parentName: lead.name,
-          email: lead.email,
-          phone: lead.phone,
-          className: lead.course,
-          paymentStatus: lead.paymentStatus,
-        }));
+        const transformedData = data.leadUsers
+          .filter((lead) => lead.status === "Contacted")
+          .map((lead) => ({
+            id: lead._id,
+            studentName: lead.studentName,
+            parentName: lead.name,
+            email: lead.email,
+            phone: lead.phone,
+            courses: Array.isArray(lead.course) ? lead.course : [lead.course], // Đổi tên và đảm bảo là mảng
+            paymentStatus: lead.paymentStatus,
+          }));
         setStudents(transformedData);
       }
     } catch (error) {
@@ -87,48 +89,52 @@ function StudentProfile() {
 
           {/* Stats Cards - Updated */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-          {[{
-              title: "Total Students",
-              value: students.length,
-              icon: <Users />,
-              color: "blue",
-            },
-            {
-              title: "Paid Students",
-              value: students.filter((s) => s.paymentStatus === "Paid").length,
-              icon: <Check />,
-              color: "green",
-            },
-            {
-              title: "Unpaid Students",
-              value: students.filter((s) => s.paymentStatus !== "Paid").length,
-              icon: <X />,
-              color: "red",
-            }].map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`bg-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-${stat.color}-100`}
-            >
-              <div className="flex items-center">
-                <div className={`p-3 bg-${stat.color}-50 rounded-lg`}>
-                  <div className={`h-6 w-6 text-${stat.color}-500`}>
-                    {stat.icon}
+            {[
+              {
+                title: "Total Students",
+                value: students.length,
+                icon: <Users />,
+                color: "blue",
+              },
+              {
+                title: "Paid Students",
+                value: students.filter((s) => s.paymentStatus === "Paid")
+                  .length,
+                icon: <Check />,
+                color: "green",
+              },
+              {
+                title: "Unpaid Students",
+                value: students.filter((s) => s.paymentStatus !== "Paid")
+                  .length,
+                icon: <X />,
+                color: "red",
+              },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`bg-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-${stat.color}-100`}
+              >
+                <div className="flex items-center">
+                  <div className={`p-3 bg-${stat.color}-50 rounded-lg`}>
+                    <div className={`h-6 w-6 text-${stat.color}-500`}>
+                      {stat.icon}
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">
+                      {stat.title}
+                    </p>
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+                      {stat.value}
+                    </h3>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">
-                    {stat.title}
-                  </p>
-                  <h3 className="text-xl md:text-2xl font-bold text-gray-800">
-                    {stat.value}
-                  </h3>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
           </div>
 
           {/* Search Section - Updated */}
@@ -229,11 +235,18 @@ function StudentProfile() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="space-y-2">
-                            <div className="flex items-center text-sm text-gray-600">
-                              <BookOpen className="h-4 w-4 mr-2 text-blue-500" />
-                              <span className="font-medium">
-                                {student.className}
-                              </span>
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                              <div className="flex flex-wrap gap-1.5">
+                                {student.courses.map((course, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100"
+                                  >
+                                    {course}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                             <div
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -282,17 +295,18 @@ function StudentProfile() {
                     </div>
 
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center text-gray-600">
-                        <Mail className="h-4 w-4 mr-2 text-blue-500" />
-                        {student.email}
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <Phone className="h-4 w-4 mr-2 text-blue-500" />
-                        {student.phone}
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <BookOpen className="h-4 w-4 mr-2 text-blue-500" />
-                        {student.className}
+                      <div className="flex items-start gap-2">
+                        <BookOpen className="h-4 w-4 text-blue-500 flex-shrink-0 mt-1" />
+                        <div className="flex flex-wrap gap-1.5">
+                          {student.courses.map((course, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100"
+                            >
+                              {course}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                       <div
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${

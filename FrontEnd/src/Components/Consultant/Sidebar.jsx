@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Users, Calendar, BookOpen } from "lucide-react"; // Thay đổi icon
+import { Home, Users, Calendar, BookOpen, BellRing } from "lucide-react"; // Thay đổi icon
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
@@ -12,6 +12,12 @@ const Sidebar = () => {
       path: "/consultant/dashboard",
       icon: Home,
       label: "Dashboard",
+      singleLine: true,
+    },
+    {
+      path: "/consultant/notifications",
+      icon: BellRing,
+      label: "Notifications",
       singleLine: true,
     },
     {

@@ -1,10 +1,46 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, X, Send } from "lucide-react";
+import {
+  Bell,
+  X,
+  Send,
+  Info,
+  CheckCircle,
+  AlertTriangle,
+  ArrowRight,
+} from "lucide-react";
 import { AppContext } from "../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import logo from "../../assets/logo_2.png";
+import { motion, AnimatePresence } from "framer-motion";
+
+const useNotifications = () => {
+  const [notifications, setNotifications] = useState([]);
+  const { backendUrl } = useContext(AppContext);
+
+  const fetchNotifications = async () => {
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/consultant/notification/all`
+      );
+      if (data.success) {
+        setNotifications(data.notifications);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    // Polling every 30 seconds for new notifications
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return { notifications, setNotifications, fetchNotifications };
+};
 
 const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -13,27 +49,13 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { backendUrl, isLoggedIn, logout } = useContext(AppContext);
   const [consultantData, setConsultantData] = useState(null);
+  const { notifications, setNotifications, fetchNotifications } =
+    useNotifications();
 
   // Refs for click outside handling
   const profileMenuRef = useRef(null);
   const notificationsRef = useRef(null);
   const chatboxRef = useRef(null);
-
-  // Sample notifications
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "New Lead",
-      message: "You have a new lead assignment.",
-      time: "2 minutes ago",
-    },
-    {
-      id: 2,
-      title: "Reminder",
-      message: "Follow up with client ABC is due today.",
-      time: "1 hour ago",
-    },
-  ]);
 
   // Toggle functions
   const toggleNotifications = () => {
@@ -96,6 +118,58 @@ const Navbar = () => {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/consultant/notification/markAllAsRead`
+      );
+
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({ ...notif, read: true }))
+        );
+        toast.success("All notifications marked as read");
+      }
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+      toast.error("Failed to mark all notifications as read");
+    }
+  };
+
+  // Also add handleMarkAsRead function if not already present
+  const handleMarkAsRead = async (id) => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/consultant/notification/markAsRead/${id}`
+      );
+
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) =>
+            notif._id === id ? { ...notif, read: true } : notif
+          )
+        );
+        toast.success("Notification marked as read");
+      }
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+      toast.error("Failed to mark notification as read");
+    }
+  };
+
+  const getIcon = (type) => {
+    switch (type) {
+      case "info":
+        return <Info className="w-4 h-4 text-blue-500" />;
+      case "success":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "warning":
+        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+      default:
+        return <Bell className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
   return (
     <div className="flex items-center justify-between px-4 md:px-8 border-gray-500 py-3 relative">
       {/* Logo */}
@@ -108,41 +182,159 @@ const Navbar = () => {
       <div className="flex items-center gap-5 text-gray-500 relative">
         {/* Notifications */}
         <div ref={notificationsRef} className="relative">
-          <Bell
-            className="w-5 h-5 cursor-pointer transition duration-300 hover:opacity-70"
+          <div
+            className="relative cursor-pointer"
             onClick={toggleNotifications}
-          />
-          {showNotifications && (
-            <div className="absolute top-full right-0 mt-2 w-72 bg-white shadow-lg border border-gray-200 rounded-lg p-4 z-10">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold">Notifications</h3>
-                <Bell className="text-gray-600" size={20} />
-              </div>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className="flex items-start p-3 bg-gray-50 rounded-lg"
-                  >
-                    <Bell className="text-orange-500 mt-1" size={18} />
-                    <div className="ml-3 flex-1">
-                      <h4 className="text-md font-medium text-gray-800">
-                        {notif.title}
-                      </h4>
-                      <p className="text-sm text-gray-600">{notif.message}</p>
-                      <p className="text-xs text-gray-400">{notif.time}</p>
+          >
+            <motion.div
+              initial={{ scale: 1 }}
+              animate={
+                notifications.some((n) => !n.read)
+                  ? {
+                      scale: [1, 1.2, 1],
+                      rotate: [0, -10, 10, -10, 0],
+                    }
+                  : {}
+              }
+              transition={{
+                duration: 0.5,
+                repeat: Infinity,
+                repeatDelay: 3,
+              }}
+              className="relative z-10"
+            >
+              <Bell
+                className={`w-5 h-5 transition duration-300 hover:text-blue-600 ${
+                  notifications.some((n) => !n.read)
+                    ? "text-blue-500"
+                    : "text-gray-500"
+                }`}
+              />
+            </motion.div>
+            {notifications.filter((n) => !n.read).length > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center z-20"
+              >
+                {notifications.filter((n) => !n.read).length}
+              </motion.span>
+            )}
+            {notifications.some((n) => !n.read) && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+                className="absolute -inset-1 rounded-full bg-blue-100/50 pointer-events-none"
+              />
+            )}
+          </div>
+
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute top-full right-0 mt-3 w-96 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+              >
+                <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700">
+                  <div className="flex items-center justify-between text-white">
+                    <h3 className="text-lg font-semibold">Notifications</h3>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => navigate("/consultant/notifications")}
+                        className="text-xs hover:underline flex items-center gap-1"
+                      >
+                        View All <ArrowRight className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => setShowNotifications(false)}
+                        className="hover:bg-white/10 p-1 rounded-full"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
+                  </div>
+                </div>
+
+                <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    notifications.map((notif) => (
+                      <motion.div
+                        key={notif._id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`p-4 hover:bg-gray-50 transition-colors ${
+                          !notif.read ? "bg-blue-50/40" : ""
+                        }`}
+                      >
+                        <div className="flex gap-3">
+                          <div
+                            className={`p-2 rounded-full shrink-0 ${
+                              notif.type === "info"
+                                ? "bg-blue-100"
+                                : notif.type === "success"
+                                ? "bg-green-100"
+                                : "bg-yellow-100"
+                            }`}
+                          >
+                            {getIcon(notif.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900">
+                                  {notif.title}
+                                </h4>
+                                <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">
+                                  {notif.message}
+                                </p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <span className="text-xs text-gray-400">
+                                    {new Date(notif.createdAt).toLocaleString()}
+                                  </span>
+                                  {!notif.read && (
+                                    <button
+                                      onClick={() =>
+                                        handleMarkAsRead(notif._id)
+                                      }
+                                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                                    >
+                                      Mark as read
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-500">
+                      <Bell className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm">No notifications yet</p>
+                    </div>
+                  )}
+                </div>
+
+                {notifications.length > 0 && (
+                  <div className="p-3 bg-gray-50 border-t border-gray-100">
                     <button
-                      onClick={() => handleDismiss(notif.id)}
-                      className="ml-3 text-gray-400 hover:text-gray-600"
+                      onClick={handleMarkAllAsRead}
+                      className="w-full py-2 px-4 text-sm text-center text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     >
-                      <X size={18} />
+                      Mark all as read
                     </button>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Profile Menu */}

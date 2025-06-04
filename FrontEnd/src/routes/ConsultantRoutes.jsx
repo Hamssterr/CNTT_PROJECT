@@ -3,6 +3,7 @@ import LeadManagement from "../Pages/Consultant/LeadManagement";
 import ConsultationSchedule from "../Pages/Consultant/ConsultationSchedule";
 import CoursesAndClasses from "../Pages/Consultant/CoursesAndClasses";
 import ProfileConsultant from "../Pages/Consultant/ProfileConsultant"
+import Notification from "../Pages/Consultant/Notification";
 
 const ConsultantRoutes = [
   { path: "/consultant/dashboard", element: <DashBoard />, role: "consultant" },
@@ -17,11 +18,16 @@ const ConsultantRoutes = [
     role: "consultant",
   },
   {
+    path: "/consultant/notifications",
+    element: <Notification />,
+    role: "consultant",
+  },
+  {
     path: "/consultant/courses-classes",
     element: <CoursesAndClasses />,
     role: "consultant",
   },
-    {
+  {
     path: "/consultant/profile",
     element: <ProfileConsultant />,
     role: "consultant",

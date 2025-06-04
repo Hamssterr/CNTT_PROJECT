@@ -57,21 +57,13 @@ const CourseDetail = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    console.log("Register Data:", {
-      name: registerData.name,
-      studentName: registerData.studentName,
-      email: registerData.email,
-      phone: registerData.phone,
-      course: course?.title || "Unknown Course",
-      status: "Pending",
-      registrationDate: new Date().toISOString(),
-      paymentStatus: "Unpaid",
-    });
 
     // Kiểm tra trùng lặp số điện thoại hoặc email
     const isDuplicate = leadsData.some(
       (lead) =>
-        lead.phone === registerData.phone || lead.email === registerData.email
+        (lead.phone === registerData.phone ||
+          lead.email === registerData.email) &&
+        lead.course === registerData.course
     );
 
     if (isDuplicate) {
@@ -95,6 +87,18 @@ const CourseDetail = () => {
       );
 
       if (res.data.success) {
+        await axios.post(`${backendUrl}/api/consultant/notification/create`, {
+          type: "success",
+          title: "New Course Registration",
+          message: `${registerData.name} has registered for ${course.title}`,
+          recipientRole: "consultant",
+          metadata: {
+            courseId: course._id,
+            courseName: course.title,
+            studentName: registerData.studentName,
+            studentEmail: registerData.email,
+          },
+        });
         toast.success("Registration successful!");
         setShowRegisterForm(false);
         setRegisterData({
@@ -118,10 +122,9 @@ const CourseDetail = () => {
         `${backendUrl}/api/course/getCourse/${id}`
       );
 
-     
       if (response.data.success) {
         setCourse(response.data.data);
-         console.log("data: ", response.data.data)
+        console.log("data: ", response.data.data);
       } else {
         toast.error(response.data.message || "Can not found the course.");
       }
@@ -202,7 +205,12 @@ const CourseDetail = () => {
               </div>
 
               {/* Course Description */}
-              <p className="text-gray-600 mb-6" style={{ whiteSpace: "pre-line" }}>{course.description}</p>
+              <p
+                className="text-gray-600 mb-6"
+                style={{ whiteSpace: "pre-line" }}
+              >
+                {course.description}
+              </p>
 
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-700 mb-3">
