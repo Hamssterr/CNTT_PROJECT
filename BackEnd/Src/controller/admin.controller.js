@@ -1,4 +1,6 @@
 import User from "../model/user.model.js";
+import Course from "../model/course.model.js";
+import Class from "../model/class.model.js"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { generateToken } from "../lib/utils.js";
@@ -373,18 +375,69 @@ export const deleteUser = async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const user = await User.findByIdAndDelete(userId);
+    // Find the user to delete
+    const user = await User.findById(userId);
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    res.status(200).json({
-      message: "User deleted successfully",
+    // Handle student role: Remove from enrolledUsers in Courses and students in Classes
+    if (user.role === "student") {
+      // Remove from Course.enrolledUsers
+      await Course.updateMany(
+        { "enrolledUsers.userId": userId },
+        { $pull: { enrolledUsers: { userId: userId } } }
+      );
+      // Remove from Class.students
+      await Class.updateMany(
+        { "students.userId": userId },
+        { $pull: { students: { userId: userId } } }
+      );
+    }
+
+    // Handle student role: Remove student from parent's children list
+    if (user.role === "student" && user.parents && user.parents.length > 0) {
+      const parentId = user.parents[0].id;
+      await User.updateOne(
+        { _id: parentId },
+        {
+          $pull: {
+            children: { id: user._id },
+          },
+        }
+      );
+    }
+
+    // Handle parent role: Remove parent from children's parents list
+    if (user.role === "parent" && user.children && user.children.length > 0) {
+      const childrenIds = user.children.map(child => child.id);
+      await User.updateMany(
+        { _id: { $in: childrenIds } },
+        {
+          $pull: {
+            parents: { id: user._id },
+          },
+        }
+      );
+    }
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({
       success: true,
+      message: "User deleted successfully",
     });
   } catch (error) {
     console.error("Error in deleteUser controller:", error.message);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };
 

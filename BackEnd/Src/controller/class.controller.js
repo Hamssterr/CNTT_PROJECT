@@ -119,10 +119,39 @@ export const uploadMaterial = async (req, res) => {
 };
 
 export const getClasses = async (req, res) => {
-  const classes = await Class.find({})
-    .populate("courseId", "title")
-    .populate("students.userId", "name email");
-  res.json({ success: true, classes });
+  try {
+    const classes = await Class.find({})
+      .populate("courseId", "title")
+      .populate("students.userId", "firstName lastName email");
+
+    // Filter students to include only existing users
+    const filteredClasses = await Promise.all(
+      classes.map(async (classDoc) => {
+        const validStudents = await Promise.all(
+          classDoc.students.map(async (student) => {
+            const userExists = await User.exists({ _id: student.userId });
+            return userExists ? student : null;
+          })
+        );
+        return {
+          ...classDoc.toObject(),
+          students: validStudents.filter(Boolean),
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Fetched all classes",
+      classes: filteredClasses,
+    });
+  } catch (error) {
+    console.error("Error fetching classes:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch classes",
+    });
+  }
 };
 
 export const getClassesById = async (req, res) => {
@@ -130,17 +159,17 @@ export const getClassesById = async (req, res) => {
     const { id } = req.params;
 
     // Kiểm tra classId hợp lệ
-    if (!id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Class ID is required",
+        message: "Invalid class ID",
       });
     }
 
-    // Tìm lớp học theo ID và populate courseId, students.userId
+    // Tìm lớp học theo ID và populate
     const classDoc = await Class.findById(id)
       .populate("courseId", "title")
-      .populate("students.userId", "name email");
+      .populate("students.userId", "firstName lastName email");
 
     // Kiểm tra lớp học tồn tại
     if (!classDoc) {
@@ -150,13 +179,25 @@ export const getClassesById = async (req, res) => {
       });
     }
 
-    // Trả về lớp học
+    // Filter students to include only existing users
+    const validStudents = await Promise.all(
+      classDoc.students.map(async (student) => {
+        const userExists = await User.exists({ _id: student.userId });
+        return userExists ? student : null;
+      })
+    );
+    const filteredClass = {
+      ...classDoc.toObject(),
+      students: validStudents.filter(Boolean),
+    };
+
     res.status(200).json({
       success: true,
-      class: classDoc,
+      message: "Fetched class details",
+      class: filteredClass,
     });
   } catch (error) {
-    console.error("Error fetching class by ID:", error);
+    console.error("Error fetching class by ID:", error.message);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch class",

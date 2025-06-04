@@ -24,7 +24,7 @@ const ClassSchema = new mongoose.Schema({
     {
       userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Giả định bạn có model User
+        ref: "User", 
         required: true,
       },
       lastName: String,
@@ -36,7 +36,7 @@ const ClassSchema = new mongoose.Schema({
       },
       progress: {
         type: Number,
-        default: 0, // Tiến độ học tập (%)
+        default: 0, 
       },
     },
   ],

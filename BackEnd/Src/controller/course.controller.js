@@ -106,13 +106,29 @@ export const getAllCourse = async (req, res) => {
   try {
     const courses = await Course.find().sort({ createdAt: -1 });
 
+    // Filter enrolledUsers to include only existing users
+    const filteredCourses = await Promise.all(
+      courses.map(async (course) => {
+        const validEnrolledUsers = await Promise.all(
+          course.enrolledUsers.map(async (enrolled) => {
+            const userExists = await User.exists({ _id: enrolled.userId });
+            return userExists ? enrolled : null;
+          })
+        );
+        return {
+          ...course.toObject(),
+          enrolledUsers: validEnrolledUsers.filter(Boolean),
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
       message: "Fetched all courses",
-      courses,
+      courses: filteredCourses,
     });
   } catch (error) {
-    console.log("Error fetching courses", error);
+    console.error("Error fetching courses:", error.message);
     res.status(500).json({
       success: false,
       message: "Failed to fetch courses",
@@ -143,17 +159,44 @@ export const getAllCourseForPublicRoute = async (req, res) => {
 export const getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course ID",
+      });
+    }
+
     const course = await Course.findOne({ _id: id });
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // Filter enrolledUsers to include only existing users
+    const validEnrolledUsers = await Promise.all(
+      course.enrolledUsers.map(async (enrolled) => {
+        const userExists = await User.exists({ _id: enrolled.userId });
+        return userExists ? enrolled : null;
+      })
+    );
+    const filteredCourse = {
+      ...course.toObject(),
+      enrolledUsers: validEnrolledUsers.filter(Boolean),
+    };
 
     res.status(200).json({
       message: "Get Course details",
       success: true,
-      data: course,
+      data: filteredCourse,
     });
   } catch (error) {
-    console.error("Error in get Course", error.message);
+    console.error("Error in get Course:", error.message);
     res.status(500).json({
-      message: "False to get course",
+      message: "Failed to get course",
       success: false,
     });
   }
@@ -770,7 +813,7 @@ export const removeEnrollStudent = async (req, res) => {
     // Kiểm tra khóa học tồn tại
     const course = await Course.findById(idCourse);
     if (!course) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "Course not found",
       });
@@ -779,7 +822,7 @@ export const removeEnrollStudent = async (req, res) => {
     // Kiểm tra học viên tồn tại
     const user = await User.findById(userId);
     if (!user) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "User not found",
       });
@@ -790,7 +833,7 @@ export const removeEnrollStudent = async (req, res) => {
       (enrolled) => enrolled.userId === userId
     );
     if (enrolledIndex === -1) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "User is not enrolled in this course",
       });
@@ -813,14 +856,14 @@ export const removeEnrollStudent = async (req, res) => {
 
     await course.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Student unenrolled successfully",
       course,
     });
   } catch (error) {
-    console.error("Error remove enrolled student:", err);
-    res.status(500).json({
+    console.error("Error remove enrolled student:", error);
+    return res.status(500).json({
       success: false,
       message: "Error remove enrolled student. Try again.",
     });
@@ -840,12 +883,12 @@ export const registerCourse = async (req, res) => {
     });
     await newRegistration.save();
 
-    res
+    return res
       .status(200)
       .json({ success: true, message: "Registration successful!" });
   } catch (err) {
     console.error("Error registering:", err);
-    res
+   return res
       .status(500)
       .json({ success: false, message: "Server error. Try again." });
   }
@@ -857,13 +900,13 @@ export const registrations = async (req, res) => {
       .populate("courseId", "title") // Lấy tên khóa học
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: registrations,
     });
   } catch (err) {
     console.error("Error fetching registrations:", err);
-    res.status(500).json({ success: false, message: "Server error." });
+    return res.status(500).json({ success: false, message: "Server error." });
   }
 };
 
@@ -879,9 +922,9 @@ export const getRegistration = async (req, res) => {
         .json({ success: false, message: "Registration not found" });
     }
 
-    res.json({ success: true, data: registration });
+    return res.json({ success: true, data: registration });
   } catch (err) {
     console.error("Error fetching registration:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
