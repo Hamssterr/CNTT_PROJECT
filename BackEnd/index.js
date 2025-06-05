@@ -32,7 +32,7 @@ const corsOptions = {
     "Access-Control-Allow-Origin",
     "Access-Control-Allow-Credentials",
   ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH","OPTIONS"],
   exposedHeaders: ["set-cookie"],
 };
 

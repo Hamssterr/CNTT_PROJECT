@@ -18,11 +18,15 @@ import { getAttendanceReports } from "../controller/attendance.controller.js";
 import {
   getPersonalData,
   updateUserProfile,
+  updatePassword
 } from "../controller/auth.controller.js";
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
 const financeRouter = express.Router();
+
+// Update password
+financeRouter.patch("/update-password", verifyFinance, updatePassword);
 
 // Personal Data
 financeRouter.get("/profile", verifyFinance, getPersonalData);

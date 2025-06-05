@@ -3,7 +3,7 @@ import express from "express";
 import { verifyParent } from "../middleware/verifyParent.js";
 import { getDataParent, getDataChildrenForParent } from "../controller/parent.controller.js";
 import { getClassWithHaveChildren } from "../controller/class.controller.js";
-import {getPersonalData, updateUserProfile} from "../controller/auth.controller.js"
+import {getPersonalData, updateUserProfile, updatePassword} from "../controller/auth.controller.js"
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
 const router = express.Router();
@@ -19,5 +19,7 @@ router.get("/profile", verifyParent ,getPersonalData);
 
 router.put("/profile", verifyParent, cloudinaryFileUploader.single("profileImage"), updateUserProfile)
 
+// Update password
+router.patch("/update-password", verifyParent, updatePassword);
 
 export default router;

@@ -18,6 +18,7 @@ import {
 import {
   getPersonalData,
   updateUserProfile,
+  updatePassword,
 } from "../controller/auth.controller.js";
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
@@ -29,6 +30,9 @@ import {
 } from "../controller/consultant.notification.controller.js";
 
 const consultantRouter = express.Router();
+
+// Update password
+consultantRouter.patch("/update-password", verifyConsultant, updatePassword);
 
 // Personal Data
 consultantRouter.get("/profile", verifyConsultant, getPersonalData);

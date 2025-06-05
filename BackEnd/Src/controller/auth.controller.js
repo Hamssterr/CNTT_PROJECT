@@ -329,6 +329,96 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
+// Update password for every role
+export const updatePassword = async (req, res) => {
+  const { oldPassword, newPassword, confirmNewPassword } = req.body;
+  const userId = req.user?.userId; // Lấy từ verifyStudent
+
+  try {
+    // Debug body
+    console.log("Request body:", req.body);
+    console.log("User ID from token:", userId);
+
+    // Kiểm tra userId từ token
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or missing user authentication",
+      });
+    }
+
+    // Kiểm tra các trường bắt buộc
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields (oldPassword, newPassword, confirmNewPassword) are required",
+      });
+    }
+
+    // Kiểm tra độ dài mật khẩu mới
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters",
+      });
+    }
+
+    // Kiểm tra mật khẩu mới và xác nhận khớp nhau
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New passwords do not match",
+      });
+    }
+
+    // Tìm user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Kiểm tra mật khẩu cũ
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid old password",
+      });
+    }
+
+    // Mã hóa mật khẩu mới
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Cập nhật mật khẩu
+    user.password = hashedPassword;
+    await user.save();
+
+    // Trả về phản hồi
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+      data: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in updatePassword controller:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
 // Handle forgot password request
 export const forgetPassword = async (req, res) => {
   try {

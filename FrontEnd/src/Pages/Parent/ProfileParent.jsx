@@ -11,6 +11,7 @@ import {
   GraduationCap,
   User,
   Trash2,
+   Lock,
 } from "lucide-react";
 import { AppContext } from "../../context/AppContext";
 import axios from "axios";
@@ -26,6 +27,13 @@ const UserProfile = () => {
   );
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordFormData, setPasswordFormData] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -175,6 +183,56 @@ const UserProfile = () => {
     }
   };
 
+    const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      if (
+        !passwordFormData.oldPassword ||
+        !passwordFormData.newPassword ||
+        !passwordFormData.confirmNewPassword
+      ) {
+        toast.error("All password fields are required");
+        return;
+      }
+
+      const response = await axios.patch(
+        `${backendUrl}/api/parent/update-password`,
+        passwordFormData,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Password updated successfully");
+        setShowPasswordModal(false);
+        setPasswordFormData({
+          oldPassword: "",
+          newPassword: "",
+          confirmNewPassword: "",
+        });
+      } else {
+        toast.error(response.data.message || "Failed to update password");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    // NEW: Xử lý thay đổi input trong form đổi mật khẩu
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const formatAddress = (address) => {
     if (!address) return "";
     const parts = [
@@ -318,15 +376,27 @@ const UserProfile = () => {
                     <User className="w-6 h-6 text-blue-500" />
                     <span>Personal Information</span>
                   </h3>
-                  <button
-                    type="button"
-                    onClick={() => setEditMode(!editMode)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                    disabled={loading}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    <span>{editMode ? "Cancel Edit" : "Edit Profile"}</span>
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditMode(!editMode)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      disabled={loading}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      <span>{editMode ? "Cancel Edit" : "Edit Profile"}</span>
+                    </button>
+                    {/* NEW: Nút Change Password */}
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordModal(true)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                      disabled={loading}
+                    >
+                      <Lock className="w-4 h-4" />
+                      <span>Change Password</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -590,6 +660,102 @@ const UserProfile = () => {
                 </div>
               )}
             </form>
+
+             {/* NEW: Modal đổi mật khẩu */}
+            {showPasswordModal && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+                <div
+                  className={`rounded-2xl p-8 w-full max-w-md shadow-2xl transition-all duration-300 ${
+                    darkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
+                  }`}
+                >
+                  <h3 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+                    <Lock className="w-6 h-6 text-purple-500" />
+                    <span>Change Password</span>
+                  </h3>
+                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Old Password
+                      </label>
+                      <input
+                        type="password"
+                        name="oldPassword"
+                        value={passwordFormData.oldPassword}
+                        onChange={handlePasswordChange}
+                        className={`w-full p-3 border-2 rounded-lg transition-all border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 ${
+                          darkMode
+                            ? "bg-gray-700 text-white"
+                            : "bg-white text-gray-900"
+                        }`}
+                        placeholder="Enter current password"
+                        disabled={loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        name="newPassword"
+                        value={passwordFormData.newPassword}
+                        onChange={handlePasswordChange}
+                        className={`w-full p-3 border-2 rounded-lg transition-all border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 ${
+                          darkMode
+                            ? "bg-gray-700 text-white"
+                            : "bg-white text-gray-900"
+                        }`}
+                        placeholder="Enter new password"
+                        disabled={loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        name="confirmNewPassword"
+                        value={passwordFormData.confirmNewPassword}
+                        onChange={handlePasswordChange}
+                        className={`w-full p-3 border-2 rounded-lg transition-all border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 ${
+                          darkMode
+                            ? "bg-gray-700 text-white"
+                            : "bg-white text-gray-900"
+                        }`}
+                        placeholder="Confirm new password"
+                        disabled={loading}
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-4 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPasswordModal(false);
+                          setPasswordFormData({
+                            oldPassword: "",
+                            newPassword: "",
+                            confirmNewPassword: "",
+                          });
+                        }}
+                        className="px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+                        disabled={loading}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
+                        disabled={loading}
+                      >
+                        {loading ? "Changing..." : "Change Password"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -41,13 +41,16 @@ import {createClass, getClasses, getClassesById, updateClass, deleteClass} from 
 
 import {getLeadUsers, updateLeadUser} from "../controller/lead.controller.js"
 
-import {getPersonalData, updateUserProfile} from "../controller/auth.controller.js"
+import {getPersonalData, updateUserProfile, updatePassword} from "../controller/auth.controller.js"
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
 const router = express.Router();
 
 router.get("/dashboard", verifyAdmin, getDataAdmin);
+
+// Update password
+router.patch("/update-password", verifyAdmin, updatePassword);
 
 // Personal Data 
 
