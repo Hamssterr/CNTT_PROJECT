@@ -222,14 +222,45 @@ function StudentProfile() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center text-sm text-gray-600">
-                              <Mail className="h-4 w-4 mr-2" />
-                              {student.email}
+                          <div className="space-y-4">
+                            {/* Student Contact Info */}
+                            <div className="p-3 bg-blue-50 rounded-lg">
+                              <div className="flex items-center mb-2">
+                                <GraduationCap className="h-4 w-4 text-blue-600" />
+                                <span className="ml-2 text-sm font-medium text-blue-700">
+                                  Student Contact
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center text-sm text-gray-600 pl-6">
+                                  <Mail className="h-4 w-4 mr-2 text-blue-500" />
+                                  {student.email}
+                                </div>
+                                <div className="flex items-center text-sm text-gray-600 pl-6">
+                                  <Phone className="h-4 w-4 mr-2 text-blue-500" />
+                                  {student.phone}
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <Phone className="h-4 w-4 mr-2" />
-                              {student.phone}
+
+                            {/* Parent Contact Info */}
+                            <div className="p-3 bg-purple-50 rounded-lg">
+                              <div className="flex items-center mb-2">
+                                <Users className="h-4 w-4 text-purple-600" />
+                                <span className="ml-2 text-sm font-medium text-purple-700">
+                                  Parent Contact
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center text-sm text-gray-600 pl-6">
+                                  <Mail className="h-4 w-4 mr-2 text-purple-500" />
+                                  {student.parentEmail || student.email}
+                                </div>
+                                <div className="flex items-center text-sm text-gray-600 pl-6">
+                                  <Phone className="h-4 w-4 mr-2 text-purple-500" />
+                                  {student.parentPhone || student.phone}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -321,6 +352,50 @@ function StudentProfile() {
                           <X className="h-3 w-3 mr-1" />
                         )}
                         {student.paymentStatus}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {/* Student Contact - Mobile */}
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="flex items-center mb-2">
+                          <GraduationCap className="h-4 w-4 text-blue-600" />
+                          <span className="ml-2 text-sm font-medium text-blue-700">
+                            Student Contact
+                          </span>
+                        </div>
+                        <div className="space-y-2 pl-6">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Mail className="h-4 w-4 text-blue-500" />
+                            <span className="break-all">{student.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Phone className="h-4 w-4 text-blue-500" />
+                            <span>{student.phone}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Parent Contact - Mobile */}
+                      <div className="bg-purple-50 rounded-lg p-3">
+                        <div className="flex items-center mb-2">
+                          <Users className="h-4 w-4 text-purple-600" />
+                          <span className="ml-2 text-sm font-medium text-purple-700">
+                            Parent Contact
+                          </span>
+                        </div>
+                        <div className="space-y-2 pl-6">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Mail className="h-4 w-4 text-purple-500" />
+                            <span className="break-all">
+                              {student.parentEmail || student.email}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Phone className="h-4 w-4 text-purple-500" />
+                            <span>{student.parentPhone || student.phone}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </motion.div>

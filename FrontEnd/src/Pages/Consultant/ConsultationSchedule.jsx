@@ -200,6 +200,38 @@ function ConsultationSchedule() {
       event.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Thêm custom styling cho calendar
+  const eventStyleGetter = (event, start, end, isSelected) => {
+    return {
+      style: {
+        backgroundColor: "#3b82f6",
+        borderRadius: "8px",
+        opacity: 0.8,
+        color: "white",
+        border: "0",
+        display: "block",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        fontSize: "14px",
+        padding: "4px 8px",
+        margin: "0 2px",
+      },
+    };
+  };
+
+  // Thêm custom components cho calendar
+  const components = {
+    event: (props) => (
+      <div
+        title={`${props.event.title}\n${props.event.desc || ""}`}
+        className="truncate px-2 py-1"
+      >
+        {props.event.title}
+      </div>
+    ),
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar />
@@ -282,6 +314,13 @@ function ConsultationSchedule() {
                 step={60}
                 showMultiDayTimes
                 className="custom-calendar"
+                eventPropGetter={eventStyleGetter}
+                components={components}
+                formats={{
+                  eventTimeRangeFormat: () => null, // Ẩn thời gian trong view tháng
+                  dayRangeHeaderFormat: ({ start, end }) =>
+                    `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`,
+                }}
               />
             </motion.div>
           )}
@@ -431,7 +470,7 @@ function ConsultationSchedule() {
                             : ""
                         }
                         onChange={(e) =>
-                          setSelectedLead({
+                          setSelectedEvent({
                             ...selectedEvent,
                             end: new Date(e.target.value),
                           })

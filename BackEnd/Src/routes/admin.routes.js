@@ -1,5 +1,6 @@
 import express from "express";
 import { verifyAdmin } from "../middleware/verifyAdmin.js";
+import { verifyConsultant } from "../middleware/verifyConsultant.js";
 import {
   getDataAdmin,
   getDataUsers,
@@ -13,6 +14,7 @@ import {
   getUser,
   checkParent,
   getStudents,
+  validateStudentEmail,
 } from "../controller/admin.controller.js";
 
 import {
@@ -37,11 +39,20 @@ import {
   getBannerById,
 } from "../controller/banner.controller.js";
 
-import {createClass, getClasses, getClassesById, updateClass, deleteClass} from "../controller/class.controller.js"
+import {
+  createClass,
+  getClasses,
+  getClassesById,
+  updateClass,
+  deleteClass,
+} from "../controller/class.controller.js";
 
-import {getLeadUsers, updateLeadUser} from "../controller/lead.controller.js"
+import { getLeadUsers, updateLeadUser } from "../controller/lead.controller.js";
 
-import {getPersonalData, updateUserProfile} from "../controller/auth.controller.js"
+import {
+  getPersonalData,
+  updateUserProfile,
+} from "../controller/auth.controller.js";
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
@@ -49,13 +60,23 @@ const router = express.Router();
 
 router.get("/dashboard", verifyAdmin, getDataAdmin);
 
-// Personal Data 
+// Personal Data
 
-router.get("/profile", verifyAdmin ,getPersonalData);
+router.get("/profile", verifyAdmin, getPersonalData);
 
-router.put("/profile", verifyAdmin, cloudinaryFileUploader.single("profileImage"), updateUserProfile)
+router.put(
+  "/profile",
+  verifyAdmin,
+  cloudinaryFileUploader.single("profileImage"),
+  updateUserProfile
+);
 
 // User, employee, parent, student account
+router.get(
+  "/validateStudentEmail/:email",
+  verifyConsultant,
+  validateStudentEmail
+);
 router.get("/getDataUsers", verifyAdmin, getDataUsers);
 
 router.post("/createNewUser", verifyAdmin, createNewUser);
@@ -74,7 +95,7 @@ router.get("/getUser/:id", verifyAdmin, getUser);
 
 router.get("/checkParent/:phoneNumber", verifyAdmin, checkParent);
 
-router.get("/getStudents", verifyAdmin, getStudents)
+router.get("/getStudents", verifyAdmin, getStudents);
 
 // Course
 router.get("/getCourse", verifyAdmin, getAllCourse);
@@ -99,11 +120,23 @@ router.put(
 
 router.post("/registerEnrollStudent/:id", verifyAdmin, registerEnrollStudent);
 
-router.post("/registerEnrollStudentById/:id", verifyAdmin, registerEnrollStudentById)
+router.post(
+  "/registerEnrollStudentById/:id",
+  verifyAdmin,
+  registerEnrollStudentById
+);
 
-router.put("/changeCourseEnrollStudent/:id", verifyAdmin, changeCourseEnrollStudent)
+router.put(
+  "/changeCourseEnrollStudent/:id",
+  verifyAdmin,
+  changeCourseEnrollStudent
+);
 
-router.delete("/:idCourse/removeEnrollStudent/:userId", verifyAdmin, removeEnrollStudent);
+router.delete(
+  "/:idCourse/removeEnrollStudent/:userId",
+  verifyAdmin,
+  removeEnrollStudent
+);
 
 // get Instructors
 
@@ -126,21 +159,26 @@ router.get("/getBanner", verifyAdmin, getBanner);
 
 router.get("/getBannerById/:id", verifyAdmin, getBannerById);
 
-router.put("/updateBanner/:id", verifyAdmin, cloudinaryFileUploader.single("backgroundImage") ,updateBanner);
+router.put(
+  "/updateBanner/:id",
+  verifyAdmin,
+  cloudinaryFileUploader.single("backgroundImage"),
+  updateBanner
+);
 
 router.delete("/deleteBanner/:id", verifyAdmin, deleteBanner);
 
 // Class Management
 
-router.post("/createClass", verifyAdmin, createClass)
+router.post("/createClass", verifyAdmin, createClass);
 
 router.get("/getClasses", verifyAdmin, getClasses);
 
-router.get("/getClassesById/:id", verifyAdmin, getClassesById)
+router.get("/getClassesById/:id", verifyAdmin, getClassesById);
 
-router.put("/updateClass/:id", verifyAdmin, updateClass)
+router.put("/updateClass/:id", verifyAdmin, updateClass);
 
-router.delete("/deleteClass/:id", verifyAdmin, deleteClass)
+router.delete("/deleteClass/:id", verifyAdmin, deleteClass);
 
 // Tuition and Payment
 
