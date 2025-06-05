@@ -25,6 +25,10 @@ export const addNewLeadUser = async (req, res) => {
     registrationDate,
     status,
     paymentStatus,
+    isDiscount,
+    discountEmail,
+    studentEmail,
+    studentPhone,
   } = req.body;
   if (
     !name ||
@@ -73,6 +77,10 @@ export const addNewLeadUser = async (req, res) => {
         registrationDate,
         status,
         paymentStatus,
+        isDiscount,
+        discountEmail,
+        studentEmail,
+        studentPhone,
       });
       await newLead.save();
       return res.status(201).json({
@@ -96,6 +104,10 @@ export const updateLeadUser = async (req, res) => {
     registrationDate,
     status,
     paymentStatus,
+    isDiscount,
+    discountEmail,
+    studentEmail,
+    studentPhone,
   } = req.body;
   const { id } = req.params;
 
@@ -141,6 +153,10 @@ export const updateLeadUser = async (req, res) => {
         // Nếu courses thay đổi, set status về Pending
         status: hasCoursesChanged ? "Pending" : status,
         paymentStatus,
+        isDiscount,
+        discountEmail,
+        studentEmail,
+        studentPhone,
       },
       { new: true }
     );
@@ -179,5 +195,3 @@ export const deleteLeadUser = async (req, res) => {
     });
   }
 };
-
-

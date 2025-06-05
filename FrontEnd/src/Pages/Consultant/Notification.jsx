@@ -186,7 +186,7 @@ function Notification() {
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => handleMarkAsRead(notification.id)}
+                          onClick={() => handleMarkAsRead(notification._id)}
                           className="mt-3 text-xs font-medium text-blue-600 hover:text-blue-700"
                         >
                           Mark as read

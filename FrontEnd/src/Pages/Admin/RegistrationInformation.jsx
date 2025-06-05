@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Search, Eye, RefreshCw } from "lucide-react";
+import { Search, Eye, RefreshCw, Mail, Phone } from "lucide-react";
 import { AppContext } from "../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -8,12 +8,13 @@ import NavbarAdmin from "../../Components/Admin/Navbar";
 import SidebarAdmin from "../../Components/Admin/Sidebar";
 import RegistrationDetailModal from "../../Components/Admin/informationRegistrations/RegistrationDetail";
 
+// Update TABLE_HEAD array
 const TABLE_HEAD = [
-  "Parent's Name",
-  "Student's Name",
-  "Email",
-  "Phone Number",
+  "Parent Information",
+  "Student Information",
+  "Course",
   "Status",
+  "Payment Status",
   "Actions",
 ];
 
@@ -111,7 +112,7 @@ const RegistrationInformation = () => {
                         Registration Management
                       </h1>
                       <p className="text-gray-600 mt-1">
-                        View and manage course registrations
+                        {filteredRegistrations.length} total registrations
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -196,29 +197,100 @@ const RegistrationInformation = () => {
                                   index % 2 === 0 ? "bg-gray-50/30" : "bg-white"
                                 }`}
                               >
+                                {/* Parent Information Column */}
                                 <td className="px-6 py-4">
                                   <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                                       {registration.name
-                                        ? registration.name
-                                            .charAt(0)
-                                            .toUpperCase()
-                                        : "N"}
+                                        ?.charAt(0)
+                                        .toUpperCase() || "N"}
                                     </div>
-                                    <div className="font-medium text-gray-900">
-                                      {registration.name || "N/A"}
+                                    <div className="flex-1">
+                                      <div className="font-medium text-gray-900 mb-1">
+                                        {registration.name || "N/A"}
+                                      </div>
+                                      <div className="space-y-1">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                          <Mail
+                                            size={14}
+                                            className="text-blue-500 flex-shrink-0"
+                                          />
+                                          <span className="truncate">
+                                            {registration.email || "N/A"}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                          <Phone
+                                            size={14}
+                                            className="text-blue-500 flex-shrink-0"
+                                          />
+                                          <span>
+                                            {registration.phone || "N/A"}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 text-gray-600 font-medium">
-                                  {registration.studentName || "N/A"}
+
+                                {/* Student Information Column */}
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                      {registration.studentName
+                                        ?.charAt(0)
+                                        .toUpperCase() || "S"}
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="font-medium text-gray-900 mb-1">
+                                        {registration.studentName || "N/A"}
+                                      </div>
+                                      <div className="space-y-1">
+                                        {registration.studentEmail && (
+                                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <Mail
+                                              size={14}
+                                              className="text-purple-500 flex-shrink-0"
+                                            />
+                                            <span className="truncate">
+                                              {registration.studentEmail}
+                                            </span>
+                                          </div>
+                                        )}
+                                        {registration.studentPhone && (
+                                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <Phone
+                                              size={14}
+                                              className="text-purple-500 flex-shrink-0"
+                                            />
+                                            <span>
+                                              {registration.studentPhone}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
                                 </td>
-                                <td className="px-6 py-4 text-gray-600">
-                                  {registration.email || "N/A"}
+
+                                <td className="px-6 py-4">
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex flex-wrap gap-1">
+                                      {Array.isArray(registration.course)
+                                        ? registration.course.map((c, idx) => (
+                                            <span
+                                              key={idx}
+                                              className="inline-block bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-medium"
+                                            >
+                                              {c}
+                                            </span>
+                                          ))
+                                        : registration.course}
+                                    </div>
+                                  </div>
                                 </td>
-                                <td className="px-6 py-4 text-gray-600">
-                                  {registration.phone || "N/A"}
-                                </td>
+
+                                {/* Status Column */}
                                 <td className="px-6 py-4">
                                   <span
                                     className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
@@ -232,12 +304,30 @@ const RegistrationInformation = () => {
                                     {registration.status || "N/A"}
                                   </span>
                                 </td>
+
+                                <td className="px-6 py-4">
+                                  <span
+                                    className={`inline-flex items-center px-10 py-1.5 rounded-full text-xs font-semibold ${
+                                      registration.paymentStatus === "Unpaid"
+                                        ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                                        : registration.paymentStatus === "Paid"
+                                        ? "bg-green-100 text-green-800 border border-green-200"
+                                        : "bg-red-100 text-red-800 border border-red-200"
+                                    }`}
+                                  >
+                                    {registration.paymentStatus || "N/A"}
+                                  </span>
+                                </td>
+
+                                {/* Actions Column */}
                                 <td className="px-6 py-4">
                                   <button
                                     onClick={() => handleView(registration)}
-                                    className="inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 hover:scale-110"
+                                    className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 transition-all duration-200"
                                   >
-                                    <Eye size={18} />
+                                    <Eye size={16} className="mr-1.5" />
+                                    <span className="text-sm font-medium">
+                                    </span>
                                   </button>
                                 </td>
                               </tr>
@@ -252,24 +342,23 @@ const RegistrationInformation = () => {
                           {currentItems.map((registration, index) => (
                             <div
                               key={registration._id}
-                              className="p-4 hover:bg-gray-50 transition-colors"
+                              className="p-6 hover:bg-gray-50/50 transition-colors border-b border-gray-100 last:border-b-0"
                             >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-start gap-3 flex-1 min-w-0">
-                                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                              <div className="space-y-4">
+                                {/* Parent Information */}
+                                <div className="flex items-start gap-3">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                                     {registration.name
-                                      ? registration.name
-                                          .charAt(0)
-                                          .toUpperCase()
-                                      : "N"}
+                                      ?.charAt(0)
+                                      .toUpperCase() || "N"}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <h3 className="font-semibold text-gray-900 truncate">
-                                        {registration.name || "N/A"}
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <h3 className="font-semibold text-gray-900">
+                                        Parent: {registration.name || "N/A"}
                                       </h3>
                                       <span
-                                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                                           registration.status === "Pending"
                                             ? "bg-yellow-100 text-yellow-800"
                                             : registration.status ===
@@ -281,45 +370,21 @@ const RegistrationInformation = () => {
                                         {registration.status || "N/A"}
                                       </span>
                                     </div>
-                                    <p className="text-sm text-gray-600 mb-2 truncate">
-                                      <span className="font-medium">
-                                        Student:
-                                      </span>{" "}
-                                      {registration.studentName || "N/A"}
-                                    </p>
-                                    <div className="space-y-1">
+                                    <div className="space-y-1.5">
                                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <svg
-                                          className="w-4 h-4 text-gray-400 flex-shrink-0"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                          />
-                                        </svg>
+                                        <Mail
+                                          size={14}
+                                          className="text-blue-500 flex-shrink-0"
+                                        />
                                         <span className="truncate">
                                           {registration.email || "N/A"}
                                         </span>
                                       </div>
                                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <svg
-                                          className="w-4 h-4 text-gray-400 flex-shrink-0"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                                          />
-                                        </svg>
+                                        <Phone
+                                          size={14}
+                                          className="text-blue-500 flex-shrink-0"
+                                        />
                                         <span>
                                           {registration.phone || "N/A"}
                                         </span>
@@ -327,12 +392,44 @@ const RegistrationInformation = () => {
                                     </div>
                                   </div>
                                 </div>
-                                <button
-                                  onClick={() => handleView(registration)}
-                                  className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
-                                >
-                                  <Eye size={18} />
-                                </button>
+
+                                {/* Student Information */}
+                                <div className="flex items-start gap-3 pl-4">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                    {registration.studentName
+                                      ?.charAt(0)
+                                      .toUpperCase() || "S"}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-gray-900 mb-1">
+                                      {registration.studentName || "N/A"}
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      {registration.studentEmail && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                          <Mail
+                                            size={14}
+                                            className="text-purple-500 flex-shrink-0"
+                                          />
+                                          <span className="truncate">
+                                            {registration.studentEmail}
+                                          </span>
+                                        </div>
+                                      )}
+                                      {registration.studentPhone && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                          <Phone
+                                            size={14}
+                                            className="text-purple-500 flex-shrink-0"
+                                          />
+                                          <span>
+                                            {registration.studentPhone}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -408,8 +505,8 @@ const RegistrationInformation = () => {
                         <div className="text-sm text-gray-600 font-medium order-2 sm:order-1">
                           Showing{" "}
                           <span className="text-gray-900 font-semibold">
-                            {currentItems.length > 0 ? indexOfFirstItem + 1 : 0}-
-                            {indexOfFirstItem + currentItems.length}
+                            {currentItems.length > 0 ? indexOfFirstItem + 1 : 0}
+                            -{indexOfFirstItem + currentItems.length}
                           </span>{" "}
                           of{" "}
                           <span className="text-gray-900 font-semibold">
@@ -436,9 +533,13 @@ const RegistrationInformation = () => {
                             </span>
                           </div>
                           <button
-                            disabled={currentPage === totalPages || totalPages === 0}
+                            disabled={
+                              currentPage === totalPages || totalPages === 0
+                            }
                             onClick={() =>
-                              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                              setCurrentPage((prev) =>
+                                Math.min(prev + 1, totalPages)
+                              )
                             }
                             className="px-3 lg:px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                           >

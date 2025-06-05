@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Download,
   Bell,
+  Check,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { jsPDF } from "jspdf";
@@ -42,6 +43,8 @@ function TuitionAndPayment() {
             phone: lead.phone,
             courses: Array.isArray(lead.course) ? lead.course : [lead.course], // Đảm bảo courses là array
             paymentStatus: lead.paymentStatus,
+            isDiscount: lead.isDiscount,
+            discountEmail: lead.discountEmail,
           }));
         setStudents(transformedData);
       }
@@ -74,16 +77,29 @@ function TuitionAndPayment() {
   // Filter students based on search query
   const filteredStudents = students
     .map((student) => {
-      // Tính tổng học phí cho tất cả các khóa học
       const coursesDetails = student.courses.map((courseName) => {
         const course = courses.find((c) => c.title === courseName);
+        const originalPrice = course ? course.price : 0;
+        // Apply 10% discount if isDiscount is true
+        const discountedPrice = student.isDiscount
+          ? originalPrice * 0.9
+          : originalPrice;
+
         return {
           name: courseName,
-          price: course ? course.price : 0,
+          originalPrice,
+          price: discountedPrice,
+          hasDiscount: student.isDiscount,
         };
       });
 
-      const totalAmount = coursesDetails.reduce(
+      // Calculate total amounts
+      const totalOriginalAmount = coursesDetails.reduce(
+        (sum, course) => sum + course.originalPrice,
+        0
+      );
+
+      const totalDiscountedAmount = coursesDetails.reduce(
         (sum, course) => sum + course.price,
         0
       );
@@ -91,7 +107,8 @@ function TuitionAndPayment() {
       return {
         ...student,
         coursesDetails,
-        amountDue: totalAmount,
+        originalAmount: totalOriginalAmount,
+        amountDue: totalDiscountedAmount,
         dueDate: "2025-12-31",
       };
     })
@@ -463,7 +480,7 @@ function TuitionAndPayment() {
                         Student
                       </th>
                       <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                        Class
+                        Course
                       </th>
                       <th className="px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                         Amount Due
@@ -508,17 +525,38 @@ function TuitionAndPayment() {
                                   <span className="inline-flex items-center px-2.5 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                                     {course.name}
                                   </span>
-                                  <span className="text-gray-500 text-xs">
-                                    ${course.price}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    {course.hasDiscount && (
+                                      <span className="text-gray-400 text-xs line-through">
+                                        ${course.originalPrice}
+                                      </span>
+                                    )}
+                                    <span
+                                      className={`text-xs ${
+                                        course.hasDiscount
+                                          ? "text-green-600 font-medium"
+                                          : "text-gray-500"
+                                      }`}
+                                    >
+                                      ${course.price}
+                                    </span>
+                                  </div>
                                 </div>
                               ))}
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm font-medium text-gray-900">
-                              ${student.amountDue}
-                            </span>
+                            <div className="flex flex-col px-7">
+                              <span
+                                className={`text-sm font-medium ${
+                                  student.isDiscount
+                                    ? "text-green-600"
+                                    : "text-gray-900"
+                                }`}
+                              >
+                                ${student.amountDue}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600">
                             {student.dueDate}

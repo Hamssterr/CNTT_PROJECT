@@ -136,6 +136,29 @@ export const createNewUser = async (req, res) => {
   }
 };
 
+export const validateStudentEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    // Kiểm tra email có tồn tại và là student không
+    const student = await User.findOne({
+      email: email,
+      role: "student",
+    });
+
+    return res.json({
+      success: !!student, // true nếu tìm thấy student, false nếu không
+      message: student ? "Valid student email" : "Invalid student email",
+    });
+  } catch (error) {
+    console.error("Error validating student email:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error validating student email",
+    });
+  }
+};
+
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
