@@ -15,6 +15,14 @@ const leadSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    studentEmail: {
+      type: String,
+      default: null,
+    },
+    studentPhone: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

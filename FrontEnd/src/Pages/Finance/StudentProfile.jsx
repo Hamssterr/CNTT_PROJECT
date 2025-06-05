@@ -41,6 +41,8 @@ function StudentProfile() {
             phone: lead.phone,
             courses: Array.isArray(lead.course) ? lead.course : [lead.course], // Đổi tên và đảm bảo là mảng
             paymentStatus: lead.paymentStatus,
+            studentEmail: lead.studentEmail,
+            studentPhone: lead.studentPhone,
           }));
         setStudents(transformedData);
       }
@@ -234,11 +236,11 @@ function StudentProfile() {
                               <div className="space-y-2">
                                 <div className="flex items-center text-sm text-gray-600 pl-6">
                                   <Mail className="h-4 w-4 mr-2 text-blue-500" />
-                                  {student.email}
+                                  {student.studentEmail}
                                 </div>
                                 <div className="flex items-center text-sm text-gray-600 pl-6">
                                   <Phone className="h-4 w-4 mr-2 text-blue-500" />
-                                  {student.phone}
+                                  {student.studentPhone}
                                 </div>
                               </div>
                             </div>
@@ -254,11 +256,11 @@ function StudentProfile() {
                               <div className="space-y-2">
                                 <div className="flex items-center text-sm text-gray-600 pl-6">
                                   <Mail className="h-4 w-4 mr-2 text-purple-500" />
-                                  {student.parentEmail || student.email}
+                                  {student.email}
                                 </div>
                                 <div className="flex items-center text-sm text-gray-600 pl-6">
                                   <Phone className="h-4 w-4 mr-2 text-purple-500" />
-                                  {student.parentPhone || student.phone}
+                                  {student.phone}
                                 </div>
                               </div>
                             </div>

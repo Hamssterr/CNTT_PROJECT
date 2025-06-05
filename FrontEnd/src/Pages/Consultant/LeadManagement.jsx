@@ -22,6 +22,7 @@ import {
   Info,
   CheckCircle,
   AlertTriangle,
+  Users,
 } from "lucide-react";
 import "../../public/ModalStyle.css";
 import axios from "axios";
@@ -408,15 +409,60 @@ const LeadManagement = () => {
 
                           {/* Contact Column */}
                           <td className="px-6 py-4">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <Phone size={16} className="text-blue-500" />
-                                {lead.phone}
+                            <div className="space-y-4">
+                              {/* Parent Contact */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                                  <Users size={14} className="text-blue-500" />
+                                  Parent Contact
+                                </div>
+                                <div className="pl-6 space-y-1">
+                                  <div className="flex items-center gap-2 text-gray-600">
+                                    <Phone
+                                      size={16}
+                                      className="text-blue-500"
+                                    />
+                                    {lead.phone}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-gray-600">
+                                    <Mail size={16} className="text-blue-500" />
+                                    {lead.email}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <Mail size={16} className="text-blue-500" />
-                                {lead.email}
-                              </div>
+
+                              {/* Student Contact - Only show if either exists */}
+                              {(lead.studentPhone || lead.studentEmail) && (
+                                <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                                  <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                                    <GraduationCap
+                                      size={14}
+                                      className="text-purple-500"
+                                    />
+                                    Student Contact
+                                  </div>
+                                  <div className="pl-6 space-y-1">
+                                    {lead.studentPhone && (
+                                      <div className="flex items-center gap-2 text-gray-600">
+                                        <Phone
+                                          size={16}
+                                          className="text-purple-500"
+                                        />
+                                        {lead.studentPhone}
+                                      </div>
+                                    )}
+                                    {lead.studentEmail && (
+                                      <div className="flex items-center gap-2 text-gray-600">
+                                        <Mail
+                                          size={16}
+                                          className="text-purple-500"
+                                        />
+                                        {lead.studentEmail}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </td>
 
@@ -708,60 +754,131 @@ const LeadManagement = () => {
                     <h3 className="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200">
                       Contact Information
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        <label className="block mb-2 text-sm font-medium text-gray-700">
-                          Phone <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="tel"
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            value={selectedLead.phone}
-                            onChange={(e) =>
-                              setSelectedLead({
-                                ...selectedLead,
-                                phone: e.target.value,
-                              })
-                            }
-                            placeholder="Enter phone number"
-                          />
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Phone className="w-5 h-5 text-gray-400" />
-                          </div>
-                        </div>
-                      </motion.div>
 
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 }}
-                      >
-                        <label className="block mb-2 text-sm font-medium text-gray-700">
-                          Email <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="email"
-                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            value={selectedLead.email}
-                            onChange={(e) =>
-                              setSelectedLead({
-                                ...selectedLead,
-                                email: e.target.value,
-                              })
-                            }
-                            placeholder="Enter email"
-                          />
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Mail className="w-5 h-5 text-gray-400" />
+                    {/* Parent Contact */}
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <Users className="w-4 h-4 text-gray-500" />
+                        Parent Contact
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          <label className="block mb-2 text-sm font-medium text-gray-700">
+                            Phone <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="tel"
+                              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                              value={selectedLead.phone}
+                              onChange={(e) =>
+                                setSelectedLead({
+                                  ...selectedLead,
+                                  phone: e.target.value,
+                                })
+                              }
+                              placeholder="Enter parent's phone number"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Phone className="w-5 h-5 text-gray-400" />
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.4 }}
+                        >
+                          <label className="block mb-2 text-sm font-medium text-gray-700">
+                            Email <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="email"
+                              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                              value={selectedLead.email}
+                              onChange={(e) =>
+                                setSelectedLead({
+                                  ...selectedLead,
+                                  email: e.target.value,
+                                })
+                              }
+                              placeholder="Enter parent's email"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Mail className="w-5 h-5 text-gray-400" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* Student Contact */}
+                    <div className="space-y-4 pt-4">
+                      <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-gray-500" />
+                        Student Contact (Optional)
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          <label className="block mb-2 text-sm font-medium text-gray-700">
+                            Student Phone
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="tel"
+                              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                              value={selectedLead.studentPhone || ""}
+                              onChange={(e) =>
+                                setSelectedLead({
+                                  ...selectedLead,
+                                  studentPhone: e.target.value,
+                                })
+                              }
+                              placeholder="Enter student's phone number (optional)"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Phone className="w-5 h-5 text-gray-400" />
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.6 }}
+                        >
+                          <label className="block mb-2 text-sm font-medium text-gray-700">
+                            Student Email
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="email"
+                              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                              value={selectedLead.studentEmail || ""}
+                              onChange={(e) =>
+                                setSelectedLead({
+                                  ...selectedLead,
+                                  studentEmail: e.target.value,
+                                })
+                              }
+                              placeholder="Enter student's email (optional)"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Mail className="w-5 h-5 text-gray-400" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
                     </div>
                   </div>
 
