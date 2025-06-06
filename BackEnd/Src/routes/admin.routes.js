@@ -49,7 +49,7 @@ import {
 
 import { getLeadUsers, updateLeadUser } from "../controller/lead.controller.js";
 
-import {getPersonalData, updateUserProfile} from "../controller/auth.controller.js"
+import {getPersonalData, updatePassword, updateUserProfile} from "../controller/auth.controller.js"
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 
