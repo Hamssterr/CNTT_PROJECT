@@ -12,9 +12,18 @@ function Attendance() {
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
   const [attendanceData, setAttendanceData] = useState({});
-  const [savedAttendance, setSavedAttendance] = useState({});
+  const [savedAttendance, setSavedAttendance] = useState(() => {
+    // Lấy dữ liệu từ localStorage với key 'savedAttendance'
+    const saved = localStorage.getItem("savedAttendance");
+    // Nếu có dữ liệu, chuyển từ chuỗi JSON về object. Nếu không, trả về object rỗng.
+    return saved ? JSON.parse(saved) : {};
+  });
   const [currentDate] = useState(new Date().toISOString().split("T")[0]);
 
+  useEffect(() => {
+    // Mỗi khi `savedAttendance` thay đổi, lưu nó vào localStorage.
+    localStorage.setItem("savedAttendance", JSON.stringify(savedAttendance));
+  }, [savedAttendance]);
   // Lấy danh sách lớp (class) mà giáo viên này dạy
   const fetchClasses = async () => {
     try {

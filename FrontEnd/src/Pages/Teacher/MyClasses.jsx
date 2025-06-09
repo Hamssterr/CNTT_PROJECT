@@ -331,13 +331,9 @@ function MyClasses() {
                         {cls.className}
                       </h3>
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          cls.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${"bg-green-100 text-green-700"}`}
                       >
-                        {cls.isActive ? "Active" : "Inactive"}
+                        Active
                       </span>
                     </div>
 
