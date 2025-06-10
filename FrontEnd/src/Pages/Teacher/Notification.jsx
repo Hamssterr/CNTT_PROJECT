@@ -17,11 +17,10 @@ import {
 import Modal from "react-modal";
 import axios from "axios";
 
-// Thêm custom styles cho modal
 const customStyles = {
   overlay: {
     backgroundColor: "rgba(0, 0, 0, 0.75)",
-    zIndex: 1000,
+    zIndex: 1001, // Cao hơn navbar và sidebar
     transition: "opacity 200ms ease-in-out",
   },
   content: {
@@ -40,13 +39,12 @@ const customStyles = {
   },
 };
 
-// Set Modal app element
 Modal.setAppElement("#root");
 
 function Notification() {
   const { backendUrl, user } = useContext(AppContext);
   const [notifications, setNotifications] = useState([]);
-  const [filter, setFilter] = useState("all"); // all, unread, read
+  const [filter, setFilter] = useState("all");
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -118,11 +116,20 @@ function Notification() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <Navbar />
-      <div className="flex flex-col md:flex-row min-h-screen">
-        <Sidebar />
-        <div className="flex-1 p-4 sm:p-6 md:p-8 md:ml-20">
-          <div className="max-w-4xl mx-auto">
+      {/* Fixed Navbar */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar />
+      </div>
+
+      <div className="flex min-h-screen">
+        {/* Fixed Sidebar */}
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <Sidebar />
+        </div>
+
+        {/* Main Content with proper margins */}
+        <div className="flex-1 mt-[70px] p-4 sm:p-6 md:p-8">
+          <div className="max-w-5xl mx-auto">
             {/* Enhanced Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
@@ -142,11 +149,11 @@ function Notification() {
                     onClick={() => setFilter(filterType)}
                     className={`
                       flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium
-                      transition-all duration-200
+                      transition-all duration-200 transform hover:scale-105
                       ${
                         filter === filterType
                           ? "bg-blue-500 text-white shadow-md"
-                          : "bg-white text-gray-600 hover:bg-gray-50"
+                          : "bg-white text-gray-600 hover:bg-gray-50 shadow-sm"
                       }
                     `}
                   >
@@ -156,76 +163,104 @@ function Notification() {
               </div>
             </div>
 
-            {/* Notifications List */}
-            <div className="space-y-4">
-              {filteredNotifications.map((notification) => (
-                <div
-                  key={notification._id}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`
-                    bg-white rounded-xl shadow-sm p-4 sm:p-6 
-                    transition-all duration-300 hover:shadow-md 
-                    cursor-pointer transform hover:scale-[1.01]
-                    ${!notification.read ? "border-l-4 border-blue-500" : ""}
-                  `}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0">
-                      <div
-                        className={`
-                        p-2 rounded-lg
+            {/* Loading State */}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+              </div>
+            ) : (
+              /* Notifications List */
+              <div className="space-y-4">
+                {filteredNotifications.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+                    <Bell className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                      No notifications found
+                    </h3>
+                    <p className="text-gray-500">
+                      {filter === "all"
+                        ? "You don't have any notifications yet."
+                        : `No ${filter} notifications.`}
+                    </p>
+                  </div>
+                ) : (
+                  filteredNotifications.map((notification, index) => (
+                    <div
+                      key={notification._id}
+                      onClick={() => handleNotificationClick(notification)}
+                      style={{ animationDelay: `${index * 50}ms` }}
+                      className={`
+                        animate-fade-in-up bg-white rounded-xl shadow-sm p-4 sm:p-6 
+                        transition-all duration-300 hover:shadow-lg 
+                        cursor-pointer transform hover:scale-[1.02]
                         ${
-                          notification.type === "urgent"
-                            ? "bg-red-50"
-                            : notification.type === "info"
-                            ? "bg-blue-50"
-                            : "bg-green-50"
+                          !notification.read
+                            ? "border-l-4 border-blue-500 bg-blue-50/30"
+                            : ""
                         }
                       `}
-                      >
-                        {getTypeIcon(notification.type)}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate">
-                          {notification.title}
-                        </h3>
-                        {!notification.read && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              markAsRead(notification._id);
-                            }}
-                            className="flex-shrink-0 p-1 hover:bg-blue-50 rounded-full transition-colors"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                          <div
+                            className={`
+                            p-2 rounded-lg
+                            ${
+                              notification.type === "urgent"
+                                ? "bg-red-50"
+                                : notification.type === "info"
+                                ? "bg-blue-50"
+                                : "bg-green-50"
+                            }
+                          `}
                           >
-                            <MailOpen size={18} className="text-blue-500" />
-                          </button>
-                        )}
-                      </div>
+                            {getTypeIcon(notification.type)}
+                          </div>
+                        </div>
 
-                      <p className="text-gray-600 mt-1 text-sm sm:text-base line-clamp-2">
-                        {notification.message}
-                      </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate">
+                              {notification.title}
+                            </h3>
+                            {!notification.read && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markAsRead(notification._id);
+                                }}
+                                className="flex-shrink-0 p-1 hover:bg-blue-50 rounded-full transition-colors"
+                              >
+                                <MailOpen size={18} className="text-blue-500" />
+                              </button>
+                            )}
+                          </div>
 
-                      <div className="flex flex-wrap items-center gap-3 mt-3 text-xs sm:text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Mail size={14} />
-                          <span className="truncate max-w-[150px]">
-                            {notification.sender}
-                          </span>
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock size={14} />
-                          {formatDate(notification.timestamp)}
-                        </span>
+                          <p className="text-gray-600 mt-1 text-sm sm:text-base line-clamp-2">
+                            {notification.message}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-3 mt-3 text-xs sm:text-sm text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Mail size={14} />
+                              <span className="truncate max-w-[150px]">
+                                {notification.sender}
+                              </span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock size={14} />
+                              {formatDate(notification.timestamp)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <ChevronRight className="w-5 h-5 text-gray-400" />
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -253,7 +288,7 @@ function Notification() {
           >
             <button
               onClick={() => setSelectedNotification(null)}
-              className="absolute right-4 top-4 p-1 hover:bg-white/20 rounded-full transition-colors"
+              className="absolute right-4 top-4 p-2 hover:bg-white/20 rounded-full transition-colors"
             >
               <X size={24} className="text-gray-600" />
             </button>
@@ -262,7 +297,7 @@ function Notification() {
               <div className="p-2 bg-white/50 rounded-lg">
                 {selectedNotification && getTypeIcon(selectedNotification.type)}
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 pr-12">
                 {selectedNotification?.title}
               </h2>
             </div>
@@ -339,7 +374,7 @@ function Notification() {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setSelectedNotification(null)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
               >
                 Close
               </button>

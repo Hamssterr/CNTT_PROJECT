@@ -152,12 +152,16 @@ function Attendance() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <Navbar />
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar />
+      </div>
       <div className="flex flex-col md:flex-row min-h-screen">
-        <Sidebar />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <Sidebar />
+        </div>
         <div className="flex-1 p-4 sm:p-6 md:p-8 md:ml-20">
           {/* Enhanced Header */}
-          <div className="mb-6 md:mb-8">
+          <div className="mb-6 md:mb-8 mt-[70px]">
             <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               Attendance Management
             </h1>

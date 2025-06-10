@@ -270,16 +270,20 @@ const LeadManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar />
+      </div>
       <div className="flex">
-        <Sidebar />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <Sidebar />
+        </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-25">
+        <div className="flex-1 md:ml-25">
           {/* Elegant Header Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-            <div className="px-4 sm:px-8 py-4 sm:py-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white mt-[70px] ml-[5px]">
+            <div className="px-4 sm:px-8 py-4 sm:py-6 ">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6 ">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold">
                     Lead Management

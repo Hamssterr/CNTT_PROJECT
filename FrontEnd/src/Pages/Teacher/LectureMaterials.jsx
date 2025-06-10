@@ -330,10 +330,14 @@ function LectureMaterials() {
 
   return (
     <div>
-      <Navbar />
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar />
+      </div>
       <div className="flex min-h-screen bg-gray-100">
-        <Sidebar />
-        <div className="flex-1 p-4 sm:p-6 md:p-8 md:ml-20">
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <Sidebar />
+        </div>
+        <div className="flex-1 p-4 sm:p-6 md:p-8 md:ml-20 mt-[70px]">
           <div className="flex flex-col md:flex-row items-center justify-between mb-6">
             <motion.div
               initial={{ opacity: 0, y: -20 }}

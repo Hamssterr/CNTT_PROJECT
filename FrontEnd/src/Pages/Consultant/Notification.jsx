@@ -94,9 +94,13 @@ function Notification() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar />
+      </div>
       <div className="flex">
-        <Sidebar />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <Sidebar />
+        </div>
         <div className="flex-1 p-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -104,7 +108,7 @@ function Notification() {
             className="max-w-4xl mx-auto"
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-8 mt-[70px]">
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                   Notifications
