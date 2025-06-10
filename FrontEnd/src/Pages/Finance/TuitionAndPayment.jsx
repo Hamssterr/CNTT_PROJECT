@@ -341,10 +341,14 @@ function TuitionAndPayment() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <Navbar />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 mt-[70px]">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar />
+      </div>
       <div className="flex flex-col md:flex-row min-h-screen">
-        <Sidebar />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <Sidebar />
+        </div>
         <div className="flex-1 p-4 md:p-8 md:ml-25">
           {/* Enhanced Header Section */}
           <motion.div

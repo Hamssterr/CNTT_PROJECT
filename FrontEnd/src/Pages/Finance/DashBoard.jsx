@@ -165,10 +165,14 @@ function DashBoard() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
-      <NavBar />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30 mt-[70px]">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <NavBar />
+      </div>
       <div className="flex">
-        <SideBar />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <SideBar />
+        </div>
         <div className="flex-1 lg:ml-25">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Header */}

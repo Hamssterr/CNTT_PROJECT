@@ -80,10 +80,14 @@ function TeacherProfile() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <NavBar />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 mt-[70px]">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <NavBar />
+      </div>
       <div className="flex flex-col md:flex-row min-h-screen">
-        <SideBar />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <SideBar />
+        </div>
         <div className="flex-1 p-4 md:p-8 md:ml-25">
           {/* Header Section */}
           <motion.div
@@ -315,7 +319,9 @@ function TeacherProfile() {
                             </div>
                             <div className="flex items-center text-gray-500">
                               <Clock className="h-4 w-4 mr-2 text-orange-500" />
-                              <span>{teacher.time.split(", ")[idx] || "N/A"}</span>
+                              <span>
+                                {teacher.time.split(", ")[idx] || "N/A"}
+                              </span>
                             </div>
                           </div>
                         ))
@@ -335,8 +341,12 @@ function TeacherProfile() {
                     className="text-center py-8"
                   >
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500 text-lg mb-1">No teachers found</p>
-                    <p className="text-gray-400 text-sm">Try adjusting your search</p>
+                    <p className="text-gray-500 text-lg mb-1">
+                      No teachers found
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      Try adjusting your search
+                    </p>
                   </motion.div>
                 )}
               </div>

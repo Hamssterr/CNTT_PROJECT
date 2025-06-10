@@ -10,12 +10,16 @@ import {
   Users,
   ClipboardList,
   LogOut,
+  ArrowRight,
+  Info,
+  Clock,
 } from "lucide-react";
 import { slide as BurgerMenu } from "react-burger-menu";
 import { AppContext } from "../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import logo from "../../assets/logo_2.png";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -58,21 +62,49 @@ const Navbar = () => {
     },
   ];
 
-  // Sample notifications
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "New Lead",
-      message: "You have a new lead assignment.",
-      time: "2 minutes ago",
-    },
-    {
-      id: 2,
-      title: "Reminder",
-      message: "Follow up with client ABC is due today.",
-      time: "1 hour ago",
-    },
-  ]);
+  const handleMarkAsRead = async (id) => {
+    try {
+      await axios.put(
+        `${backendUrl}/api/teacher/${id}/read`,
+        {},
+        { withCredentials: true }
+      );
+      setNotifications(
+        notifications.map((notif) =>
+          notif._id === id ? { ...notif, read: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  const useNotifications = () => {
+    const [notifications, setNotifications] = useState([]);
+    const { backendUrl } = useContext(AppContext);
+
+    const fetchNotifications = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendUrl}/api/teacher/notifications`
+        );
+        if (data.success) {
+          setNotifications(data.notifications);
+        }
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    useEffect(() => {
+      fetchNotifications();
+      // Polling every 30 seconds for new notifications
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }, []);
+
+    return { notifications, setNotifications, fetchNotifications };
+  };
 
   // Toggle functions
   const toggleNotifications = () => {
@@ -118,11 +150,31 @@ const Navbar = () => {
     };
   }, []);
 
-  // Handle notification dismiss
-  const handleDismiss = (id) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-  };
+  const { notifications, setNotifications, fetchNotifications } =
+    useNotifications();
 
+  const getNotificationIcon = (type) => {
+    const iconProps = { size: 18, strokeWidth: 2 };
+
+    switch (type) {
+      case "info":
+        return <Info {...iconProps} />;
+      case "success":
+        return <CheckCircle {...iconProps} />;
+      case "warning":
+        return <AlertTriangle {...iconProps} />;
+      case "error":
+        return <XCircle {...iconProps} />;
+      case "course":
+        return <BookOpen {...iconProps} />;
+      case "assignment":
+        return <Calendar {...iconProps} />;
+      case "student":
+        return <Users {...iconProps} />;
+      default:
+        return <Bell {...iconProps} />;
+    }
+  };
   // Handle logout
   const handleLogout = async () => {
     try {
@@ -174,6 +226,11 @@ const Navbar = () => {
       background: "rgba(0, 0, 0, 0.6)",
       backdropFilter: "blur(4px)",
     },
+  };
+
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString();
   };
 
   return (
@@ -385,41 +442,144 @@ const Navbar = () => {
         <div className="flex items-center gap-3 md:gap-5 text-gray-500 relative">
           {/* Notifications */}
           <div ref={notificationsRef} className="relative">
-            <Bell
-              className="w-5 h-5 cursor-pointer transition duration-300 hover:opacity-70"
-              onClick={toggleNotifications}
-            />
-            {showNotifications && (
-              <div className="absolute top-full right-0 mt-2 w-72 max-w-[90vw] bg-white shadow-lg border border-gray-200 rounded-lg p-4 z-50">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold">Notifications</h3>
-                  <Bell className="text-gray-600" size={20} />
-                </div>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className="flex items-start p-3 bg-gray-50 rounded-lg"
-                    >
-                      <Bell className="text-orange-500 mt-1" size={18} />
-                      <div className="ml-3 flex-1">
-                        <h4 className="text-md font-medium text-gray-800">
-                          {notif.title}
-                        </h4>
-                        <p className="text-sm text-gray-600">{notif.message}</p>
-                        <p className="text-xs text-gray-400">{notif.time}</p>
+            <div className="relative">
+              <Bell
+                className="w-5 h-5 cursor-pointer transition duration-300 hover:text-blue-600"
+                onClick={toggleNotifications}
+              />
+              {notifications.filter((n) => !n.read).length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {notifications.filter((n) => !n.read).length}
+                </span>
+              )}
+            </div>
+
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full right-0 mt-3 w-96 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                >
+                  <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700">
+                    <div className="flex items-center justify-between text-white">
+                      <h3 className="text-lg font-semibold">Notifications</h3>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => navigate("/teacher/notification")}
+                          className="text-xs hover:underline flex items-center gap-1"
+                        >
+                          View All <ArrowRight className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setShowNotifications(false)}
+                          className="hover:bg-white/10 p-1 rounded-full"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleDismiss(notif.id)}
-                        className="ml-3 text-gray-400 hover:text-gray-600"
-                      >
-                        <X size={18} />
-                      </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  </div>
+
+                  <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      notifications.map((notif) => (
+                        <motion.div
+                          key={notif._id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className={`p-4 hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
+                            !notif.read
+                              ? "bg-blue-50/40 border-l-2 border-l-blue-400"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            !notif.read && handleMarkAsRead(notif._id)
+                          }
+                        >
+                          <div className="flex gap-3">
+                            <div className="relative shrink-0">
+                              <div
+                                className={`p-2.5 rounded-full shadow-sm transition-all duration-200 hover:shadow-md ${
+                                  notif.type === "info"
+                                    ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600"
+                                    : notif.type === "success"
+                                    ? "bg-gradient-to-br from-green-100 to-green-200 text-green-600"
+                                    : notif.type === "warning"
+                                    ? "bg-gradient-to-br from-yellow-100 to-yellow-200 text-yellow-600"
+                                    : notif.type === "error"
+                                    ? "bg-gradient-to-br from-red-100 to-red-200 text-red-600"
+                                    : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600"
+                                }`}
+                              >
+                                {getNotificationIcon(notif.type)}
+                              </div>
+                              {!notif.read && (
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
+                              )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <h4
+                                    className={`text-sm font-semibold transition-colors ${
+                                      !notif.read
+                                        ? "text-gray-900"
+                                        : "text-gray-700"
+                                    }`}
+                                  >
+                                    {notif.title}
+                                  </h4>
+                                  <p className="text-xs text-gray-600 mt-1 line-clamp-2 leading-relaxed">
+                                    {notif.message}
+                                  </p>
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {formatDate(notif.timestamp)}
+                                    </span>
+                                    {!notif.read && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleMarkAsRead(notif._id);
+                                        }}
+                                        className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 px-2 py-1 rounded-full transition-all duration-200"
+                                      >
+                                        Mark as read
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="p-8 text-center text-gray-500"
+                      >
+                        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                          <Bell className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-sm font-medium">
+                          No notifications yet
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          You're all caught up!
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Profile Menu */}
