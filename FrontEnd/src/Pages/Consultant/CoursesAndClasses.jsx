@@ -60,7 +60,7 @@ function CoursesAndClasses() {
         </div>
         <div className="flex-1 p-8 md:ml-20 mt-[70px]">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-5">
               Our Courses
             </h1>
 
