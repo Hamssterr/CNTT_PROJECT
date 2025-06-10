@@ -256,9 +256,9 @@ const LoginPage = () => {
             </p>
           </div>
 
-           <div className="text-center mt-4">
+          <div className="text-center mt-4">
             <p className="text-white">
-             Forgot your password?{" "}
+              Forgot your password?{" "}
               <span
                 onClick={() => navigate("/forgot-password")}
                 className="text-yellow-400 hover:text-yellow-300 cursor-pointer"
