@@ -184,6 +184,14 @@ const LoginPage = () => {
     }
   };
 
+  const resetPasswordHandler = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      navigate("/password-reset");
+    }, 2000);
+  };
+
   return (
     <div className="flex h-screen relative">
       {/* Left Side */}
@@ -256,16 +264,13 @@ const LoginPage = () => {
             </p>
           </div>
 
-          <div className="text-center mt-4">
-            <p className="text-white">
-              Forgot your password?{" "}
-              <span
-                onClick={() => navigate("/forgot-password")}
-                className="text-yellow-400 hover:text-yellow-300 cursor-pointer"
-              >
-                Click here
-              </span>
-            </p>
+          <div className="text-center mt-2">
+            <a
+              onClick={resetPasswordHandler}
+              className="cursor-pointer text-yellow-400 hover:text-yellow-300 transition-all duration-300"
+            >
+              Forgot Password?
+            </a>
           </div>
         </form>
 

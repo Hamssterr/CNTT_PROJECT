@@ -3,6 +3,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { generateToken, generateTokenForgotPassword } from "../lib/utils.js";
 import nodemailer from "nodemailer";
+import transporter from "../config/nodemailer.js";
+import {
+  EMAIL_VERIFY_TEMPLATE,
+  PASSWORD_RESET_TEMPLATE,
+  WELCOME_TEMPLATE,
+} from "../config/emailTemplates.js";
 
 export const signup = async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
@@ -113,7 +119,6 @@ export const login = async (req, res) => {
 
     // Create token
     const token = generateToken(user._id, user.role, res);
-    
 
     // Return response
     res.status(200).json({
@@ -241,7 +246,7 @@ export const verify = async (req, res) => {
 
 export const getPersonalData = async (req, res) => {
   try {
-    const userId = req.user?.userId; 
+    const userId = req.user?.userId;
 
     // Truy vấn người dùng
     const personalData = await User.findOne({ _id: userId });
@@ -267,10 +272,9 @@ export const getPersonalData = async (req, res) => {
   }
 };
 
-
 export const updateUserProfile = async (req, res) => {
   try {
-    const userId = req.user?.userId; 
+    const userId = req.user?.userId;
     const { data } = req.body; // JSON string from FormData
     const profileImage = req.file; // Uploaded file from Multer
 
@@ -351,7 +355,8 @@ export const updatePassword = async (req, res) => {
     if (!oldPassword || !newPassword || !confirmNewPassword) {
       return res.status(400).json({
         success: false,
-        message: "All fields (oldPassword, newPassword, confirmNewPassword) are required",
+        message:
+          "All fields (oldPassword, newPassword, confirmNewPassword) are required",
       });
     }
 
@@ -553,5 +558,92 @@ export const resetPassword = async (req, res) => {
       success: false,
       message: "Something went wrong. Please try again.",
     });
+  }
+};
+
+export const sendResetOTP = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.json({ success: false, message: "Email is required" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    const OTP = String(Math.floor(100000 + Math.random() * 900000));
+    user.resetOTP = OTP;
+    user.resetOTPExpireAt = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: user.email,
+      subject: "Reset Password OTP",
+      // text: `Your Reset Password OTP is ${OTP}. Please do not tell anyone about this OTP`,
+      html: PASSWORD_RESET_TEMPLATE.replace("{{OTP}}", OTP).replace(
+        "{{email}}",
+        user.email
+      ),
+    };
+    await transporter.sendMail(mailOptions);
+    return res.json({
+      success: true,
+      message: "OTP Reset Password Sent on Email",
+    });
+  } catch (error) {
+    console.log(process.env.SMTP_USER);
+    console.log(process.env.SMPT_PASS);
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+export const checkOTP = async (req, res) => {
+  const { OTP, email } = req.body;
+  if (!OTP || !email) {
+    return res.json({ success: false, message: "OTP and Email are required" });
+  }
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    if (user.resetOTP === "" || user.resetOTP !== OTP) {
+      return res.json({ success: false, message: "Invalid OTP" });
+    }
+    if (user.resetOTPExpireAt < Date.now()) {
+      return res.json({ success: false, message: "OTP Expired" });
+    }
+    user.resetOTP = "";
+    user.resetOTPExpireAt = 0;
+
+    await user.save();
+    return res.json({ success: true, message: "Valid OTP" });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+export const resetPassword2 = async (req, res) => {
+  const { email, newPassword } = req.body;
+  if (!email || !newPassword) {
+    return res.json({
+      success: false,
+      message: "Email, Password are required",
+    });
+  }
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+    return res.json({ success: true, message: "Password reset successfully" });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
   }
 };

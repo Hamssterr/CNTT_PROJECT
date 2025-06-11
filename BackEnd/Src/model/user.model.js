@@ -22,6 +22,8 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    resetOTP: { type: String, default: "" },
+    resetOTPExpireAt: { type: Number, default: 0 },
     role: {
       type: String,
       enum: ["parent", "student", "consultant", "admin", "finance", "teacher"],
@@ -31,7 +33,7 @@ const UserSchema = new Schema(
     isAdultStudent: { type: Boolean, default: false },
     phoneNumber: {
       type: String,
-      required: false, 
+      required: false,
     },
     address: {
       type: {
