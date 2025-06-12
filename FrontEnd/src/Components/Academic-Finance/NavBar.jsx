@@ -409,7 +409,7 @@ const Navbar = () => {
           </button>
 
           {/* Enhanced Logo */}
-          <Link to="/" className="flex items-center group">
+          <Link to="/academic-finance/dashboard" className="flex items-center group">
             <div className="relative">
               <img
                 src={logo}

@@ -129,7 +129,7 @@ const Home = () => {
         <Sidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-6 md:ml-30">
+        <main className="flex-1 p-6 md:ml-22">
           {/* Hero Banner with Navigation and Pagination Dots */}
           <section className="relative mb-12">
             {banners.length > 0 && (

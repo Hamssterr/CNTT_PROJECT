@@ -526,7 +526,7 @@ const Navbar = () => {
           </button>
 
           {/* Enhanced Logo */}
-          <Link to="/" className="flex items-center group">
+          <Link to="/teacher/my-classes" className="flex items-center group">
             <div className="relative">
               <img
                 src={logo}

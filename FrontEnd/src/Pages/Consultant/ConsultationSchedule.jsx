@@ -82,6 +82,9 @@ function ConsultationSchedule() {
   // Handle creating new event
   // Handle creating new event
   const handleSelect = ({ start, end }) => {
+    const now = new Date();
+    const defaultStart = start && start > now ? start : now;
+    const defaultEnd = new Date(defaultStart.getTime() + 60 * 60 * 1000);
     setSelectedEvent({
       title: "",
       start: start || new Date(), // Đảm bảo start có giá trị mặc định
@@ -93,12 +96,63 @@ function ConsultationSchedule() {
 
   // Handle editing existing event
   const handleEventSelect = (event) => {
+    const now = new Date();
+    const eventStart = new Date(event.start);
+    const eventEnd = new Date(event.end);
     setSelectedEvent({
       ...event,
-      start: event.start ? new Date(event.start) : new Date(), // Đảm bảo start là kiểu Date
-      end: event.end ? new Date(event.end) : new Date(), // Đảm bảo end là kiểu Date
+      start: eventStart,
+      end: eventEnd,
     });
     setModalIsOpen(true);
+  };
+
+  const handleStartTimeChange = (e) => {
+    const newStartTime = new Date(e.target.value);
+    const now = new Date();
+
+    // Không cho phép chọn thời gian trong quá khứ
+    if (newStartTime < now) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Time",
+        text: "Start time cannot be in the past",
+        confirmButtonColor: "#3b82f6",
+      });
+      return;
+    }
+
+    // Tự động cập nhật end time nếu nó nhỏ hơn hoặc bằng start time
+    let newEndTime = selectedEvent.end;
+    if (newEndTime <= newStartTime) {
+      newEndTime = new Date(newStartTime.getTime() + 60 * 60 * 1000); // Thêm 1 giờ
+    }
+
+    setSelectedEvent({
+      ...selectedEvent,
+      start: newStartTime,
+      end: newEndTime,
+    });
+  };
+
+  const handleEndTimeChange = (e) => {
+    const newEndTime = new Date(e.target.value);
+
+    // Kiểm tra end time phải sau start time
+    if (newEndTime <= selectedEvent.start) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Time",
+        text: "End time must be after start time",
+        confirmButtonColor: "#3b82f6",
+      });
+      return;
+    }
+
+    setSelectedEvent({
+      ...selectedEvent,
+      end: newEndTime,
+    });
   };
 
   // Handle save event
@@ -107,6 +161,31 @@ function ConsultationSchedule() {
       // Kiểm tra dữ liệu trước khi gửi
       if (!selectedEvent.title || !selectedEvent.start || !selectedEvent.end) {
         Swal.fire("Error", "Please fill in all required fields", "error");
+        return;
+      }
+
+      const now = new Date();
+      const startTime = new Date(selectedEvent.start);
+      const endTime = new Date(selectedEvent.end);
+
+      if (!selectedEvent._id && startTime < now) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Start Time",
+          text: "Start time cannot be in the past",
+          confirmButtonColor: "#3b82f6",
+        });
+        return;
+      }
+
+      // Validate end time phải sau start time
+      if (endTime <= startTime) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Time Range",
+          text: "End time must be after start time",
+          confirmButtonColor: "#3b82f6",
+        });
         return;
       }
 
@@ -230,6 +309,15 @@ function ConsultationSchedule() {
         {props.event.title}
       </div>
     ),
+  };
+
+  const convertToDateTimeLocalString = (date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   return (
@@ -446,6 +534,7 @@ function ConsultationSchedule() {
                               )
                             : ""
                         }
+                        min={convertToDateTimeLocalString(new Date())}
                         onChange={(e) =>
                           setSelectedEvent({
                             ...selectedEvent,
@@ -454,6 +543,9 @@ function ConsultationSchedule() {
                         }
                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Cannot select past time
+                      </p>
                     </div>
                   </div>
 
@@ -469,20 +561,51 @@ function ConsultationSchedule() {
                       <input
                         type="datetime-local"
                         value={
-                          selectedEvent.end
-                            ? format(selectedEvent.end, "yyyy-MM-dd'T'HH:mm")
+                          selectedEvent?.end
+                            ? convertToDateTimeLocalString(
+                                new Date(selectedEvent.end)
+                              )
                             : ""
                         }
-                        onChange={(e) =>
-                          setSelectedEvent({
-                            ...selectedEvent,
-                            end: new Date(e.target.value),
-                          })
+                        min={
+                          selectedEvent?.start
+                            ? convertToDateTimeLocalString(
+                                new Date(
+                                  selectedEvent.start.getTime() + 60 * 60 * 1000
+                                )
+                              ) // Tối thiểu 1 giờ sau start time
+                            : convertToDateTimeLocalString(new Date())
                         }
+                        onChange={handleEndTimeChange}
                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Must be after start time
+                      </p>
                     </div>
                   </div>
+                  {/* Thêm validation visual feedback */}
+                  {selectedEvent?.start &&
+                    selectedEvent?.end &&
+                    selectedEvent.end <= selectedEvent.start && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3"
+                      >
+                        <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                          <X size={14} className="text-red-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-red-800">
+                            Invalid Time Range
+                          </p>
+                          <p className="text-xs text-red-600">
+                            End time must be after start time
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
                 </div>
               </motion.div>
             )}

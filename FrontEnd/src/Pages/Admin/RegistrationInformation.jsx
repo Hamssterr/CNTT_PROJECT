@@ -96,23 +96,15 @@ const RegistrationInformation = () => {
           <SidebarAdmin />
         </div>
         <main className="flex-1 p-5 md:ml-30">
-          {/* Header Section */}
-          <div className="mb-4">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Registration Management
-            </h1>
-            <p className="text-gray-600">Monitor and manage registration</p>
-          </div>
-
           {/* Nội dung chính */}
-          <div className="mt-6">
+          <div>
             <div className="w-full min-h-screen bg-gray-50/50">
               <div className="mx-auto px-1">
                 {/* Header Section */}
                 <div className="bg-white rounded-xl shadow-sm mb-6 p-6">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-800">
+                      <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
                         Registration Management
                       </h1>
                       <p className="text-gray-600 mt-1">

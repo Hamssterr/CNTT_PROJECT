@@ -481,7 +481,7 @@ const UserManagement = () => {
         <main className=" flex-1 p-5 md:ml-30">
           {/* Header Section */}
           <div className="mb-4">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
               User Management
             </h1>
             <p className="text-gray-600">Monitor and manage user</p>

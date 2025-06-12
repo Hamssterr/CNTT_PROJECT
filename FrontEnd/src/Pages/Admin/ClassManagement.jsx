@@ -201,7 +201,9 @@ const ClassManagement = () => {
         toast.error(data.message || "Failed to load class details");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to load class details");
+      toast.error(
+        error.response?.data?.message || "Failed to load class details"
+      );
     } finally {
       setLoading(false);
     }
@@ -227,7 +229,9 @@ const ClassManagement = () => {
         toast.error(data.message || "Failed to load class details");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to load class details");
+      toast.error(
+        error.response?.data?.message || "Failed to load class details"
+      );
     } finally {
       setLoading(false);
     }
@@ -348,7 +352,7 @@ const ClassManagement = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen mt-[85px]">
+    <div className="flex flex-col min-h-screen">
       <div className="fixed top-0 left-0 right-0 z-50">
         <NavbarAdmin />
       </div>
@@ -356,17 +360,7 @@ const ClassManagement = () => {
         <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
           <SidebarAdmin />
         </div>
-        <main className="flex-1 p-3 sm:p-5 md:ml-30">
-          {/* Header Section */}
-          <div className="mb-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
-              Class Management
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              Monitor and manage class
-            </p>
-          </div>
-
+        <main className="flex-1 p-3 sm:p-5 md:ml-30 mt-[60px]">
           {/* Content */}
           <div className="mt-4 sm:mt-6">
             <div className="space-y-4 sm:space-y-6">
