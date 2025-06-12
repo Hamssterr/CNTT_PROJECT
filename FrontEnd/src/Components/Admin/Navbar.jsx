@@ -11,8 +11,11 @@ import {
   User,
   BadgeDollarSign,
   Menu,
-} from "lucide-react"; // Import biểu tượng từ Lucide
-import { useNavigate } from "react-router-dom";
+  ChevronDown,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logo_2.png";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
@@ -22,10 +25,11 @@ import Loading from "../Loading";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { backendUrl, isLoggedIn, logout } = useContext(AppContext);
   const [adminData, setAdminData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Trạng thái menu mobile
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -47,7 +51,7 @@ const Navbar = () => {
         toast.error(
           error.response?.data?.message || "Failed to load dashboard"
         );
-        logout(); // Gọi logout từ context khi lỗi xác thực
+        logout();
         navigate("/login");
       }
     };
@@ -77,7 +81,7 @@ const Navbar = () => {
         }
       );
       if (data.success) {
-        logout(); //
+        logout();
         toast.success("Logged out successfully!");
         navigate("/");
         setIsDropdownOpen(false);
@@ -101,147 +105,234 @@ const Navbar = () => {
       icon: Database,
       label: "Registration",
     },
-
     { path: "/admin/class", icon: School, label: "Class" },
     { path: "/admin/tuition", icon: BadgeDollarSign, label: "Tuition" },
   ];
 
   return (
-    <nav className="bg-white py-4 px-6 flex items-center justify-between border-b border-gray-300">
-      {/* Logo */}
-      <div className="flex-shrink-0 flex">
-        <img className="h-12 w-12 rounded-sm" src={logo} alt="Logo" />
-        <span className=" hidden md:flex justify-center text-center pl-5 pt-2 text-2xl font-bold">
-          Hello{" "}
-          {isLoggedIn && adminData?.role
-            ? adminData.role.charAt(0).toUpperCase() + adminData.role.slice(1)
-            : ""}
-        </span>
-      </div>
+    <nav className="bg-gradient-to-r from-white via-gray-50 to-white backdrop-blur-sm py-4 px-6 flex items-center justify-between border-b border-gray-200 shadow-lg relative">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-orange-50/30 pointer-events-none"></div>
 
-      {/* Search bar */}
-      <div className="flex-grow mx-4 min-w-0 max-w-md ">
-        <div className="relative w-full">
-          <input
-            type="text"
-            placeholder="Find the function"
-            className="w-full h-12 py-2 px-4 pl-12 justify-center border shadow-sm border-gray-300 rounded-full focus:outline-none focus:ring-yellow-500"
+      {/* Logo Section */}
+      <div className="flex-shrink-0 flex items-center relative z-10">
+        <div className="relative group">
+          <img
+            className="h-12 w-12 rounded-xl shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-105"
+            src={logo}
+            alt="Logo"
           />
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-            size={25}
-          />
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400/20 to-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        </div>
+        <div className="hidden md:flex flex-col ml-4">
+          <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+            Admin Panel
+          </span>
+          <span className="text-sm text-gray-500 font-medium">
+            Welcome{" "}
+            {isLoggedIn && adminData?.role
+              ? adminData.role.charAt(0).toUpperCase() + adminData.role.slice(1)
+              : ""}
+          </span>
         </div>
       </div>
 
-      {/* Login-Signup Form and User Menu */}
-      <div className="flex items-center space-x-3 flex-shrink-0">
+      {/* Enhanced Search Bar */}
+      <div className="flex-grow mx-6 min-w-0 max-w-md relative z-10">
+        <div className="relative w-full group">
+          <input
+            type="text"
+            placeholder="Search functions..."
+            className="w-full h-12 py-3 px-5 pl-12 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md text-gray-700 placeholder-gray-400"
+          />
+          <Search
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-300"
+            size={20}
+          />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400/10 to-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+        </div>
+      </div>
+
+      {/* User Section */}
+      <div className="flex items-center space-x-4 flex-shrink-0 relative z-10">
         {isLoggedIn && adminData ? (
-          <div className="flex items-center space-x-2">
-            <p className=" text-lg text-gray-800 font-semibold hidden md:block">
-              {adminData.firstName} {adminData.lastName}
-            </p>
-            <div className=" relative">
-              <img
-                src={adminData.profileImage || userImage}
-                alt="User Profile"
-                className="h-10 w-10 rounded-full object-cover cursor-pointer"
+          <div className="flex items-center space-x-3">
+            {/* User Info */}
+            <div className="hidden md:flex flex-col items-end">
+              <p className="text-lg font-bold text-gray-800 leading-tight">
+                {adminData.firstName} {adminData.lastName}
+              </p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+                {adminData.role}
+              </p>
+            </div>
+
+            {/* Enhanced Profile Dropdown */}
+            <div className="relative">
+              <button
                 onClick={toggleDropdown}
-              />
+                className="flex items-center space-x-2 p-1 rounded-2xl hover:bg-gray-100/80 transition-all duration-300 group"
+              >
+                <div className="relative">
+                  <img
+                    src={adminData.profileImage || userImage}
+                    alt="User Profile"
+                    className="h-11 w-11 rounded-xl object-cover border-2 border-white shadow-md group-hover:shadow-lg transition-all duration-300"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
+                </div>
+                <ChevronDown
+                  size={16}
+                  className={`text-gray-400 transition-transform duration-300 ${
+                    isDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Enhanced Dropdown Menu */}
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10 top-full">
-                  <ul className="py-1">
-                    {/* <li
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        navigate("/");
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      Dashboard
-                    </li> */}
-                    <li
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                <div className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-2xl z-20 overflow-hidden">
+                  <div className="py-2">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="font-semibold text-gray-800">
+                        {adminData.firstName} {adminData.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500">{adminData.email}</p>
+                    </div>
+                    <button
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-blue-50 transition-colors duration-200 text-left group"
                       onClick={() => {
                         navigate("/admin/profile");
                         setIsDropdownOpen(false);
                       }}
                     >
-                      Profile
-                    </li>
-                    <li
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500"
+                      <Settings
+                        size={18}
+                        className="text-gray-500 group-hover:text-blue-600"
+                      />
+                      <span className="text-gray-700 group-hover:text-blue-600 font-medium">
+                        Profile Settings
+                      </span>
+                    </button>
+                    <button
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition-colors duration-200 text-left group"
                       onClick={handleLogout}
                     >
-                      Logout
-                    </li>
-                  </ul>
+                      <LogOut
+                        size={18}
+                        className="text-gray-500 group-hover:text-red-600"
+                      />
+                      <span className="text-gray-700 group-hover:text-red-600 font-medium">
+                        Logout
+                      </span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <>
+          <div className="flex items-center space-x-3">
+            {/* Enhanced Login Button */}
             <button
-              className="flex items-center space-x-2 shadow-sm bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition text-base"
+              className="group relative flex items-center space-x-2 px-6 py-2.5 border-2 border-blue-500 text-blue-600 rounded-2xl font-semibold text-sm transition-all duration-300 ease-in-out hover:bg-blue-500 hover:text-white hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               onClick={() => navigate("/login")}
             >
-              <UserPlus size={20} />
+              <LogIn
+                size={18}
+                className="transition-transform duration-300 group-hover:scale-110"
+              />
               <span>Login</span>
             </button>
+
+            {/* Enhanced Sign Up Button */}
             <button
-              className="items-center space-x-2 shadow-sm text-white px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-600 transition text-base md:inline-flex hidden"
+              className="group relative flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl font-semibold text-sm transition-all duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 md:inline-flex hidden"
               onClick={() => navigate("/signup")}
             >
-              <LogIn size={20} />
+              <UserPlus
+                size={18}
+                className="transition-transform duration-300 group-hover:scale-110"
+              />
               <span>Sign Up</span>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300 transform -skew-x-12"></div>
             </button>
-          </>
+          </div>
         )}
 
-        {/* Hamburger Menu Button (hiển thị trên màn hình nhỏ) */}
+        {/* Enhanced Mobile Menu Button */}
         {isLoggedIn && (
           <button
-            className="md:hidden p-2 rounded-full hover:bg-gray-100 transition"
+            className="md:hidden p-3 rounded-2xl hover:bg-gray-100/80 transition-all duration-300 group"
             onClick={toggleMobileMenu}
           >
-            <Menu size={25} className="text-gray-600" />
+            <Menu
+              size={24}
+              className={`text-gray-600 group-hover:text-gray-800 transition-all duration-300 ${
+                isMobileMenuOpen ? "rotate-90" : ""
+              }`}
+            />
           </button>
         )}
       </div>
-      {/* Mobile Menu (hiển thị khi nhấn hamburger) */}
+
+      {/* Enhanced Mobile Menu */}
       {isMobileMenuOpen && isLoggedIn && (
-        <div className="md:hidden absolute right-0 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10 top-20">
-          <div className="flex flex-col items-center space-y-4 py-4">
-            {sidebarItems.map((item, index) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <div
-                  key={index}
-                  onClick={() => {
-                    navigate(item.path);
-                    setIsMobileMenuOpen(false); // Đóng menu sau khi chọn
-                  }}
-                  className={`flex items-center space-x-2 p-3 rounded-xl transition cursor-pointer ${
-                    isActive
-                      ? "bg-orange-200 text-orange-700"
-                      : "hover:bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  <item.icon
-                    size={24}
-                    className={isActive ? "text-orange-700" : "text-gray-600"}
-                  />
-                  <span
-                    className={`text-sm ${
-                      isActive ? "text-orange-700" : "text-gray-600"
+        <div className="md:hidden absolute right-4 top-20 w-64 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-2xl z-20 overflow-hidden">
+          <div className="py-4">
+            <div className="px-4 pb-4 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <img
+                  src={adminData?.profileImage || userImage}
+                  alt="User Profile"
+                  className="h-10 w-10 rounded-xl object-cover border-2 border-gray-200"
+                />
+                <div>
+                  <p className="font-semibold text-gray-800">
+                    {adminData?.firstName} {adminData?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">
+                    {adminData?.role}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="py-2">
+              {sidebarItems.map((item, index) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      navigate(item.path);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 transition-all duration-300 text-left group ${
+                      isActive
+                        ? "bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 border-r-4 border-orange-500"
+                        : "hover:bg-gray-50 text-gray-600"
                     }`}
                   >
-                    {item.label}
-                  </span>
-                </div>
-              );
-            })}
+                    <item.icon
+                      size={20}
+                      className={`transition-all duration-300 ${
+                        isActive
+                          ? "text-orange-600"
+                          : "text-gray-500 group-hover:text-gray-700 group-hover:scale-110"
+                      }`}
+                    />
+                    <span
+                      className={`font-medium transition-all duration-300 ${
+                        isActive ? "text-orange-700" : "text-gray-700"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

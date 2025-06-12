@@ -279,7 +279,7 @@ const LeadManagement = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 md:ml-25">
+        <div className="flex-1 md:ml-25 mt-[30px]">
           {/* Elegant Header Section */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white mt-[70px] ml-[5px]">
             <div className="px-4 sm:px-8 py-4 sm:py-6 ">

@@ -23,7 +23,9 @@ import {
 
 import { cloudinaryFileUploader } from "../middleware/FileUploader.js";
 import {
+  clearAllNotifications,
   createNotification,
+  deleteNotification,
   getNotifications,
   markAllAsRead,
   markAsRead,
@@ -65,5 +67,7 @@ consultantRouter.post("/notification/create", createNotification);
 consultantRouter.get("/notification/all", getNotifications);
 consultantRouter.put("/notification/markAsRead/:id", markAsRead);
 consultantRouter.put("/notification/markAllAsRead", markAllAsRead);
+consultantRouter.delete("/notifications/clear-all", clearAllNotifications);
+consultantRouter.delete("/notifications/:id", deleteNotification);
 
 export default consultantRouter;

@@ -48,3 +48,49 @@ export const markAllAsRead = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+export const clearAllNotifications = async (req, res) => {
+  try {
+    const result = await NotificationModel.deleteMany({
+      recipientRole: "consultant",
+    });
+
+    res.json({
+      success: true,
+      message: `Cleared ${result.deletedCount} notifications successfully`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error clearing all notifications:", error);
+    res.json({
+      success: false,
+      message: "Failed to clear notifications",
+    });
+  }
+};
+
+export const deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await NotificationModel.findByIdAndDelete(id);
+
+    if (!notification) {
+      return res.json({
+        success: false,
+        message: "Notification not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Notification deleted successfully",
+      deletedNotification: notification,
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    res.json({
+      success: false,
+      message: "Failed to delete notification",
+    });
+  }
+};

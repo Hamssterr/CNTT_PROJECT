@@ -12,87 +12,107 @@ import {
   LogOut,
   Home,
   DollarSign,
+  Settings,
+  ChevronDown,
+  Search,
+  BellRing,
+  Clock,
+  ArrowRight,
 } from "lucide-react";
 import { slide as BurgerMenu } from "react-burger-menu";
 import { AppContext } from "../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import logo from "../../assets/logo_2.png";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
+  const [profileImage, setProfileImage] = useState(
+    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
+  );
+  const [acaData, setAcaData] = useState({});
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { backendUrl, isLoggedIn, logout } = useContext(AppContext);
-  const [consultantData, setConsultantData] = useState(null);
 
   // Refs for click outside handling
   const profileMenuRef = useRef(null);
   const notificationsRef = useRef(null);
 
-  // Sidebar items
+  // Enhanced sidebar items with descriptions
   const sidebarItems = [
     {
       path: "/academic-finance/dashboard",
       icon: Home,
       label: "Dashboard",
+      description: "Overview & Analytics",
       singleLine: true,
     },
     {
       path: "/academic-finance/class-management",
       icon: BookOpen,
-      label: ["Class", "Management"],
+      label: "Class Management",
+      description: "Manage Classes",
       singleLine: false,
     },
     {
       path: "/academic-finance/teacher-management",
       icon: User,
-      label: ["Teacher", "Management"],
+      label: "Teacher Management",
+      description: "Manage Teachers",
       singleLine: false,
     },
     {
       path: "/academic-finance/student-profile",
       icon: Users,
-      label: ["Student", "Profiles"],
+      label: "Student Profiles",
+      description: "Student Information",
       singleLine: false,
     },
     {
       path: "/academic-finance/report-attendance",
       icon: ClipboardList,
-      label: ["Report", "Attendance"],
+      label: "Report Attendance",
+      description: "Attendance Reports",
       singleLine: false,
     },
     {
       path: "/academic-finance/payment-management",
       icon: DollarSign,
-      label: ["Payment", "& Tuition"],
+      label: "Payment & Tuition",
+      description: "Financial Management",
       singleLine: false,
     },
   ];
 
-  // Sample notifications
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "New Lead",
-      message: "You have a new lead assignment.",
-      time: "2 minutes ago",
-    },
-    {
-      id: 2,
-      title: "Reminder",
-      message: "Follow up with client ABC is due today.",
-      time: "1 hour ago",
-    },
-  ]);
+  useEffect(() => {
+    const fetchAcaData = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendUrl}/api/academic-finance/profile`
+        );
 
-  // Toggle functions
-  const toggleNotifications = () => {
-    setShowNotifications((prev) => !prev);
-    setShowProfileMenu(false);
-  };
+        if (data.success) {
+          setAcaData({
+            firstName: data.data.firstName,
+            lastName: data.data.lastName,
+            role: data.data.role,
+            email: data.data.email,
+          });
+          setProfileImage(data.data.profileImage || profileImage);
+        }
+      } catch (error) {
+        console.error("Failed to fetch consultant data:", error);
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchAcaData();
+    }
+  }, [backendUrl, isLoggedIn]);
 
   const toggleProfileMenu = () => {
     setShowProfileMenu((prev) => !prev);
@@ -132,11 +152,6 @@ const Navbar = () => {
     };
   }, []);
 
-  // Handle notification dismiss
-  const handleDismiss = (id) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-  };
-
   // Handle logout
   const handleLogout = async () => {
     try {
@@ -163,13 +178,13 @@ const Navbar = () => {
     }
   };
 
-  // Mobile menu styles
+  // Enhanced mobile menu styles
   const mobileMenuStyles = {
     bmBurgerButton: {
-      display: "none", // Ẩn nút mặc định vì chúng ta dùng custom
+      display: "none",
     },
     bmCrossButton: {
-      display: "none", // Ẩn nút đóng mặc định
+      display: "none",
     },
     bmMenuWrap: {
       position: "fixed",
@@ -192,7 +207,7 @@ const Navbar = () => {
 
   return (
     <>
-      {/* CSS Styles cho mobile menu */}
+      {/* Enhanced CSS Styles */}
       <style jsx>{`
         .mobile-menu-header {
           background: rgba(255, 255, 255, 0.1);
@@ -373,119 +388,149 @@ const Navbar = () => {
         }
       `}</style>
 
-      <div className="flex items-center justify-between px-4 md:px-8 border-gray-500 py-3 relative bg-white shadow-sm">
-        {/* Left side - Hamburger + Logo */}
-        <div className="flex items-center">
-          {/* Hamburger Menu Button */}
+      {/* Enhanced Navbar */}
+      <nav className="bg-gradient-to-r from-white via-green-50/30 to-white backdrop-blur-sm py-4 px-6 flex items-center justify-between border-b border-gray-200 shadow-lg relative">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 bg-gradient-to-r from-green-50/40 via-transparent to-blue-50/40 pointer-events-none"></div>
+
+        {/* Left side - Enhanced Logo Section */}
+        <div className="flex items-center relative z-10">
+          {/* Enhanced Mobile Menu Button */}
           <button
             onClick={toggleMobileMenu}
-            className="md:hidden mr-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden mr-4 p-3 rounded-2xl hover:bg-green-100/80 transition-all duration-300 group"
             type="button"
           >
-            <Menu className="w-6 h-6 text-gray-600" />
+            <Menu
+              className={`w-6 h-6 text-gray-600 group-hover:text-green-600 transition-all duration-300 ${
+                showMobileMenu ? "rotate-90" : ""
+              }`}
+            />
           </button>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img src={logo} alt="logo" className="w-8 h-8 md:w-10 md:h-10" />
-            <p className="ml-2 md:ml-10 text-lg md:text-xl font-bold">
-              <span className="hidden sm:inline">Academic-Finance Portal</span>
-              <span className="sm:hidden">Portal</span>
-            </p>
+          {/* Enhanced Logo */}
+          <Link to="/" className="flex items-center group">
+            <div className="relative">
+              <img
+                src={logo}
+                alt="logo"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-105"
+              />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-green-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+            <div className="ml-3 md:ml-4">
+              <p className="text-xl md:text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                <span className="hidden sm:inline">
+                  Academic-Finance Portal
+                </span>
+                <span className="sm:hidden">Portal</span>
+              </p>
+              <p className="hidden md:block text-sm text-gray-500 font-medium">
+                Financial & Academic Management
+              </p>
+            </div>
           </Link>
         </div>
 
-        {/* Right Menu */}
-        <div className="flex items-center gap-3 md:gap-5 text-gray-500 relative">
-          {/* Notifications */}
-          <div ref={notificationsRef} className="relative">
-            <Bell
-              className="w-5 h-5 cursor-pointer transition duration-300 hover:opacity-70"
-              onClick={toggleNotifications}
+        {/* Enhanced Search Bar (Optional) */}
+        <div className="hidden lg:flex flex-grow mx-6 min-w-0 max-w-md relative z-10">
+          <div className="relative w-full group">
+            <input
+              type="text"
+              placeholder="Search students, payments..."
+              className="w-full h-11 py-3 px-5 pl-12 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 shadow-sm hover:shadow-md text-gray-700 placeholder-gray-400"
             />
-            {showNotifications && (
-              <div className="absolute top-full right-0 mt-2 w-72 max-w-[90vw] bg-white shadow-lg border border-gray-200 rounded-lg p-4 z-50">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold">Notifications</h3>
-                  <Bell className="text-gray-600" size={20} />
-                </div>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className="flex items-start p-3 bg-gray-50 rounded-lg"
-                    >
-                      <Bell className="text-orange-500 mt-1" size={18} />
-                      <div className="ml-3 flex-1">
-                        <h4 className="text-md font-medium text-gray-800">
-                          {notif.title}
-                        </h4>
-                        <p className="text-sm text-gray-600">{notif.message}</p>
-                        <p className="text-xs text-gray-400">{notif.time}</p>
-                      </div>
-                      <button
-                        onClick={() => handleDismiss(notif.id)}
-                        className="ml-3 text-gray-400 hover:text-gray-600"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Profile Menu */}
-          <div className="relative" ref={profileMenuRef}>
-            <div
-              className="cursor-pointer hover:text-gray-700 flex items-center gap-1"
-              onClick={toggleProfileMenu}
-            >
-              <span className="hidden sm:inline">Academic-Finance</span>
-              <span className="sm:hidden">T</span>
-              <svg
-                className={`w-4 h-4 transition-transform ${
-                  showProfileMenu ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-
-            {showProfileMenu && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                <button
-                  className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
-                  onClick={() => {
-                    navigate("/academic-finance/profile");
-                    setShowProfileMenu(false);
-                  }}
-                >
-                  Profile
-                </button>
-
-                <button
-                  className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+            <Search
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-green-500 transition-colors duration-300"
+              size={18}
+            />
           </div>
         </div>
-      </div>
 
-      {/* Mobile Menu với thư viện react-burger-menu */}
+        {/* Enhanced Right Menu */}
+        <div className="flex items-center gap-4 md:gap-6 text-gray-500 relative z-10">
+          {/* Enhanced Profile Menu */}
+          <div className="relative" ref={profileMenuRef}>
+            <button
+              onClick={toggleProfileMenu}
+              className="flex items-center gap-2 p-2 rounded-2xl hover:bg-green-100/80 transition-all duration-300 group"
+            >
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <img
+                    src={acaData?.profileImage || profileImage}
+                    alt="User Profile"
+                    className="h-11 w-11 rounded-xl object-cover border-2 border-white shadow-md group-hover:shadow-lg transition-all duration-300"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
+                </div>
+                <div className="hidden md:flex flex-col items-start">
+                  <span className="text-sm font-semibold text-gray-700 group-hover:text-green-600 transition-colors">
+                    {acaData?.firstName + " " + acaData?.lastName}
+                  </span>
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">
+                    {acaData?.role}
+                  </span>
+                </div>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 group-hover:text-green-600 transition-all duration-300 ${
+                  showProfileMenu ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            <AnimatePresence>
+              {showProfileMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-3 w-56 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                >
+                  <div className="py-2">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="font-semibold text-gray-800">
+                        {acaData?.firstName + " " + acaData?.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500">{acaData?.email}</p>
+                    </div>
+                    <button
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-green-50 transition-colors duration-200 text-left group"
+                      onClick={() => {
+                        navigate("/academic-finance/profile");
+                        setShowProfileMenu(false);
+                      }}
+                    >
+                      <Settings
+                        size={18}
+                        className="text-gray-500 group-hover:text-green-600"
+                      />
+                      <span className="text-gray-700 group-hover:text-green-600 font-medium">
+                        Profile
+                      </span>
+                    </button>
+                    <button
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition-colors duration-200 text-left group"
+                      onClick={handleLogout}
+                    >
+                      <LogOut
+                        size={18}
+                        className="text-gray-500 group-hover:text-red-600"
+                      />
+                      <span className="text-gray-700 group-hover:text-red-600 font-medium">
+                        Logout
+                      </span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </nav>
+
+      {/* Enhanced Mobile Menu */}
       <div className="md:hidden">
         <BurgerMenu
           isOpen={showMobileMenu}
@@ -497,7 +542,6 @@ const Navbar = () => {
           width={320}
           styles={mobileMenuStyles}
         >
-          {/* Header với logo */}
           <div className="mobile-menu-header">
             <div className="mobile-menu-header-content">
               <img src={logo} alt="logo" className="mobile-menu-logo" />
@@ -508,7 +552,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Menu Items */}
           <div className="mobile-menu-items">
             {sidebarItems.map((item, index) => {
               const isActive = location.pathname === item.path;
@@ -533,7 +576,6 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Footer với logout */}
           <div className="mobile-menu-footer">
             <button onClick={handleLogout} className="mobile-logout-button">
               <LogOut size={20} />

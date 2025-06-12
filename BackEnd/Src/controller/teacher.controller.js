@@ -94,3 +94,33 @@ export const markAsRead = async (req, res) => {
     });
   }
 };
+
+export const markAllAsRead = async (req, res) => {
+  try {
+    const userId = req.user.userId; // Lấy từ middleware auth
+
+    // Cập nhật tất cả notifications chưa đọc của user thành đã đọc
+    const result = await Notification.updateMany(
+      {
+        userId: userId,
+        read: false,
+      },
+      {
+        read: true,
+        readAt: new Date(), // Thêm timestamp khi đánh dấu đã đọc
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Marked ${result.modifiedCount} notifications as read`,
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to mark all notifications as read",
+    });
+  }
+};

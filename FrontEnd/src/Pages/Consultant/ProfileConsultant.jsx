@@ -412,15 +412,15 @@ const UserProfile = () => {
                     {formData.role}
                   </span>
                 </div>
-                <div className="flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-300">
+                <div className="flex items-center justify-center space-x-2 ">
                   <Mail className="w-4 h-4" />
                   <span className="text-sm">{formData.email}</span>
                 </div>
-                <div className="flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-300">
+                <div className="flex items-center justify-center space-x-2 ">
                   <Phone className="w-4 h-4" />
                   <span className="text-sm">{formData.phoneNumber}</span>
                 </div>
-                <div className="flex items-start justify-center space-x-2 text-gray-600 dark:text-gray-300">
+                <div className="flex items-start justify-center space-x-2 ">
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-center">
                     {formatAddress(formData.address)}

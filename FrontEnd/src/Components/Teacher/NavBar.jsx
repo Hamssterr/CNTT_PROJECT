@@ -10,9 +10,19 @@ import {
   Users,
   ClipboardList,
   LogOut,
+  Home,
+  Settings,
+  ChevronDown,
+  Search,
+  BellRing,
+  Clock,
   ArrowRight,
   Info,
-  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Calendar,
+  UserCheck,
+  GraduationCap,
 } from "lucide-react";
 import { slide as BurgerMenu } from "react-burger-menu";
 import { AppContext } from "../../context/AppContext";
@@ -25,86 +35,102 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const { backendUrl, isLoggedIn, logout } = useContext(AppContext);
-  const [consultantData, setConsultantData] = useState(null);
+  const [teacherData, setTeacherData] = useState({});
+  const [profileImage, setProfileImage] = useState(
+    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
+  );
 
   // Refs for click outside handling
   const profileMenuRef = useRef(null);
   const notificationsRef = useRef(null);
 
-  // Sidebar items
+  // Enhanced sidebar items with descriptions
   const sidebarItems = [
     {
-      path: "/teacher/notification",
+      path: "/teacher/dashboard",
+      icon: Home,
+      label: "Dashboard",
+      description: "Overview & Analytics",
+      singleLine: true,
+    },
+    {
+      path: "/teacher/class-management",
       icon: BookOpen,
-      label: "Notification",
-      description: "View your notifications",
+      label: "Class Management",
+      description: "Manage Your Classes",
+      singleLine: false,
     },
     {
-      path: "/teacher/my-classes",
-      icon: User,
-      label: "My Classes",
-      description: "Manage your classes",
-    },
-    {
-      path: "/teacher/lecture-materials",
+      path: "/teacher/student-management",
       icon: Users,
-      label: "Lecture Materials",
-      description: "Upload and manage materials",
+      label: "Student Management",
+      description: "Student Information",
+      singleLine: false,
     },
     {
       path: "/teacher/attendance",
       icon: ClipboardList,
       label: "Attendance",
-      description: "Track student attendance",
+      description: "Track Attendance",
+      singleLine: true,
+    },
+    {
+      path: "/teacher/profile",
+      icon: User,
+      label: "Profile",
+      description: "Personal Settings",
+      singleLine: true,
     },
   ];
 
-  const handleMarkAsRead = async (id) => {
+  // Fetch notifications from backend
+  const fetchNotifications = async () => {
     try {
-      await axios.put(
-        `${backendUrl}/api/teacher/${id}/read`,
-        {},
-        { withCredentials: true }
+      const { data } = await axios.get(
+        `${backendUrl}/api/teacher/notifications`,
+        {
+          withCredentials: true,
+        }
       );
-      setNotifications(
-        notifications.map((notif) =>
-          notif._id === id ? { ...notif, read: true } : notif
-        )
-      );
+      if (data.success) {
+        setNotifications(data.notifications);
+      }
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      console.error("Failed to fetch notifications:", error);
     }
   };
 
-  const useNotifications = () => {
-    const [notifications, setNotifications] = useState([]);
-    const { backendUrl } = useContext(AppContext);
-
-    const fetchNotifications = async () => {
+  // Fetch teacher data
+  useEffect(() => {
+    const fetchTeacherData = async () => {
       try {
-        const { data } = await axios.get(
-          `${backendUrl}/api/teacher/notifications`
-        );
+        const { data } = await axios.get(`${backendUrl}/api/teacher/profile`, {
+          withCredentials: true,
+        });
         if (data.success) {
-          setNotifications(data.notifications);
+          setTeacherData({
+            firstName: data.data.firstName,
+            lastName: data.data.lastName,
+            role: data.data.role,
+            email: data.data.email,
+          });
+          setProfileImage(data.data.profileImage || profileImage);
         }
       } catch (error) {
-        console.error("Failed to fetch notifications:", error);
+        console.error("Failed to fetch teacher data:", error);
       }
     };
 
-    useEffect(() => {
+    if (isLoggedIn) {
+      fetchTeacherData();
       fetchNotifications();
-      // Polling every 30 seconds for new notifications
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
-    }, []);
-
-    return { notifications, setNotifications, fetchNotifications };
-  };
+    }
+  }, [backendUrl, isLoggedIn]);
 
   // Toggle functions
   const toggleNotifications = () => {
@@ -130,6 +156,12 @@ const Navbar = () => {
     setShowMobileMenu(false);
   };
 
+  // Format date function
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  };
+
   // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -150,31 +182,84 @@ const Navbar = () => {
     };
   }, []);
 
-  const { notifications, setNotifications, fetchNotifications } =
-    useNotifications();
-
-  const getNotificationIcon = (type) => {
-    const iconProps = { size: 18, strokeWidth: 2 };
-
-    switch (type) {
-      case "info":
-        return <Info {...iconProps} />;
-      case "success":
-        return <CheckCircle {...iconProps} />;
-      case "warning":
-        return <AlertTriangle {...iconProps} />;
-      case "error":
-        return <XCircle {...iconProps} />;
-      case "course":
-        return <BookOpen {...iconProps} />;
-      case "assignment":
-        return <Calendar {...iconProps} />;
-      case "student":
-        return <Users {...iconProps} />;
-      default:
-        return <Bell {...iconProps} />;
+  // Handle notification actions - Backend integration
+  const handleDismiss = async (id) => {
+    try {
+      const { data } = await axios.delete(
+        `${backendUrl}/api/teacher/notifications/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      if (data.success) {
+        setNotifications((prev) => prev.filter((notif) => notif._id !== id));
+      }
+    } catch (error) {
+      toast.error("Failed to dismiss notification");
     }
   };
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/teacher/notifications/${id}/read`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) =>
+            notif._id === id ? { ...notif, read: true } : notif
+          )
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to mark notification as read");
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const { data } = await axios.put(
+        `${backendUrl}/api/teacher/mark-all-read`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      if (data.success) {
+        setNotifications((prev) =>
+          prev.map((notif) => ({ ...notif, read: true }))
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to mark all notifications as read");
+    }
+  };
+
+  // Send message function - Backend integration
+  const sendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/teacher/send-message`,
+        { message: newMessage },
+        {
+          withCredentials: true,
+        }
+      );
+      if (data.success) {
+        setNewMessage("");
+        toast.success("Message sent successfully!");
+      }
+    } catch (error) {
+      toast.error("Failed to send message");
+    }
+  };
+
   // Handle logout
   const handleLogout = async () => {
     try {
@@ -201,13 +286,36 @@ const Navbar = () => {
     }
   };
 
-  // Mobile menu styles
+  const getNotificationIcon = (type) => {
+    const iconProps = { size: 18, strokeWidth: 2 };
+
+    switch (type) {
+      case "info":
+        return <Info {...iconProps} />;
+      case "success":
+        return <CheckCircle {...iconProps} />;
+      case "warning":
+        return <AlertTriangle {...iconProps} />;
+      case "error":
+        return <X {...iconProps} />;
+      case "class":
+        return <BookOpen {...iconProps} />;
+      case "student":
+        return <Users {...iconProps} />;
+      case "assignment":
+        return <ClipboardList {...iconProps} />;
+      default:
+        return <Bell {...iconProps} />;
+    }
+  };
+
+  // Enhanced mobile menu styles
   const mobileMenuStyles = {
     bmBurgerButton: {
-      display: "none", // Ẩn nút mặc định vì chúng ta dùng custom
+      display: "none",
     },
     bmCrossButton: {
-      display: "none", // Ẩn nút đóng mặc định
+      display: "none",
     },
     bmMenuWrap: {
       position: "fixed",
@@ -228,14 +336,9 @@ const Navbar = () => {
     },
   };
 
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
-
   return (
     <>
-      {/* CSS Styles cho mobile menu */}
+      {/* Enhanced CSS Styles */}
       <style jsx>{`
         .mobile-menu-header {
           background: rgba(255, 255, 255, 0.1);
@@ -400,81 +503,102 @@ const Navbar = () => {
           flex-direction: column;
           height: 100%;
         }
-
-        @media (max-width: 480px) {
-          .mobile-menu-header {
-            padding: 1.5rem 1rem;
-          }
-
-          .mobile-menu-items {
-            padding: 0 0.75rem;
-          }
-
-          .mobile-menu-item {
-            padding: 0.875rem 1rem;
-          }
-        }
       `}</style>
 
-      <div className="flex items-center justify-between px-4 md:px-8 border-gray-500 py-3 relative bg-white shadow-sm">
-        {/* Left side - Hamburger + Logo */}
-        <div className="flex items-center">
-          {/* Hamburger Menu Button */}
+      {/* Enhanced Navbar */}
+      <nav className="bg-gradient-to-r from-white via-purple-50/30 to-white backdrop-blur-sm py-4 px-6 flex items-center justify-between border-b border-gray-200 shadow-lg relative">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-50/40 via-transparent to-indigo-50/40 pointer-events-none"></div>
+
+        {/* Left side - Enhanced Logo Section */}
+        <div className="flex items-center relative z-10">
+          {/* Enhanced Mobile Menu Button */}
           <button
             onClick={toggleMobileMenu}
-            className="md:hidden mr-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden mr-4 p-3 rounded-2xl hover:bg-purple-100/80 transition-all duration-300 group"
             type="button"
           >
-            <Menu className="w-6 h-6 text-gray-600" />
+            <Menu
+              className={`w-6 h-6 text-gray-600 group-hover:text-purple-600 transition-all duration-300 ${
+                showMobileMenu ? "rotate-90" : ""
+              }`}
+            />
           </button>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img src={logo} alt="logo" className="w-8 h-8 md:w-10 md:h-10" />
-            <p className="ml-2 md:ml-10 text-lg md:text-xl font-bold">
-              <span className="hidden sm:inline">Teacher Portal</span>
-              <span className="sm:hidden">Portal</span>
-            </p>
+          {/* Enhanced Logo */}
+          <Link to="/" className="flex items-center group">
+            <div className="relative">
+              <img
+                src={logo}
+                alt="logo"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-xl shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-105"
+              />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-400/20 to-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+            <div className="ml-3 md:ml-4">
+              <p className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="hidden sm:inline">Teacher Portal</span>
+                <span className="sm:hidden">Portal</span>
+              </p>
+              <p className="hidden md:block text-sm text-gray-500 font-medium">
+                Welcome back, Teacher
+              </p>
+            </div>
           </Link>
         </div>
 
-        {/* Right Menu */}
-        <div className="flex items-center gap-3 md:gap-5 text-gray-500 relative">
-          {/* Notifications */}
+        {/* Enhanced Search Bar (Optional) */}
+        <div className="hidden lg:flex flex-grow mx-6 min-w-0 max-w-md relative z-10">
+          <div className="relative w-full group">
+            <input
+              type="text"
+              placeholder="Search students, classes..."
+              className="w-full h-11 py-3 px-5 pl-12 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-300 shadow-sm hover:shadow-md text-gray-700 placeholder-gray-400"
+            />
+            <Search
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-colors duration-300"
+              size={18}
+            />
+          </div>
+        </div>
+
+        {/* Enhanced Right Menu */}
+        <div className="flex items-center gap-4 md:gap-6 text-gray-500 relative z-10">
+          {/* Enhanced Notifications - Backend Integration */}
           <div ref={notificationsRef} className="relative">
-            <div className="relative">
-              <Bell
-                className="w-5 h-5 cursor-pointer transition duration-300 hover:text-blue-600"
-                onClick={toggleNotifications}
-              />
+            <button
+              onClick={toggleNotifications}
+              className="relative p-2.5 rounded-2xl hover:bg-purple-100/80 transition-all duration-300 group"
+            >
+              <Bell className="w-5 h-5 text-gray-600 group-hover:text-purple-600 transition-colors duration-300" />
               {notifications.filter((n) => !n.read).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg animate-pulse">
                   {notifications.filter((n) => !n.read).length}
                 </span>
               )}
-            </div>
+            </button>
 
             <AnimatePresence>
               {showNotifications && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full right-0 mt-3 w-96 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-3 w-96 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50"
                 >
-                  <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700">
+                  <div className="p-4 bg-gradient-to-r from-purple-600 to-indigo-600">
                     <div className="flex items-center justify-between text-white">
                       <h3 className="text-lg font-semibold">Notifications</h3>
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => navigate("/teacher/notification")}
-                          className="text-xs hover:underline flex items-center gap-1"
+                          className="text-xs hover:underline flex items-center gap-1 hover:bg-white/10 px-2 py-1 rounded-lg transition-all duration-200"
                         >
                           View All <ArrowRight className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => setShowNotifications(false)}
-                          className="hover:bg-white/10 p-1 rounded-full"
+                          className="hover:bg-white/10 p-1.5 rounded-full transition-all duration-200"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -484,7 +608,7 @@ const Navbar = () => {
 
                   <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
                     {notifications.length > 0 ? (
-                      notifications.map((notif) => (
+                      notifications.slice(0, 5).map((notif) => (
                         <motion.div
                           key={notif._id}
                           initial={{ opacity: 0, y: 10 }}
@@ -492,7 +616,7 @@ const Navbar = () => {
                           transition={{ duration: 0.3 }}
                           className={`p-4 hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
                             !notif.read
-                              ? "bg-blue-50/40 border-l-2 border-l-blue-400"
+                              ? "bg-purple-50/40 border-l-4 border-l-purple-400"
                               : ""
                           }`}
                           onClick={() =>
@@ -502,7 +626,7 @@ const Navbar = () => {
                           <div className="flex gap-3">
                             <div className="relative shrink-0">
                               <div
-                                className={`p-2.5 rounded-full shadow-sm transition-all duration-200 hover:shadow-md ${
+                                className={`p-2.5 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md ${
                                   notif.type === "info"
                                     ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600"
                                     : notif.type === "success"
@@ -517,7 +641,7 @@ const Navbar = () => {
                                 {getNotificationIcon(notif.type)}
                               </div>
                               {!notif.read && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
                               )}
                             </div>
 
@@ -547,13 +671,22 @@ const Navbar = () => {
                                           e.stopPropagation();
                                           handleMarkAsRead(notif._id);
                                         }}
-                                        className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 px-2 py-1 rounded-full transition-all duration-200"
+                                        className="text-xs text-purple-600 hover:text-purple-700 font-medium hover:bg-purple-50 px-2 py-1 rounded-full transition-all duration-200"
                                       >
                                         Mark as read
                                       </button>
                                     )}
                                   </div>
                                 </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDismiss(notif._id);
+                                  }}
+                                  className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-all duration-200"
+                                >
+                                  <X size={14} />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -577,61 +710,106 @@ const Navbar = () => {
                       </motion.div>
                     )}
                   </div>
+
+                  {notifications.length > 0 && (
+                    <div className="p-3 bg-gray-50 border-t border-gray-100">
+                      <button
+                        onClick={handleMarkAllAsRead}
+                        className="w-full py-2 px-4 text-sm text-center text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200 font-medium"
+                      >
+                        Mark all as read
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Profile Menu */}
+          {/* Enhanced Profile Menu */}
           <div className="relative" ref={profileMenuRef}>
-            <div
-              className="cursor-pointer hover:text-gray-700 flex items-center gap-1"
+            <button
               onClick={toggleProfileMenu}
+              className="flex items-center gap-2 p-2 rounded-2xl hover:bg-purple-100/80 transition-all duration-300 group"
             >
-              <span className="hidden sm:inline">Teacher</span>
-              <span className="sm:hidden">T</span>
-              <svg
-                className={`w-4 h-4 transition-transform ${
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <img
+                    src={teacherData?.profileImage || profileImage}
+                    alt="User Profile"
+                    className="h-11 w-11 rounded-xl object-cover border-2 border-white shadow-md group-hover:shadow-lg transition-all duration-300"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
+                </div>
+                <div className="hidden md:flex flex-col items-start">
+                  <span className="text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors">
+                    {teacherData?.firstName || "Teacher"}
+                  </span>
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">
+                    {teacherData?.role}
+                  </span>
+                </div>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-all duration-300 ${
                   showProfileMenu ? "rotate-180" : ""
                 }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
+              />
+            </button>
 
-            {showProfileMenu && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                <button
-                  className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
-                  onClick={() => {
-                    navigate("/teacher/profile");
-                    setShowProfileMenu(false);
-                  }}
+            <AnimatePresence>
+              {showProfileMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-3 w-56 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden"
                 >
-                  Profile
-                </button>
-
-                <button
-                  className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+                  <div className="py-2">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="font-semibold text-gray-800">
+                        {teacherData?.firstName} {teacherData?.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {teacherData?.email}
+                      </p>
+                    </div>
+                    <button
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-purple-50 transition-colors duration-200 text-left group"
+                      onClick={() => {
+                        navigate("/teacher/profile");
+                        setShowProfileMenu(false);
+                      }}
+                    >
+                      <Settings
+                        size={18}
+                        className="text-gray-500 group-hover:text-purple-600"
+                      />
+                      <span className="text-gray-700 group-hover:text-purple-600 font-medium">
+                        Profile Settings
+                      </span>
+                    </button>
+                    <button
+                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition-colors duration-200 text-left group"
+                      onClick={handleLogout}
+                    >
+                      <LogOut
+                        size={18}
+                        className="text-gray-500 group-hover:text-red-600"
+                      />
+                      <span className="text-gray-700 group-hover:text-red-600 font-medium">
+                        Logout
+                      </span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu với thư viện react-burger-menu */}
+      {/* Enhanced Mobile Menu */}
       <div className="md:hidden">
         <BurgerMenu
           isOpen={showMobileMenu}
@@ -643,7 +821,6 @@ const Navbar = () => {
           width={320}
           styles={mobileMenuStyles}
         >
-          {/* Header với logo */}
           <div className="mobile-menu-header">
             <div className="mobile-menu-header-content">
               <img src={logo} alt="logo" className="mobile-menu-logo" />
@@ -654,7 +831,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Menu Items */}
           <div className="mobile-menu-items">
             {sidebarItems.map((item, index) => {
               const isActive = location.pathname === item.path;
@@ -679,7 +855,6 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Footer với logout */}
           <div className="mobile-menu-footer">
             <button onClick={handleLogout} className="mobile-logout-button">
               <LogOut size={20} />
