@@ -348,10 +348,14 @@ const ClassManagement = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <NavbarAdmin />
+    <div className="flex flex-col min-h-screen mt-[85px]">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <NavbarAdmin />
+      </div>
       <div className="flex flex-1">
-        <SidebarAdmin />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <SidebarAdmin />
+        </div>
         <main className="flex-1 p-3 sm:p-5 md:ml-30">
           {/* Header Section */}
           <div className="mb-4">
@@ -414,7 +418,9 @@ const ClassManagement = () => {
                         >
                           <Icon size={14} className="sm:w-4 sm:h-4" />
                           <span className="hidden sm:inline">{label}</span>
-                          <span className="sm:hidden">{label.split(" ")[0]}</span>
+                          <span className="sm:hidden">
+                            {label.split(" ")[0]}
+                          </span>
                         </button>
                       ))}
                       <button className="p-2 sm:p-2.5 text-blue-100 bg-blue-500/20 rounded-lg sm:rounded-xl hover:bg-blue-500/30 transition-all">
@@ -651,9 +657,13 @@ const ClassManagement = () => {
                           </span>
                         </div>
                         <button
-                          disabled={currentPage === totalPages || totalPages === 0}
+                          disabled={
+                            currentPage === totalPages || totalPages === 0
+                          }
                           onClick={() =>
-                            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, totalPages)
+                            )
                           }
                           className="px-3 lg:px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >

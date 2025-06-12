@@ -13,7 +13,7 @@ import {
   Menu,
 } from "lucide-react"; // Import biểu tượng từ Lucide
 import { useNavigate } from "react-router-dom";
-import logo from "../../assets/Logo.png";
+import logo from "../../assets/logo_2.png";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
 import userImage from "../../assets/3.jpg";

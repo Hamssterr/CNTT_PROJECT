@@ -273,10 +273,14 @@ const BannerManagement = () => {
   }, [bannerData]);
 
   return (
-    <div className=" flex flex-col min-h-screen">
-      <NavbarAdmin />
+    <div className=" flex flex-col min-h-screen mt-[85px]">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <NavbarAdmin />
+      </div>
       <div className=" flex flex-1">
-        <SidebarAdmin />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <SidebarAdmin />
+        </div>
 
         <main className=" flex-1 p-5 md:ml-30">
           {/* Header Section */}
@@ -628,7 +632,7 @@ const BannerManagement = () => {
                     </span>{" "}
                     banners
                   </div>
-                  
+
                   <div className="flex items-center gap-2 lg:gap-3 order-1 sm:order-2">
                     <button
                       className="px-3 lg:px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"

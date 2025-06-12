@@ -119,6 +119,15 @@ const ResetPassword = () => {
           <button className="w-full py-3 bg-yellow-500 text-white rounded-full cursor-pointer transition-all duration-300 hover:from-indigo-400 hover:to-indigo-800 hover:scale-105 hover:shadow-lg">
             Submit
           </button>
+
+          <div className="text-center mt-2">
+            <a
+              onClick={() => navigate("/login")}
+              className="cursor-pointer text-yellow-400 hover:text-yellow-300 transition-all duration-300"
+            >
+              Back to login
+            </a>
+          </div>
         </form>
       )}
 

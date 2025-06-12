@@ -1,27 +1,22 @@
 import React from "react";
-import { Search, UserPlus, LogIn } from "lucide-react"; // Import biểu tượng từ Lucide
+import { Search, UserPlus, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo_2.png";
 import { AppContext } from "../context/AppContext";
-
-
 import Loading from "./Loading";
 
 const Navbar = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="bg-white py-4 px-6 flex items-center justify-between border-b border-gray-300">
+    <nav className="bg-white py-4 px-6 flex items-center justify-between border-b border-gray-300 shadow-sm">
       {/* Logo */}
       <div className="flex-shrink-0 flex">
         <img className="h-12 w-12 rounded-sm" src={logo} alt="Logo" />
-        <span className=" hidden md:flex justify-center text-center pl-5 pt-2 text-2xl font-bold">
-          Hello
-        </span>
       </div>
 
       {/* Search bar */}
-      <div className="flex-grow mx-4 min-w-0 max-w-md ">
+      <div className="flex-grow mx-4 min-w-0 max-w-md">
         <div className="relative w-full">
           <input
             type="text"
@@ -35,21 +30,32 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Login-Signup Form and User Menu */}
-      <div className="flex items-center space-x-3 flex-shrink-0">
+      {/* Enhanced Login-Signup Buttons */}
+      <div className="flex items-center space-x-4 flex-shrink-0">
+        {/* Login Button - Outline Style */}
         <button
-          className="flex items-center space-x-2 shadow-sm bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition text-base"
+          className="group relative flex items-center space-x-2 px-6 py-2.5 border-2 border-blue-500 text-blue-600 rounded-full font-medium text-sm transition-all duration-300 ease-in-out hover:bg-blue-500 hover:text-white hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           onClick={() => navigate("/login")}
         >
-          <UserPlus size={20} />
-          <span>Login</span>
+          <LogIn
+            size={18}
+            className="transition-transform duration-300 group-hover:scale-110"
+          />
+          <span className="font-semibold">Login</span>
         </button>
+
+        {/* Sign Up Button - Filled Style with Gradient */}
         <button
-          className="items-center space-x-2 shadow-sm text-white px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-600 transition text-base md:inline-flex hidden"
+          className="group relative flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-medium text-sm transition-all duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 md:inline-flex hidden"
           onClick={() => navigate("/signup")}
         >
-          <LogIn size={20} />
-          <span>Sign Up</span>
+          <UserPlus
+            size={18}
+            className="transition-transform duration-300 group-hover:scale-110"
+          />
+          <span className="font-semibold">Sign Up</span>
+          {/* Subtle shine effect */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300 transform -skew-x-12"></div>
         </button>
       </div>
     </nav>

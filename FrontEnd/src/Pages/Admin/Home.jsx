@@ -215,13 +215,16 @@ const Home = () => {
   );
   const totalStudents = unpaidStudents.length;
   return (
-    <div className=" flex flex-col min-h-screen">
-      <NavbarAdmin />
+    <div className=" flex flex-col min-h-screen mt-[85px]">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <NavbarAdmin />
+      </div>
       <div className=" flex flex-1">
-        <SidebarAdmin />
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+          <SidebarAdmin />
+        </div>
 
         <main className="flex-1 p-5 md:ml-30">
-
           {/* Course Header Section */}
           <div className="mb-4">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
