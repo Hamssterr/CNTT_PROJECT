@@ -168,7 +168,14 @@ function ConsultationSchedule() {
       const startTime = new Date(selectedEvent.start);
       const endTime = new Date(selectedEvent.end);
 
-      if (!selectedEvent._id && startTime < now) {
+      // // Thêm debug để kiểm tra
+      // console.log("Current time:", now);
+      // console.log("Selected start:", selectedEvent.start);
+      // console.log("Parsed start time:", startTime);
+      // console.log("Is startTime valid?", !isNaN(startTime.getTime()));
+      // console.log("Comparison result:", startTime < now);
+
+      if (startTime < now) {
         Swal.fire({
           icon: "error",
           title: "Invalid Start Time",

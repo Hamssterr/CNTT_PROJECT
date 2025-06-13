@@ -17,6 +17,7 @@ import Loading from "../../Loading";
 import { AppContext } from "../../../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
 import AddClassModal from "./Modal/AddClassModal";
 import ViewClassModal from "./Modal/ViewClassModal";
@@ -28,13 +29,7 @@ const TABS = [
   { label: "Recent Added", value: "newClass", icon: Calendar },
 ];
 
-const TABLE_HEAD = [
-  "Class Name",
-  "Room",
-  "Schedule",
-  "Students",
-  "Actions",
-];
+const TABLE_HEAD = ["Class Name", "Room", "Schedule", "Students", "Actions"];
 
 const ActionButton = ({ icon: Icon, onClick, tooltip, className }) => (
   <motion.button
@@ -340,16 +335,114 @@ const ClassTableList = () => {
   };
 
   // Xử lý xóa lớp học
+  // Xử lý xóa lớp học với validation
   const handleDeleteClass = async (classId) => {
     try {
+      // Kiểm tra lớp học có học sinh không
+      const classToDelete = classData.find((cls) => cls._id === classId);
+
+      if (
+        classToDelete &&
+        classToDelete.students &&
+        classToDelete.students.length > 0
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Cannot Delete Class",
+          html: `
+          <div class="text-center">
+            <div class="mb-4">
+              <p class="text-gray-600">This class has <strong>${
+                classToDelete.students.length
+              } enrolled student${
+            classToDelete.students.length > 1 ? "s" : ""
+          }</strong>.</p>
+              <p class="text-sm text-gray-500 mt-2">Please remove all students from the class before deleting it.</p>
+            </div>
+          </div>
+        `,
+          confirmButtonColor: "#3b82f6",
+          confirmButtonText: "Understood",
+          customClass: {
+            popup: "rounded-2xl",
+            title: "text-xl font-bold text-orange-600",
+            confirmButton: "rounded-xl px-6 py-3 font-medium",
+          },
+        });
+
+        // Đóng modal delete và không thực hiện xóa
+        setShowDeleteModal(false);
+        setSelectedClass(null);
+        return;
+      }
+
+      // Nếu không có học sinh, hiển thị confirmation dialog
+      const result = await Swal.fire({
+        icon: "question",
+        title: "Delete Class?",
+        html: `
+        <div class="text-center">
+          <div class="mb-4">
+            <p class="text-gray-600">Are you sure you want to delete class <strong>"${
+              classToDelete?.className || "this class"
+            }"</strong>?</p>
+            <p class="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
+          </div>
+        </div>
+      `,
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+        customClass: {
+          popup: "rounded-2xl",
+          title: "text-xl font-bold",
+          confirmButton: "rounded-xl px-6 py-3 font-medium",
+          cancelButton: "rounded-xl px-6 py-3 font-medium",
+        },
+        reverseButtons: true,
+      });
+
+      if (!result.isConfirmed) {
+        setShowDeleteModal(false);
+        setSelectedClass(null);
+        return;
+      }
+
+      // Thực hiện xóa lớp học
       setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.delete(
         `${backendUrl}/api/admin/deleteClass/${classId}`
       );
       const { data } = response;
+
       if (data.success) {
-        toast.success(data.message || "Class deleted successfully");
+        // Success notification
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          html: `
+          <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <p class="text-gray-600">${
+              data.message || "Class deleted successfully"
+            }</p>
+          </div>
+        `,
+          timer: 2000,
+          showConfirmButton: false,
+          customClass: {
+            popup: "rounded-2xl",
+            title: "text-xl font-bold text-green-600",
+          },
+        });
+
         await fetchClassData();
         setShowDeleteModal(false);
         setSelectedClass(null);
@@ -357,7 +450,33 @@ const ClassTableList = () => {
         toast.error(data.message || "Failed to delete class");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete class");
+      console.error("Delete class error:", error);
+
+      // Error notification
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        html: `
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </div>
+          <p class="text-gray-600">${
+            error.response?.data?.message || "Failed to delete class"
+          }</p>
+        </div>
+      `,
+        confirmButtonColor: "#ef4444",
+        confirmButtonText: "OK",
+        customClass: {
+          popup: "rounded-2xl",
+          title: "text-xl font-bold text-red-600",
+          confirmButton: "rounded-xl px-6 py-3 font-medium",
+        },
+        buttonsStyling: false,
+      });
     } finally {
       setLoading(false);
     }
