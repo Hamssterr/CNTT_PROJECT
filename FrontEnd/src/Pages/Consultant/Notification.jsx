@@ -151,7 +151,7 @@ function Notification() {
 
       if (result.isConfirmed) {
         const { data } = await axios.delete(
-          `${backendUrl}/api/consultant/notification/clear-all`,
+          `${backendUrl}/api/consultant/notifications/clear-all`,
           {
             withCredentials: true,
           }

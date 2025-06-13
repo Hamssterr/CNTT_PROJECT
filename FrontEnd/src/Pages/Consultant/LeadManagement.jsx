@@ -12,6 +12,7 @@ import {
   X,
   Plus,
   Filter,
+  ChevronDown,
   RefreshCcw,
   Download,
   GraduationCap,
@@ -31,7 +32,7 @@ import Swal from "sweetalert2";
 import { useContext } from "react";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../Components/Loading";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 
 Modal.setAppElement("#root");
@@ -172,6 +173,7 @@ const LeadManagement = () => {
             text: "Lead added successfully",
           });
           fetchLeads();
+          handleClose();
         } else {
           Swal.fire({
             icon: "error",
@@ -191,9 +193,15 @@ const LeadManagement = () => {
             text: "Lead updated successfully",
           });
           fetchLeads();
+          handleClose();
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: response.data.message || "Failed to add lead",
+          });
         }
       }
-      handleClose();
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -887,15 +895,19 @@ const LeadManagement = () => {
                   </div>
 
                   {/* Course and Status Section */}
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <h3 className="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200">
                       Course & Status
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    {/* Sử dụng flex layout thay vì grid để tránh overlap */}
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      {/* Course Selection */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
+                        className="flex-1"
                       >
                         <label className="block mb-2 text-sm font-medium text-gray-700">
                           Course <span className="text-red-500">*</span>
@@ -911,14 +923,17 @@ const LeadManagement = () => {
                               })
                             }
                             disabled={!addNew}
+                            className="w-full" // Đảm bảo width 100%
                           />
                         </div>
                       </motion.div>
 
+                      {/* Status Selection */}
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.6 }}
+                        className="flex-1 lg:max-w-xs" // Giới hạn width cho status
                       >
                         <label className="block mb-2 text-sm font-medium text-gray-700">
                           Status
@@ -943,19 +958,24 @@ const LeadManagement = () => {
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Clock className="w-5 h-5 text-gray-400" />
                           </div>
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                          </div>
                         </div>
                       </motion.div>
                     </div>
 
-                    {/* Discount Email field */}
-                    <div className="space-y-4">
+                    {/* Discount Email Section - Tách riêng để tránh bị ảnh hưởng */}
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
                       <h3 className="text-lg font-semibold text-gray-800 pb-2 border-b border-gray-200">
                         Discount Information
                       </h3>
+
                       <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.7 }}
+                        className="max-w-2xl" // Giới hạn width cho email field
                       >
                         <label className="block mb-2 text-sm font-medium text-gray-700">
                           Previous Student Email
@@ -982,38 +1002,46 @@ const LeadManagement = () => {
                             <Tag className="w-5 h-5 text-gray-400" />
                           </div>
                         </div>
-                        <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1.5">
+
+                        <p className="mt-2 text-xs text-gray-500 flex items-center gap-1.5">
                           <Info className="w-4 h-4" />
                           Enter the email of a registered student to apply
                           family discount
                         </p>
-                        {selectedLead.discountEmail &&
-                          selectedLead.isDiscount && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="mt-3 flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg"
-                            >
-                              <CheckCircle className="w-5 h-5" />
-                              <span>
-                                Student verified - Discount will be applied
-                              </span>
-                            </motion.div>
-                          )}
-                        {selectedLead.discountEmail &&
-                          !selectedLead.isDiscount && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="mt-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"
-                            >
-                              <AlertTriangle className="w-5 h-5" />
-                              <span>
-                                Invalid student email - Discount cannot be
-                                applied
-                              </span>
-                            </motion.div>
-                          )}
+
+                        {/* Validation Messages */}
+                        <AnimatePresence>
+                          {selectedLead.discountEmail &&
+                            selectedLead.isDiscount && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="mt-3 flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200"
+                              >
+                                <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                                <span>
+                                  Student verified - Discount will be applied
+                                </span>
+                              </motion.div>
+                            )}
+
+                          {selectedLead.discountEmail &&
+                            !selectedLead.isDiscount && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="mt-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-200"
+                              >
+                                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                                <span>
+                                  Invalid student email - Discount cannot be
+                                  applied
+                                </span>
+                              </motion.div>
+                            )}
+                        </AnimatePresence>
                       </motion.div>
                     </div>
                   </div>
