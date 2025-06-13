@@ -273,7 +273,7 @@ const Home = () => {
         <NavbarAdmin />
       </div>
       <div className="flex">
-        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[10px]">
           <SidebarAdmin />
         </div>
 

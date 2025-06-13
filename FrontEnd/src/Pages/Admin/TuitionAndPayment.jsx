@@ -346,7 +346,7 @@ function TuitionAndPayment() {
         <NavbarAdmin />
       </div>
       <div className="flex flex-col md:flex-row min-h-screen">
-        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[10px]">
           <SidebarAdmin />
         </div>
         <div className="flex-1 p-4 md:p-8 md:ml-25">

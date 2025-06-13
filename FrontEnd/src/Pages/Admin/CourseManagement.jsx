@@ -61,7 +61,7 @@ const Course = () => {
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [viewMode, setViewMode] = useState("cards");
+  const [viewMode, setViewMode] = useState("table");
 
   // Initialize formData with schedule field
   const [formData, setFormData] = useState({
@@ -450,7 +450,7 @@ const Course = () => {
         <NavbarAdmin />
       </div>
       <div className="flex flex-1">
-        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[10px]">
           <SidebarAdmin />
         </div>
         <main className="flex-1 p-5 md:ml-30">
@@ -689,12 +689,8 @@ const Course = () => {
 
               {/* Content Area */}
               <div className="bg-white rounded-xl shadow-md border border-gray-200">
-                {/* Mobile Card View (default) / Desktop responsive view */}
-                <div
-                  className={`${
-                    viewMode === "table" ? "hidden lg:block" : "block lg:hidden"
-                  }`}
-                >
+                {/* Mobile Card View (default) */}
+                <div className="block lg:hidden">
                   <div className="p-4">
                     <div className="grid gap-4">
                       {currentItems.map((course) => (
@@ -712,145 +708,156 @@ const Course = () => {
                   </div>
                 </div>
 
-                {/* Desktop Table View */}
-                <div
-                  className={`${
-                    viewMode === "cards"
-                      ? "hidden lg:block"
-                      : "hidden lg:hidden"
-                  } lg:block`}
-                >
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50">
-                          {TABLE_HEAD.map((head, index) => (
-                            <th
-                              key={head}
-                              className="p-6 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 cursor-pointer"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                {head}
-                                {index !== TABLE_HEAD.length - 1 && (
-                                  <ChevronUp
-                                    size={16}
-                                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                                  />
-                                )}
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100/50">
+                {/* Desktop View */}
+                <div className="hidden lg:block">
+                  {viewMode === "cards" ? (
+                    <div className="p-4">
+                      <div className="grid gap-4">
                         {currentItems.map((course) => (
-                          <tr
+                          <ResponsiveCourseCard
                             key={course._id}
-                            className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group"
-                          >
-                            <td className="p-6">
-                              <div className="relative">
-                                <img
-                                  src={course.thumbnail}
-                                  alt={course.title}
-                                  className="w-12 h-12 rounded-xl object-cover shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                                />
-                                <div
-                                  className={`absolute -top-1 -right-1 w-4 h-4 shadow-sm ${
-                                    course.status === "Active"
-                                      ? "bg-green-500 rounded-full border-2 border-white"
-                                      : "bg-red-500 rounded-full border-2 border-white"
-                                  }`}
-                                ></div>
-                              </div>
-                            </td>
-                            <td className="p-6">
-                              <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
-                                {course.title}
-                              </div>
-                            </td>
-                            <td className="p-6">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                  {course.instructor.name.charAt(0)}
-                                </div>
-                                <span className="text-gray-700 font-medium">
-                                  {course.instructor.name}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="p-6">
-                              <button
-                                onClick={() => handleToggleStatus(course)}
-                                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-                                  course.status === "Active"
-                                    ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                    : "bg-red-100 text-red-700 hover:bg-red-200"
-                                }`}
+                            course={course}
+                            onView={handleView}
+                            onEdit={handleEditCourse}
+                            onAddStudent={handleAddEnrolledStudent}
+                            onDelete={handleDeleteCourse}
+                            onToggleStatus={handleToggleStatus}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50">
+                            {TABLE_HEAD.map((head, index) => (
+                              <th
+                                key={head}
+                                className="p-6 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 cursor-pointer"
                               >
-                                {course.status}
-                              </button>
-                            </td>
-                            <td className="p-6">
-                              <div className="flex items-center gap-2">
-                                <Users size={16} className="text-blue-500" />
-                                <span className="font-semibold text-gray-700">
-                                  {course.enrolledUsers.length}
+                                <div className="flex items-center justify-between gap-2">
+                                  {head}
+                                  {index !== TABLE_HEAD.length - 1 && (
+                                    <ChevronUp
+                                      size={16}
+                                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    />
+                                  )}
+                                </div>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100/50">
+                          {currentItems.map((course) => (
+                            <tr
+                              key={course._id}
+                              className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group"
+                            >
+                              <td className="p-6">
+                                <div className="relative">
+                                  <img
+                                    src={course.thumbnail}
+                                    alt={course.title}
+                                    className="w-12 h-12 rounded-xl object-cover shadow-lg group-hover:shadow-xl transition-shadow duration-300"
+                                  />
+                                  <div
+                                    className={`absolute -top-1 -right-1 w-4 h-4 shadow-sm ${
+                                      course.status === "Active"
+                                        ? "bg-green-500 rounded-full border-2 border-white"
+                                        : "bg-red-500 rounded-full border-2 border-white"
+                                    }`}
+                                  ></div>
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
+                                  {course.title}
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {course.instructor.name.charAt(0)}
+                                  </div>
+                                  <span className="text-gray-700 font-medium">
+                                    {course.instructor.name}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <button
+                                  onClick={() => handleToggleStatus(course)}
+                                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                                    course.status === "Active"
+                                      ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                      : "bg-red-100 text-red-700 hover:bg-red-200"
+                                  }`}
+                                >
+                                  {course.status}
+                                </button>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex items-center gap-2">
+                                  <Users size={16} className="text-blue-500" />
+                                  <span className="font-semibold text-gray-700">
+                                    {course.enrolledUsers.length}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
+                                  {course.duration.totalHours || "N/A"} Hours
                                 </span>
-                              </div>
-                            </td>
-                            <td className="p-6">
-                              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
-                                {course.duration.totalHours || "N/A"} Hours
-                              </span>
-                            </td>
-                            <td className="p-6">
-                              <span className="text-gray-600 font-medium">
-                                {new Date(course.createdAt).toLocaleDateString(
-                                  "en-US",
-                                  {
+                              </td>
+                              <td className="p-6">
+                                <span className="text-gray-600 font-medium">
+                                  {new Date(
+                                    course.createdAt
+                                  ).toLocaleDateString("en-US", {
                                     day: "2-digit",
                                     month: "short",
                                     year: "numeric",
-                                  }
-                                )}
-                              </span>
-                            </td>
-                            <td className="p-6">
-                              <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-                                <button
-                                  className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
-                                  onClick={() => handleView(course)}
-                                >
-                                  <Eye size={16} />
-                                </button>
-                                <button
-                                  className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
-                                  onClick={() => handleEditCourse(course)}
-                                >
-                                  <Pencil size={16} />
-                                </button>
-                                <button
-                                  className="p-2 rounded-xl hover:bg-green-100 text-gray-500 hover:text-green-600 transition-all duration-300"
-                                  onClick={() =>
-                                    handleAddEnrolledStudent(course)
-                                  }
-                                >
-                                  <UserPlus size={16} />
-                                </button>
-                                <button
-                                  className="p-2 rounded-xl hover:bg-red-100 text-gray-500 hover:text-red-600 transition-all duration-300"
-                                  onClick={() => openDeleteModal(course)}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                                  })}
+                                </span>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
+                                    onClick={() => handleView(course)}
+                                  >
+                                    <Eye size={16} />
+                                  </button>
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
+                                    onClick={() => handleEditCourse(course)}
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-green-100 text-gray-500 hover:text-green-600 transition-all duration-300"
+                                    onClick={() =>
+                                      handleAddEnrolledStudent(course)
+                                    }
+                                  >
+                                    <UserPlus size={16} />
+                                  </button>
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-red-100 text-gray-500 hover:text-red-600 transition-all duration-300"
+                                    onClick={() => openDeleteModal(course)}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 {/* Enhanced Footer */}

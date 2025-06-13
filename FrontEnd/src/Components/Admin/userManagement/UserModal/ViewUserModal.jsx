@@ -13,7 +13,7 @@ const ViewUserModal = ({ show, onClose, user }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-40 flex justify-center items-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl relative z-50 max-h-[95vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl relative z-50 max-h-[95vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 relative">
           <h3 className="text-xl md:text-2xl font-bold text-center">User Details</h3>

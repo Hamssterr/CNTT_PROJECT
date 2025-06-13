@@ -62,7 +62,7 @@ const UserManagement = () => {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [viewMode, setViewMode] = useState("cards");
+  const [viewMode, setViewMode] = useState("table");
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -474,7 +474,7 @@ const UserManagement = () => {
         <NavbarAdmin />
       </div>
       <div className=" flex flex-1">
-        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[10px]">
           <SidebarAdmin />
         </div>
 
@@ -580,7 +580,7 @@ const UserManagement = () => {
             <div className="space-y-4 lg:space-y-0 lg:flex lg:items-center lg:justify-between lg:gap-6">
               {/* Tabs - Scrollable on mobile */}
               <div className="flex gap-1 lg:gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-1 lg:p-2 overflow-x-auto">
-                {(window.innerWidth < 1024 ? TABS.slice(0, 5) : TABS).map(
+                {(window.innerWidth < 1024 ? TABS.slice(0, 6) : TABS).map(
                   ({ label, value }) => (
                     <button
                       key={value}
@@ -726,14 +726,10 @@ const UserManagement = () => {
               />
 
               <div className="bg-white rounded-xl shadow-md border border-gray-200">
-                {/* Mobile Card View (default) / Desktop responsive view */}
-                <div
-                  className={`${
-                    viewMode === "table" ? "hidden lg:block" : "block lg:hidden"
-                  }`}
-                >
-                  <div className=" p-4">
-                    <div className=" grid gap-4">
+                {/* Mobile Card View (default) */}
+                <div className="block lg:hidden">
+                  <div className="p-4">
+                    <div className="grid gap-4">
                       {currentItems.map((user) => (
                         <ResponsiveUserCard
                           key={user._id}
@@ -747,113 +743,119 @@ const UserManagement = () => {
                   </div>
                 </div>
 
-                {/* Desktop Table View */}
-                <div
-                  className={`${
-                    viewMode === "cards"
-                      ? "hidden lg:block"
-                      : "hidden lg:hidden"
-                  } lg:block`}
-                >
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50">
-                          {TABLE_HEAD.map((head, index) => (
-                            <th
-                              key={head}
-                              className="p-6 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 cursor-pointer"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                {head}
-                                {index !== TABLE_HEAD.length - 1 && (
-                                  <ChevronUp
-                                    size={16}
-                                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                                  />
-                                )}
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100/50">
+                {/* Desktop View */}
+                <div className="hidden lg:block">
+                  {viewMode === "cards" ? (
+                    <div className="p-4">
+                      <div className="grid gap-4">
                         {currentItems.map((user) => (
-                          <tr
+                          <ResponsiveUserCard
                             key={user._id}
-                            className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group"
-                          >
-                            <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={
-                                    user.profileImage ||
-                                    "https://res.cloudinary.com/df9ibpz4g/image/upload/v1743752097/uploads/3.png"
-                                  }
-                                  alt={user.name}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                                <div className="flex flex-col">
-                                  <span className="text-sm text-gray-800 font-medium">
-                                    {user.lastName + " "}
-                                    {user.firstName}
-                                  </span>
-                                  <span className="text-sm text-gray-500">
-                                    {user.email}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-
-                            <td className="p-4">
-                              <span className="text-gray-600 font-medium">
-                                {new Date(user.createdAt).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  }
-                                )}
-                              </span>
-                            </td>
-
-                            <td className="p-4">
-                              <span className="text-sm text-gray-800">
-                                {user.role
-                                  ? user.role.charAt(0).toUpperCase() +
-                                    user.role.slice(1).toLowerCase()
-                                  : "Unknown"}
-                              </span>
-                            </td>
-
-                            <td className="p-4">
-                              <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-                                <button
-                                  className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
-                                  onClick={() => handleView(user)}
-                                >
-                                  <Eye size={16} />
-                                </button>
-                                <button
-                                  className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
-                                  onClick={() => handleUpdate(user)}
-                                >
-                                  <Pencil size={16} />
-                                </button>
-                                <button
-                                  className="p-2 rounded-xl hover:bg-red-100 text-gray-500 hover:text-red-600 transition-all duration-300"
-                                  onClick={() => handleDelete(user)}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
+                            user={user}
+                            onView={handleView}
+                            onEdit={handleUpdate}
+                            onDelete={handleDelete}
+                          />
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50">
+                            {TABLE_HEAD.map((head, index) => (
+                              <th
+                                key={head}
+                                className="p-6 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  {head}
+                                  {index !== TABLE_HEAD.length - 1 && (
+                                    <ChevronUp
+                                      size={16}
+                                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    />
+                                  )}
+                                </div>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100/50">
+                          {currentItems.map((user) => (
+                            <tr
+                              key={user._id}
+                              className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group"
+                            >
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={
+                                      user.profileImage ||
+                                      "https://res.cloudinary.com/df9ibpz4g/image/upload/v1743752097/uploads/3.png"
+                                    }
+                                    alt={user.name}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="text-sm text-gray-800 font-medium">
+                                      {user.lastName + " "} {user.firstName}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                      {user.email}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <span className="text-gray-600 font-medium">
+                                  {new Date(user.createdAt).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    }
+                                  )}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <span className="text-sm text-gray-800">
+                                  {user.role
+                                    ? user.role.charAt(0).toUpperCase() +
+                                      user.role.slice(1).toLowerCase()
+                                    : "Unknown"}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
+                                    onClick={() => handleView(user)}
+                                  >
+                                    <Eye size={16} />
+                                  </button>
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
+                                    onClick={() => handleUpdate(user)}
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-red-100 text-gray-500 hover:text-red-600 transition-all duration-300"
+                                    onClick={() => handleDelete(user)}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 {/* Enhanced Footer */}
@@ -868,7 +870,7 @@ const UserManagement = () => {
                     <span className="text-gray-900 font-semibold">
                       {filterUsers.length}
                     </span>{" "}
-                    courses
+                    users {/* Sửa từ "courses" thành "users" */}
                   </div>
                   <div className="flex items-center gap-2 lg:gap-3 order-1 sm:order-2">
                     <button

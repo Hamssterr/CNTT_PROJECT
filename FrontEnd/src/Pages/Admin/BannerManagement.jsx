@@ -55,7 +55,7 @@ const BannerManagement = () => {
   const [selectedBanner, setSelectedBanner] = useState(null);
 
   const [activeTab, setActiveTab] = useState("all");
-  const [viewMode, setViewMode] = useState("cards");
+  const [viewMode, setViewMode] = useState("table");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -278,7 +278,7 @@ const BannerManagement = () => {
         <NavbarAdmin />
       </div>
       <div className=" flex flex-1">
-        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[10px]">
           <SidebarAdmin />
         </div>
 
@@ -486,12 +486,8 @@ const BannerManagement = () => {
 
               {/* Content Area */}
               <div className="bg-white rounded-xl shadow-md border border-gray-200">
-                {/* Mobile Card View (default) / Desktop responsive view */}
-                <div
-                  className={`${
-                    viewMode === "table" ? "hidden lg:block" : "block lg:hidden"
-                  }`}
-                >
+                {/* Mobile Card View (default) */}
+                <div className="block lg:hidden">
                   <div className="p-4">
                     <div className="grid gap-4">
                       {currentItems.map((banner) => (
@@ -507,115 +503,121 @@ const BannerManagement = () => {
                   </div>
                 </div>
 
-                {/* Desktop Table View */}
-                <div
-                  className={`${
-                    viewMode === "cards"
-                      ? "hidden lg:block"
-                      : "hidden lg:hidden"
-                  } lg:block`}
-                >
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50">
-                          {TABLE_HEAD.map((head, index) => (
-                            <th
-                              key={head}
-                              className="p-6 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 cursor-pointer"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                {head}
-                                {index !== TABLE_HEAD.length - 1 && (
-                                  <ChevronUp
-                                    size={16}
-                                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                                  />
-                                )}
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100/50">
+                {/* Desktop View */}
+                <div className="hidden lg:block">
+                  {viewMode === "cards" ? (
+                    <div className="p-4">
+                      <div className="grid gap-4">
                         {currentItems.map((banner) => (
-                          <tr
+                          <ResponsiveBannerCard
                             key={banner._id}
-                            className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group"
-                          >
-                            <td className="p-6">
-                              <div className="relative">
-                                <img
-                                  src={banner.backgroundImage}
-                                  alt={banner.title}
-                                  className="w-12 h-12 rounded-xl object-cover shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                                />
-                              </div>
-                            </td>
-                            <td className="p-6">
-                              <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
-                                {banner.title}
-                              </div>
-                            </td>
-
-                            <td className="p-6">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-gray-700">
-                                  {banner.bannerId?.title || "N/A"}
-                                </span>
-                              </div>
-                            </td>
-
-                            <td className="p-6">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-gray-700">
-                                  {banner.number}
-                                </span>
-                              </div>
-                            </td>
-
-                            <td className="p-6">
-                              <span className="text-gray-600 font-medium">
-                                {new Date(banner.createdAt).toLocaleDateString(
-                                  "en-US",
-                                  {
+                            banner={banner}
+                            onView={handleViewDetails}
+                            onEdit={handleEditBanner}
+                            onDelete={handleDeleteClick}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50">
+                            {TABLE_HEAD.map((head, index) => (
+                              <th
+                                key={head}
+                                className="p-6 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  {head}
+                                  {index !== TABLE_HEAD.length - 1 && (
+                                    <ChevronUp
+                                      size={16}
+                                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                                    />
+                                  )}
+                                </div>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100/50">
+                          {currentItems.map((banner) => (
+                            <tr
+                              key={banner._id}
+                              className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group"
+                            >
+                              <td className="p-6">
+                                <div className="relative">
+                                  <img
+                                    src={banner.backgroundImage}
+                                    alt={banner.title}
+                                    className="w-12 h-12 rounded-xl object-cover shadow-lg group-hover:shadow-xl transition-shadow duration-300"
+                                  />
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
+                                  {banner.title}
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-gray-700">
+                                    {banner.bannerId?.title || "N/A"}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-gray-700">
+                                    {banner.number}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <span className="text-gray-600 font-medium">
+                                  {new Date(
+                                    banner.createdAt
+                                  ).toLocaleDateString("en-US", {
                                     day: "2-digit",
                                     month: "short",
                                     year: "numeric",
-                                  }
-                                )}
-                              </span>
-                            </td>
-                            <td className="p-6">
-                              <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-                                <button
-                                  className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
-                                  onClick={() => handleViewDetails(banner)}
-                                >
-                                  <Eye size={16} />
-                                </button>
-                                <button
-                                  className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
-                                  onClick={() => handleEditBanner(banner)}
-                                >
-                                  <Pencil size={16} />
-                                </button>
-                                <button
-                                  className="p-2 rounded-xl hover:bg-red-100 text-gray-500 hover:text-red-600 transition-all duration-300"
-                                  onClick={() => {
-                                    setBannerToDelete(banner);
-                                    setShowDeleteModal(true);
-                                  }}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                                  })}
+                                </span>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
+                                    onClick={() => handleViewDetails(banner)}
+                                  >
+                                    <Eye size={16} />
+                                  </button>
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-all duration-300"
+                                    onClick={() => handleEditBanner(banner)}
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    className="p-2 rounded-xl hover:bg-red-100 text-gray-500 hover:text-red-600 transition-all duration-300"
+                                    onClick={() => {
+                                      setBannerToDelete(banner);
+                                      setShowDeleteModal(true);
+                                    }}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 {/* Enhanced Footer */}
@@ -632,7 +634,6 @@ const BannerManagement = () => {
                     </span>{" "}
                     banners
                   </div>
-
                   <div className="flex items-center gap-2 lg:gap-3 order-1 sm:order-2">
                     <button
                       className="px-3 lg:px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"

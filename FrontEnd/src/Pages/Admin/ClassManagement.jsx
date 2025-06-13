@@ -357,7 +357,7 @@ const ClassManagement = () => {
         <NavbarAdmin />
       </div>
       <div className="flex flex-1">
-        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[280px]">
+        <div className="fixed top-[70px] left-0 bottom-0 z-40 w-[10px]">
           <SidebarAdmin />
         </div>
         <main className="flex-1 p-3 sm:p-5 md:ml-30 mt-[60px]">
