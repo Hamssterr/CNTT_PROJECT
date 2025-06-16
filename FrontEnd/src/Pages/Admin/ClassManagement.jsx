@@ -528,26 +528,6 @@ const ClassManagement = () => {
                         size={16}
                       />
                     </div>
-                    <div className="flex flex-wrap gap-2 sm:justify-start">
-                      {TABS.map(({ label, value, icon: Icon }) => (
-                        <button
-                          key={value}
-                          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-blue-100 bg-blue-500/20 rounded-lg sm:rounded-xl hover:bg-blue-500/30 transition-all"
-                        >
-                          <Icon size={14} className="sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">{label}</span>
-                          <span className="sm:hidden">
-                            {label.split(" ")[0]}
-                          </span>
-                        </button>
-                      ))}
-                      <button className="p-2 sm:p-2.5 text-blue-100 bg-blue-500/20 rounded-lg sm:rounded-xl hover:bg-blue-500/30 transition-all">
-                        <Filter size={14} className="sm:w-4 sm:h-4" />
-                      </button>
-                      <button className="p-2 sm:p-2.5 text-blue-100 bg-blue-500/20 rounded-lg sm:rounded-xl hover:bg-blue-500/30 transition-all">
-                        <Download size={14} className="sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
