@@ -958,7 +958,7 @@ export const getUser = async (req, res) => {
     const userId = req.params.id;
     const user = await User.findById(userId)
       .populate("parents.id", "firstName lastName phoneNumber email") // Populate thông tin parent
-      .populate("children.id", "firstName lastName phoneNumber"); // Populate thông tin children
+      .populate("children.id", "firstName lastName phoneNumber profileImage"); // Populate thông tin children
 
     if (!user) {
       return res.status(404).json({
