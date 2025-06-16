@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Settings,
   LogOut,
+  Users,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logo_2.png";
@@ -107,12 +108,18 @@ const Navbar = () => {
       label: "Time Table",
       description: "Class Schedule",
     },
-    {
-      path: "/student/tuition",
-      icon: Wallet,
-      label: "Tuition",
-      description: "Payment & Fees",
+     {
+      path: "/student/lecture-materials",
+      icon: Users,
+      label: ["Lecture", "Materials"],
+      singleLine: false,
     },
+    // {
+    //   path: "/student/tuition",
+    //   icon: Wallet,
+    //   label: "Tuition",
+    //   description: "Payment & Fees",
+    // },
   ];
 
   // Enhanced mobile menu styles

@@ -14,12 +14,12 @@ const Sidebar = () => {
       label: "Time Table",
       singleLine: true,
     },
-    {
-      path: "/student/tuition",
-      icon: Wallet,
-      label: "Tuition",
-      singleLine: true,
-    },
+    // {
+    //   path: "/student/tuition",
+    //   icon: Wallet,
+    //   label: "Tuition",
+    //   singleLine: true,
+    // },
     {
       path: "/student/lecture-materials",
       icon: Users,
