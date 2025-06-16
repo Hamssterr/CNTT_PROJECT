@@ -350,26 +350,33 @@ const TimeTableManagementForParent = () => {
     return <Loading />;
   }
 
-  return (
-    <div className="w-full min-h-screen bg-gray-100 p-4 md:p-6">
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">
-        Children's Timetable
-      </h2>
+    return (
+    <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
+      {/* Header Section */}
+      <div className="mb-8">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+            Children's Timetable
+          </span>
+        </h2>
+        <p className="mt-2 text-gray-600">Manage and view your children's class schedules</p>
+      </div>
 
       {children.length > 0 ? (
         <>
-          <div className="mb-6 bg-white p-4 rounded-lg shadow">
+          {/* Child Selector */}
+          <div className="mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
             <label
               htmlFor="childSelector"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Select Child:
+              Select Child
             </label>
             <select
               id="childSelector"
               value={selectedChildId}
               onChange={handleChildChange}
-              className="w-full md:w-1/2 lg:w-1/3 p-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              className="w-full md:w-1/2 lg:w-1/3 p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             >
               {children.map((child) => (
                 <option key={child.id} value={child.id}>
@@ -381,11 +388,13 @@ const TimeTableManagementForParent = () => {
 
           {selectedChildId && selectedChildTimetable.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
-                <div>
+              {/* Filters Section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Category Filter */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
                   <label
                     htmlFor="categoryFilter"
-                    className="block text-xs font-medium text-gray-600 mb-1"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
                   >
                     Category
                   </label>
@@ -393,7 +402,7 @@ const TimeTableManagementForParent = () => {
                     id="categoryFilter"
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    className="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     disabled={availableCategories.length <= 1}
                   >
                     {availableCategories.map((category) => (
@@ -403,10 +412,12 @@ const TimeTableManagementForParent = () => {
                     ))}
                   </select>
                 </div>
-                <div>
+
+                {/* Level Filter */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
                   <label
                     htmlFor="levelFilter"
-                    className="block text-xs font-medium text-gray-600 mb-1"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
                   >
                     Level
                   </label>
@@ -414,7 +425,7 @@ const TimeTableManagementForParent = () => {
                     id="levelFilter"
                     value={selectedLevel}
                     onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    className="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     disabled={availableLevels.length <= 1}
                   >
                     {availableLevels.map((level) => (
@@ -424,10 +435,12 @@ const TimeTableManagementForParent = () => {
                     ))}
                   </select>
                 </div>
-                <div>
+
+                {/* Status Filter */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
                   <label
                     htmlFor="statusFilter"
-                    className="block text-xs font-medium text-gray-600 mb-1"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
                   >
                     Course Status
                   </label>
@@ -435,7 +448,7 @@ const TimeTableManagementForParent = () => {
                     id="statusFilter"
                     value={selectedDayFilter}
                     onChange={(e) => setSelectedDayFilter(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    className="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   >
                     <option value="all">All Courses</option>
                     <option value="upcoming">Upcoming Courses</option>
@@ -444,81 +457,84 @@ const TimeTableManagementForParent = () => {
                 </div>
               </div>
 
+              {/* Courses Grid */}
               {Object.keys(groupedTimetableByDay).length > 0 ? (
                 <div className="space-y-8">
-                  {Object.entries(groupedTimetableByDay).map(
-                    ([day, courses]) => (
-                      <div key={day} className="bg-white p-4 rounded-lg shadow">
-                        <h3 className="text-xl font-semibold text-indigo-600 mb-4 border-b pb-2">
-                          {day}
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {courses.map((course) => (
-                            <div
-                              key={course.id}
-                              className="p-4 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer bg-gray-50 hover:bg-indigo-50"
-                              onClick={() => handleViewDetails(course)}
-                              role="button"
-                              tabIndex={0}
-                              onKeyPress={(e) =>
-                                e.key === "Enter" && handleViewDetails(course)
-                              }
-                            >
-                              <h4 className="text-md font-semibold text-gray-800 mb-1">
+                  {Object.entries(groupedTimetableByDay).map(([day, courses]) => (
+                    <div key={day} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                      <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span className="w-2 h-6 bg-indigo-500 rounded-full mr-3"></span>
+                        {day}
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {courses.map((course) => (
+                          <div
+                            key={course.id}
+                            className="group p-5 rounded-xl border border-gray-100 hover:shadow-lg hover:border-indigo-100 transition-all duration-300 cursor-pointer bg-white hover:bg-gradient-to-br hover:from-indigo-50 hover:to-white"
+                            onClick={() => handleViewDetails(course)}
+                            role="button"
+                            tabIndex={0}
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <h4 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
                                 {course.courseTitle}
                               </h4>
-                              <p className="text-sm text-gray-600">
+                              <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-600 rounded-full">
+                                {course.level}
+                              </span>
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600 flex items-center">
+                                <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
                                 {course.timing}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {course.roomNumber} - {course.instructor}
+                              <p className="text-sm text-gray-600 flex items-center">
+                                <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                {course.roomNumber}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Date: {course.nextClassDay}
+                              <p className="text-sm text-gray-600 flex items-center">
+                                <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                {course.instructor}
                               </p>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleViewDetails(course);
-                                }}
-                                className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-                              >
-                                View Details →
-                              </button>
                             </div>
-                          ))}
-                        </div>
+                            <button
+                              className="mt-4 w-full py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg font-medium transition-colors duration-200"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDetails(course);
+                              }}
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    )
-                  )}
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <div className="text-center py-10 bg-white p-4 rounded-lg shadow">
-                  <p className="text-gray-500 text-lg">
-                    {selectedDayFilter === "upcoming"
-                      ? "No upcoming courses available for "
-                      : selectedDayFilter === "ongoing"
-                      ? "No ongoing courses available for "
-                      : "No timetable entries match your current filter selection for "}
-                    {children.find((c) => c.id === selectedChildId)?.name}.
-                  </p>
+                <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12a4 4 0 100-8 4 4 0 000 8z" />
+                  </svg>
+                  <p className="mt-4 text-gray-500 text-lg">No courses match your current filters.</p>
                 </div>
               )}
             </>
-          ) : selectedChildId && selectedChildTimetable.length === 0 ? (
-            <div className="text-center py-10 bg-white p-4 rounded-lg shadow">
-              <p className="text-gray-500 text-lg">
-                {children.find((c) => c.id === selectedChildId)?.name} currently
-                has no timetable entries.
-              </p>
-            </div>
           ) : null}
         </>
       ) : (
-        <div className="text-center py-10 bg-white p-4 rounded-lg shadow">
-          <p className="text-gray-500 text-lg">
-            No children found in the system.
-          </p>
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <p className="mt-4 text-gray-500 text-lg">No children found in the system.</p>
         </div>
       )}
 

@@ -9,7 +9,7 @@ const Sidebar = () => {
   const sidebarItems = [
     { path: "/parent/dashboard", icon: Home, label: "Home" },
     { path: "/parent/timetable", icon: Calendar, label: "Time Table" },
-    { path: "/parent/tuition", icon: Wallet, label: "Tuition" },
+    // { path: "/parent/tuition", icon: Wallet, label: "Tuition" },
     { path: "/parent/children-management", icon: Smile , label: "Children" },
   ];
 

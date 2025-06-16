@@ -122,7 +122,6 @@ const LoginPage = () => {
         },
       ]);
     } catch (error) {
-      console.error("Error getting AI response:", error);
       setChatMessages((prev) => [
         ...prev,
         {
@@ -174,7 +173,6 @@ const LoginPage = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      console.error("Login error:", error.response?.data);
       toast.error(
         error.response?.data?.message ||
           "Something went wrong. Please try again."

@@ -67,7 +67,7 @@ const Navbar = () => {
       const { data } = await axios.get(`${backendUrl}/api/parent/profile`);
 
       if (data.success) {
-        setParentImage(data.data.profileImage || profileImage);
+        setParentImage(data.data.profileImage || userImage);
       }
     } catch (error) {
       console.error("Failed to fetch consultant data:", error);
@@ -124,12 +124,12 @@ const Navbar = () => {
       label: "Time Table",
       description: "Class Schedule",
     },
-    {
-      path: "/parent/tuition",
-      icon: Wallet,
-      label: "Tuition",
-      description: "Payment & Fees",
-    },
+    // {
+    //   path: "/parent/tuition",
+    //   icon: Wallet,
+    //   label: "Tuition",
+    //   description: "Payment & Fees",
+    // },
     {
       path: "/parent/children-management",
       icon: Smile,
@@ -141,7 +141,7 @@ const Navbar = () => {
   return (
     <>
       {/* Enhanced CSS Styles */}
-      <style jsx>{`
+      <style jsx="true">{`
         .mobile-menu-overlay {
           position: fixed;
           top: 0;

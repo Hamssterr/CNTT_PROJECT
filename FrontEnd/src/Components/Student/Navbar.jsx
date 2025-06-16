@@ -145,7 +145,7 @@ const Navbar = () => {
   return (
     <>
       {/* Enhanced CSS Styles */}
-      <style jsx>{`
+      <style jsx="true">{`
         .mobile-menu-overlay {
           position: fixed;
           top: 0;

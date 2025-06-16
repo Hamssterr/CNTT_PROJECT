@@ -20,27 +20,18 @@ const ChildrenManagementForParent = () => {
       setLoading(true);
       axios.defaults.withCredentials = true;
 
-      console.log(
-        "Fetching children data from:",
-        `${backendUrl}/api/parent/getDataChildrenForParent`
-      );
       const response = await axios.get(
         `${backendUrl}/api/parent/getDataChildrenForParent`
       );
       const { data } = response;
 
-      console.log("API Response:", data);
-
       if (data.success && Array.isArray(data.data)) {
         setChildrenData(data.data);
-        console.log("Updated childrenData:", data.data);
       } else {
         setChildrenData([]);
-        console.log("No children found or invalid data:", data);
         toast.error(data.message || "No children found");
       }
     } catch (error) {
-      console.error("Error fetching children data:", error.response || error);
       toast.error(
         error.response?.data?.message || "Failed to load children data"
       );
@@ -51,7 +42,6 @@ const ChildrenManagementForParent = () => {
 
   const fetchChildClasses = async (childId) => {
     try {
-      console.log("Fetching classes for child ID:", childId);
       const response = await axios.get(
         `${backendUrl}/api/parent/getClassWithHaveChildren`,
         {
@@ -61,18 +51,13 @@ const ChildrenManagementForParent = () => {
       );
       const { data } = response;
 
-      console.log("API Response (Classes):", data);
-
       if (data.success && Array.isArray(data.data)) {
         setChildClasses(data.data);
-        console.log("Updated childClasses:", data.data);
       } else {
         setChildClasses([]);
-        console.log("No classes found for child:", data);
         toast.error(data.message || "No classes found for this child");
       }
     } catch (error) {
-      console.error("Error fetching child classes:", error.response || error);
       toast.error(error.response?.data?.message || "Failed to load class data");
       setChildClasses([]);
     }
@@ -104,9 +89,18 @@ const ChildrenManagementForParent = () => {
 
   return (
     <div className="w-full min-h-screen bg-gray-50/50 p-4 md:p-6">
-      <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-800">
+      {/* <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-gray-800">
         My Children
-      </h2>
+      </h2> */}
+
+      <div className="mb-8">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+            My Children
+          </span>
+        </h2>
+        <p className="mt-2 text-gray-600">Manage and view your children's</p>
+      </div>
 
       {loading ? (
         <div>
@@ -148,9 +142,13 @@ const ChildrenManagementForParent = () => {
             >
               <div className="flex flex-col items-center mb-4">
                 <img
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    `${child.firstName} ${child.lastName}`
-                  )}&background=random&color=fff&size=100&font-size=0.5&bold=true`}
+                  src={
+                    child.profileImage
+                      ? child.profileImage
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          `${child.firstName} ${child.lastName}`
+                        )}&background=random&color=fff&size=100&font-size=0.5&bold=true`
+                  }
                   alt={`${child.firstName}'s profile`}
                   className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-blue-200 group-hover:border-blue-400 transition-all duration-300 shadow-md"
                 />
