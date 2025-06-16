@@ -409,7 +409,10 @@ const Navbar = () => {
           </button>
 
           {/* Enhanced Logo */}
-          <Link to="/academic-finance/dashboard" className="flex items-center group">
+          <Link
+            to="/academic-finance/dashboard"
+            className="flex items-center group"
+          >
             <div className="relative">
               <img
                 src={logo}
@@ -432,20 +435,6 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Enhanced Search Bar (Optional) */}
-        <div className="hidden lg:flex flex-grow mx-6 min-w-0 max-w-md relative z-10">
-          <div className="relative w-full group">
-            <input
-              type="text"
-              placeholder="Search students, payments..."
-              className="w-full h-11 py-3 px-5 pl-12 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 shadow-sm hover:shadow-md text-gray-700 placeholder-gray-400"
-            />
-            <Search
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-green-500 transition-colors duration-300"
-              size={18}
-            />
-          </div>
-        </div>
 
         {/* Enhanced Right Menu */}
         <div className="flex items-center gap-4 md:gap-6 text-gray-500 relative z-10">
