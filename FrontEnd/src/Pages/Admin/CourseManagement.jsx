@@ -10,7 +10,7 @@ import {
   BookOpen,
   Calendar,
   Users,
-  Filter, // Added Filter icon
+  RotateCw , // Added Filter icon
 } from "lucide-react";
 import { AppContext } from "../../context/AppContext";
 import { toast } from "react-toastify";
@@ -402,6 +402,23 @@ const Course = () => {
     }
   };
 
+  const handleReloadCourseData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post(`${backendUrl}/api/admin/sync`);
+
+      toast.success(
+        response.data.message || "Course data reloaded successfully"
+      );
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to reload course data"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const coursesThisMonth = useMemo(() => {
     if (!Array.isArray(courseData)) return 0;
 
@@ -635,6 +652,17 @@ const Course = () => {
                     </div>
                   </button>
                 </div>
+
+                {/* Refresh Button - Updated styling */}
+                <button
+                  className="hidden lg:flex items-center justify-center w-13 h-13 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl hover:bg-white/30 transition-all duration-300"
+                  onClick={() => handleReloadCourseData()}
+                >
+                  <RotateCw
+                    size={20}
+                    className={`text-white/70 ${loading ? 'animate-spin' : 'hover:text-white'} transition-colors`}
+                  />
+                </button>
               </div>
             </div>
           </div>

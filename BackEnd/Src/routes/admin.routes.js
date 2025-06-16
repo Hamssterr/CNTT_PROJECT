@@ -29,6 +29,7 @@ import {
   removeEnrollStudent,
   changeCourseEnrollStudent,
   registerEnrollStudentById,
+  syncAllCourses,
 } from "../controller/course.controller.js";
 
 import {
@@ -98,6 +99,8 @@ router.get("/checkParent/:phoneNumber", verifyAdmin, checkParent);
 router.get("/getStudents", verifyAdmin, getStudents);
 
 // Course
+router.post('/sync', verifyAdmin, syncAllCourses);
+
 router.get("/getCourse", verifyAdmin, getAllCourse);
 
 router.post(

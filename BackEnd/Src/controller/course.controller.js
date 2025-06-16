@@ -928,3 +928,90 @@ export const getRegistration = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// Refresh all courses and update information 
+export const syncAllCourses = async (req, res) => {
+    try {
+    // Lấy tất cả courses từ database
+    const courses = await Course.find();
+
+    if (!courses || courses.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No courses found',
+      });
+    }
+
+    let updatedCount = 0;
+
+    // Duyệt qua từng course để cập nhật
+    for (let course of courses) {
+      let isUpdated = false;
+
+      // Kiểm tra nếu course có instructor
+      if (course.instructor && course.instructor.id) {
+        // Validate instructor ID
+        if (!mongoose.isValidObjectId(course.instructor.id)) {
+          console.warn(`Invalid instructor ID in course: ${course._id}`);
+          continue;
+        }
+
+        // Lấy thông tin mới nhất của instructor từ User
+        const instructorDoc = await User.findById(course.instructor.id).select('name profileImage');
+
+        if (!instructorDoc) {
+          console.warn(`Instructor not found for course: ${course._id}`);
+          continue;
+        }
+
+        // So sánh và cập nhật thông tin instructor
+        const newInstructorData = {
+          id: instructorDoc._id.toString(),
+          name: instructorDoc.name || course.instructor.name || '',
+          profileImage: instructorDoc.profileImage || '',
+        };
+
+        // Kiểm tra nếu có sự thay đổi trong instructor data
+        if (
+          newInstructorData.name !== course.instructor.name ||
+          newInstructorData.profileImage !== course.instructor.profileImage
+        ) {
+          course.instructor = newInstructorData;
+          isUpdated = true;
+        }
+      }
+
+      // Nếu có thay đổi, cập nhật course
+      if (isUpdated) {
+        course.updatedAt = new Date();
+        await course.save();
+        updatedCount++;
+
+        // Tạo thông báo nếu instructor được cập nhật
+        if (course.instructor && course.instructor.id) {
+          const notification = new Notification({
+            userId: course.instructor.id,
+            type: 'info',
+            title: 'Course Information Updated',
+            message: `Your information has been updated in the course: ${course.title}`,
+            sender: 'Admin',
+          });
+          await notification.save();
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Sync completed. Updated ${updatedCount} courses.`,
+      totalCourses: courses.length,
+    });
+
+  } catch (err) {
+    console.error('Sync Courses Error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+}
