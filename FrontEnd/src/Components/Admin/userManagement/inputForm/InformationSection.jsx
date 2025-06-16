@@ -99,10 +99,10 @@ const InformationSection = ({ formData, setFormData }) => {
                 </button>
               )}
 
-              {/* Required indicator */}
+              {/* Required indicator
               {field.required && (
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full"></span>
-              )}
+              )} */}
             </div>
 
             {/* Field validation feedback */}
