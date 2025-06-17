@@ -16,7 +16,7 @@ const Navbar = () => {
       </div>
 
       {/* Search bar */}
-      <div className="flex-grow mx-4 min-w-0 max-w-md">
+      {/* <div className="flex-grow mx-4 min-w-0 max-w-md">
         <div className="relative w-full">
           <input
             type="text"
@@ -28,7 +28,7 @@ const Navbar = () => {
             size={25}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Enhanced Login-Signup Buttons */}
       <div className="flex items-center space-x-4 flex-shrink-0">
