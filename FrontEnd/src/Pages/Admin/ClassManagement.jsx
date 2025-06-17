@@ -217,7 +217,6 @@ const ClassManagement = () => {
       return;
     }
     try {
-      setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.get(
         `${backendUrl}/api/admin/getClassesById/${cls._id}`
@@ -269,7 +268,6 @@ const ClassManagement = () => {
   // Handle add student
   const handleAddStudent = async (studentId) => {
     try {
-      setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.post(
         `${backendUrl}/api/admin/registerEnrollStudentById/${selectedClass.courseId._id}`,

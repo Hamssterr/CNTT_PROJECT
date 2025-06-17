@@ -207,7 +207,6 @@ const ClassTableList = () => {
       return;
     }
     try {
-      setLoading(true);
       axios.defaults.withCredentials = true;
       const response = await axios.get(
         `${backendUrl}/api/admin/getClassesById/${cls._id}`
@@ -519,23 +518,6 @@ const ClassTableList = () => {
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-100"
                 size={20}
               />
-            </div>
-            <div className="flex gap-2">
-              {TABS.map(({ label, value, icon: Icon }) => (
-                <button
-                  key={value}
-                  className="px-6 py-3 text-sm font-medium text-blue-100 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-all flex items-center gap-2"
-                >
-                  <Icon size={16} />
-                  {label}
-                </button>
-              ))}
-              <button className="p-3 text-blue-100 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-all">
-                <Filter size={16} />
-              </button>
-              <button className="p-3 text-blue-100 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-all">
-                <Download size={16} />
-              </button>
             </div>
           </div>
         </div>

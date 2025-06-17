@@ -168,7 +168,7 @@ function TuitionAndPayment() {
           text: "Payment status updated successfully",
           icon: "success",
           timer: 1500,
-          showConfirmButton: false,
+          showConfirmButton: true,
         });
       } else {
         Swal.fire(

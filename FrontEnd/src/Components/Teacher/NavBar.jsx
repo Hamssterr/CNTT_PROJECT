@@ -52,38 +52,27 @@ const Navbar = () => {
   // Enhanced sidebar items with descriptions
   const sidebarItems = [
     {
-      path: "/teacher/dashboard",
-      icon: Home,
-      label: "Dashboard",
-      description: "Overview & Analytics",
+      path: "/teacher/notification",
+      icon: BookOpen,
+      label: "Notification",
       singleLine: true,
     },
     {
-      path: "/teacher/class-management",
-      icon: BookOpen,
-      label: "Class Management",
-      description: "Manage Your Classes",
+      path: "/teacher/my-classes",
+      icon: User,
+      label: ["My", "Classes"],
       singleLine: false,
     },
     {
-      path: "/teacher/student-management",
+      path: "/teacher/lecture-materials",
       icon: Users,
-      label: "Student Management",
-      description: "Student Information",
+      label: ["Lecture", "Materials"],
       singleLine: false,
     },
     {
       path: "/teacher/attendance",
       icon: ClipboardList,
       label: "Attendance",
-      description: "Track Attendance",
-      singleLine: true,
-    },
-    {
-      path: "/teacher/profile",
-      icon: User,
-      label: "Profile",
-      description: "Personal Settings",
       singleLine: true,
     },
   ];
@@ -202,7 +191,7 @@ const Navbar = () => {
   const handleMarkAsRead = async (id) => {
     try {
       const { data } = await axios.put(
-        `${backendUrl}/api/teacher/notifications/${id}/read`,
+        `${backendUrl}/api/teacher/${id}/read`,
         {},
         {
           withCredentials: true,
@@ -569,29 +558,39 @@ const Navbar = () => {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full right-0 mt-3 w-96 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50"
+                  className="absolute top-full right-0 mt-3 w-96 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 
+                 md:w-96 sm:w-80 xs:w-72"
                 >
                   <div className="p-4 bg-gradient-to-r from-purple-600 to-indigo-600">
                     <div className="flex items-center justify-between text-white">
-                      <h3 className="text-lg font-semibold">Notifications</h3>
-                      <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-semibold md:text-lg sm:text-base">
+                        Notifications
+                      </h3>
+                      <div className="flex items-center gap-2 md:gap-3">
                         <button
                           onClick={() => navigate("/teacher/notification")}
-                          className="text-xs hover:underline flex items-center gap-1 hover:bg-white/10 px-2 py-1 rounded-lg transition-all duration-200"
+                          className="text-xs hover:underline flex items-center gap-1 hover:bg-white/10 px-2 py-1 rounded-lg transition-all duration-200
+                         md:text-xs sm:text-[10px] sm:px-1.5 sm:py-0.5"
                         >
-                          View All <ArrowRight className="w-3 h-3" />
+                          <span className="hidden sm:inline">View All</span>
+                          <span className="sm:hidden">All</span>
+                          <ArrowRight className="w-3 h-3 sm:w-2.5 sm:h-2.5" />
                         </button>
                         <button
                           onClick={() => setShowNotifications(false)}
-                          className="hover:bg-white/10 p-1.5 rounded-full transition-all duration-200"
+                          className="hover:bg-white/10 p-1.5 rounded-full transition-all duration-200
+                         sm:p-1"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                  <div
+                    className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto
+                      sm:max-h-[300px] xs:max-h-[250px]"
+                  >
                     {notifications.length > 0 ? (
                       notifications.slice(0, 5).map((notif) => (
                         <motion.div
@@ -599,34 +598,41 @@ const Navbar = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3 }}
-                          className={`p-4 hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
-                            !notif.read
-                              ? "bg-purple-50/40 border-l-4 border-l-purple-400"
-                              : ""
-                          }`}
+                          className={`p-4 hover:bg-gray-50 transition-all duration-200 cursor-pointer
+                         sm:p-3 xs:p-2.5 ${
+                           !notif.read
+                             ? "bg-purple-50/40 border-l-4 border-l-purple-400"
+                             : ""
+                         }`}
                           onClick={() =>
                             !notif.read && handleMarkAsRead(notif._id)
                           }
                         >
-                          <div className="flex gap-3">
+                          <div className="flex gap-3 sm:gap-2.5">
                             <div className="relative shrink-0">
                               <div
-                                className={`p-2.5 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md ${
-                                  notif.type === "info"
-                                    ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600"
-                                    : notif.type === "success"
-                                    ? "bg-gradient-to-br from-green-100 to-green-200 text-green-600"
-                                    : notif.type === "warning"
-                                    ? "bg-gradient-to-br from-yellow-100 to-yellow-200 text-yellow-600"
-                                    : notif.type === "error"
-                                    ? "bg-gradient-to-br from-red-100 to-red-200 text-red-600"
-                                    : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600"
-                                }`}
+                                className={`p-2.5 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md
+                               sm:p-2 xs:p-1.5 ${
+                                 notif.type === "info"
+                                   ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600"
+                                   : notif.type === "success"
+                                   ? "bg-gradient-to-br from-green-100 to-green-200 text-green-600"
+                                   : notif.type === "warning"
+                                   ? "bg-gradient-to-br from-yellow-100 to-yellow-200 text-yellow-600"
+                                   : notif.type === "error"
+                                   ? "bg-gradient-to-br from-red-100 to-red-200 text-red-600"
+                                   : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600"
+                               }`}
                               >
-                                {getNotificationIcon(notif.type)}
+                                <div className="w-4 h-4 sm:w-3.5 sm:h-3.5">
+                                  {getNotificationIcon(notif.type)}
+                                </div>
                               </div>
                               {!notif.read && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
+                                <div
+                                  className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full border-2 border-white shadow-sm animate-pulse
+                                   sm:w-2.5 sm:h-2.5 sm:-top-0.5 sm:-right-0.5"
+                                ></div>
                               )}
                             </div>
 
@@ -634,21 +640,30 @@ const Navbar = () => {
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1">
                                   <h4
-                                    className={`text-sm font-semibold transition-colors ${
-                                      !notif.read
-                                        ? "text-gray-900"
-                                        : "text-gray-700"
-                                    }`}
+                                    className={`text-sm font-semibold transition-colors
+                                   sm:text-xs xs:text-[11px] ${
+                                     !notif.read
+                                       ? "text-gray-900"
+                                       : "text-gray-700"
+                                   }`}
                                   >
                                     {notif.title}
                                   </h4>
-                                  <p className="text-xs text-gray-600 mt-1 line-clamp-2 leading-relaxed">
+                                  <p
+                                    className="text-xs text-gray-600 mt-1 line-clamp-2 leading-relaxed
+                                   sm:text-[11px] xs:text-[10px] sm:line-clamp-1"
+                                  >
                                     {notif.message}
                                   </p>
-                                  <div className="flex items-center gap-3 mt-2">
-                                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {formatDate(notif.timestamp)}
+                                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mt-2">
+                                    <span
+                                      className="text-xs text-gray-400 flex items-center gap-1
+                                       sm:text-[10px] xs:text-[9px]"
+                                    >
+                                      <Clock className="w-3 h-3 sm:w-2.5 sm:h-2.5" />
+                                      <span className="truncate">
+                                        {formatDate(notif.timestamp)}
+                                      </span>
                                     </span>
                                     {!notif.read && (
                                       <button
@@ -656,9 +671,13 @@ const Navbar = () => {
                                           e.stopPropagation();
                                           handleMarkAsRead(notif._id);
                                         }}
-                                        className="text-xs text-purple-600 hover:text-purple-700 font-medium hover:bg-purple-50 px-2 py-1 rounded-full transition-all duration-200"
+                                        className="text-xs text-purple-600 hover:text-purple-700 font-medium hover:bg-purple-50 px-2 py-1 rounded-full transition-all duration-200
+                                     sm:text-[10px] sm:px-1.5 sm:py-0.5 xs:text-[9px]"
                                       >
-                                        Mark as read
+                                        <span className="hidden sm:inline">
+                                          Mark as read
+                                        </span>
+                                        <span className="sm:hidden">Read</span>
                                       </button>
                                     )}
                                   </div>
@@ -668,9 +687,10 @@ const Navbar = () => {
                                     e.stopPropagation();
                                     handleDismiss(notif._id);
                                   }}
-                                  className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-all duration-200"
+                                  className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-all duration-200
+                               sm:p-0.5"
                                 >
-                                  <X size={14} />
+                                  <X size={14} className="sm:w-3 sm:h-3" />
                                 </button>
                               </div>
                             </div>
@@ -681,15 +701,19 @@ const Navbar = () => {
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="p-8 text-center text-gray-500"
+                        className="p-8 text-center text-gray-500
+                       sm:p-6 xs:p-4"
                       >
-                        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
-                          <Bell className="w-8 h-8 text-gray-400" />
+                        <div
+                          className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center
+                           sm:w-12 sm:h-12 sm:mb-3"
+                        >
+                          <Bell className="w-8 h-8 text-gray-400 sm:w-6 sm:h-6" />
                         </div>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-medium sm:text-xs">
                           No notifications yet
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-400 mt-1 sm:text-[10px]">
                           You're all caught up!
                         </p>
                       </motion.div>
@@ -697,10 +721,14 @@ const Navbar = () => {
                   </div>
 
                   {notifications.length > 0 && (
-                    <div className="p-3 bg-gray-50 border-t border-gray-100">
+                    <div
+                      className="p-3 bg-gray-50 border-t border-gray-100
+                       sm:p-2"
+                    >
                       <button
                         onClick={handleMarkAllAsRead}
-                        className="w-full py-2 px-4 text-sm text-center text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200 font-medium"
+                        className="w-full py-2 px-4 text-sm text-center text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200 font-medium
+                     sm:py-1.5 sm:px-3 sm:text-xs sm:rounded-lg"
                       >
                         Mark all as read
                       </button>
