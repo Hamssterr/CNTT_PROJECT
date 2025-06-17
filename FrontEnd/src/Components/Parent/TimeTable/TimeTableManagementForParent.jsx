@@ -2,6 +2,30 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { AppContext } from "../../../context/AppContext";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  BookOpen,
+  Sparkles,
+  GraduationCap,
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Users,
+  Star,
+  Baby,
+  Heart,
+  Target,
+  Award,
+  CheckCircle,
+  RefreshCw,
+} from "lucide-react";
+
 import Loading from "../../Loading";
 import CourseDetailModal from "./CourseDetailModal";
 
@@ -16,7 +40,9 @@ const TimeTableManagementForParent = () => {
   const [selectedDayFilter, setSelectedDayFilter] = useState("all");
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedCourseForDetail, setSelectedCourseForDetail] = useState(null);
+  const [showFilters, setShowFilters] = useState(true);
 
+  // Existing functions remain the same...
   const fetchClassData = async () => {
     try {
       setLoading(true);
@@ -28,7 +54,6 @@ const TimeTableManagementForParent = () => {
       const { data } = response;
 
       if (Array.isArray(data.data)) {
-        // Deduplicate classes by _id
         const classMap = new Map();
         data.data.forEach((classItem) => {
           if (classMap.has(classItem._id)) {
@@ -51,14 +76,12 @@ const TimeTableManagementForParent = () => {
         const uniqueClasses = Array.from(classMap.values());
         setClassData(uniqueClasses);
 
-        // Check for duplicate class IDs
         const classIds = uniqueClasses.map((classItem) => classItem._id);
         const uniqueClassIds = new Set(classIds);
         if (uniqueClassIds.size !== classIds.length) {
           console.warn("Duplicate class IDs detected:", classIds);
         }
 
-        // Create uniqueChildren
         const uniqueChildren = Array.from(
           new Set(
             uniqueClasses.flatMap((classItem) =>
@@ -104,7 +127,6 @@ const TimeTableManagementForParent = () => {
   }, [backendUrl]);
 
   const getNextClassDay = (startDate, endDate, daysOfWeek, currentDate) => {
-    // Validate inputs
     if (
       !startDate ||
       !endDate ||
@@ -137,17 +159,13 @@ const TimeTableManagementForParent = () => {
       Sunday: 0,
     };
 
-    // For upcoming courses, find the first class day after startDate
     let referenceDate = today < start ? start : today;
-
     const referenceDay = referenceDate.getDay();
     const referenceDayName = Object.keys(daysMap).find(
       (key) => daysMap[key] === referenceDay
     );
 
-    // Check if reference date is a class day
     if (daysOfWeek.includes(referenceDayName)) {
-      // Return reference date with appropriate label
       const label =
         referenceDate.getTime() === today.getTime()
           ? "Current Day"
@@ -160,7 +178,6 @@ const TimeTableManagementForParent = () => {
       })} (${label})`;
     }
 
-    // Find the next class day
     let minDiff = 7;
     let nextDay = null;
 
@@ -183,7 +200,6 @@ const TimeTableManagementForParent = () => {
       return "N/A";
     }
 
-    // Return next date with "Next Day" label
     return `${nextDate.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -232,7 +248,7 @@ const TimeTableManagementForParent = () => {
 
   const filteredTimetable = useMemo(() => {
     const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0); // Normalize to start of day
+    currentDate.setHours(0, 0, 0, 0);
     return selectedChildTimetable.filter((course) => {
       const startDate = course.startDate ? new Date(course.startDate) : null;
       const endDate = course.endDate ? new Date(course.endDate) : null;
@@ -278,7 +294,6 @@ const TimeTableManagementForParent = () => {
 
   const groupedTimetableByDay = useMemo(() => {
     const grouped = filteredTimetable.reduce((acc, course) => {
-      // Use "Upcoming" for courses with nextClassDay = "N/A" and upcoming status
       let day;
       if (course.nextClassDay === "N/A" && selectedDayFilter === "upcoming") {
         day = "Upcoming";
@@ -301,7 +316,6 @@ const TimeTableManagementForParent = () => {
     }, {});
 
     const sortedGrouped = {};
-    // Prioritize "Upcoming" group if present
     if (grouped["Upcoming"]) {
       sortedGrouped["Upcoming"] = grouped["Upcoming"];
     }
@@ -346,204 +360,515 @@ const TimeTableManagementForParent = () => {
     return levelList;
   }, [selectedChildTimetable]);
 
+  const getGradeColor = (index) => {
+    const colors = [
+      "from-blue-500 to-cyan-500",
+      "from-purple-500 to-pink-500",
+      "from-green-500 to-emerald-500",
+      "from-orange-500 to-red-500",
+      "from-indigo-500 to-purple-500",
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getLevelColor = (level) => {
+    switch (level?.toLowerCase()) {
+      case "beginner":
+        return "bg-green-100 text-green-700";
+      case "intermediate":
+        return "bg-yellow-100 text-yellow-700";
+      case "advanced":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading timetable...</p>
+        </motion.div>
+      </div>
+    );
   }
 
-    return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
-      {/* Header Section */}
-      <div className="mb-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-            Children's Timetable
-          </span>
-        </h2>
-        <p className="mt-2 text-gray-600">Manage and view your children's class schedules</p>
-      </div>
-
-      {children.length > 0 ? (
-        <>
-          {/* Child Selector */}
-          <div className="mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-            <label
-              htmlFor="childSelector"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
-              Select Child
-            </label>
-            <select
-              id="childSelector"
-              value={selectedChildId}
-              onChange={handleChildChange}
-              className="w-full md:w-1/2 lg:w-1/3 p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-            >
-              {children.map((child) => (
-                <option key={child.id} value={child.id}>
-                  {child.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {selectedChildId && selectedChildTimetable.length > 0 ? (
-            <>
-              {/* Filters Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {/* Category Filter */}
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-                  <label
-                    htmlFor="categoryFilter"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
-                  >
-                    Category
-                  </label>
-                  <select
-                    id="categoryFilter"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                    disabled={availableCategories.length <= 1}
-                  >
-                    {availableCategories.map((category) => (
-                      <option key={category} value={category}>
-                        {category === "all" ? "All Categories" : category}
-                      </option>
-                    ))}
-                  </select>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
+      <div className="max-w-7xl">
+        {/* Enhanced Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Calendar className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </div>
                 </div>
-
-                {/* Level Filter */}
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-                  <label
-                    htmlFor="levelFilter"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
-                  >
-                    Level
-                  </label>
-                  <select
-                    id="levelFilter"
-                    value={selectedLevel}
-                    onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                    disabled={availableLevels.length <= 1}
-                  >
-                    {availableLevels.map((level) => (
-                      <option key={level} value={level}>
-                        {level === "all" ? "All Levels" : level}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Status Filter */}
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-                  <label
-                    htmlFor="statusFilter"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
-                  >
-                    Course Status
-                  </label>
-                  <select
-                    id="statusFilter"
-                    value={selectedDayFilter}
-                    onChange={(e) => setSelectedDayFilter(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                  >
-                    <option value="all">All Courses</option>
-                    <option value="upcoming">Upcoming Courses</option>
-                    <option value="ongoing">Ongoing Courses</option>
-                  </select>
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Children's Timetable
+                  </h1>
+                  <p className="text-gray-500 mt-1">
+                    Manage and view your children's class schedules
+                  </p>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
+                      {children.length} children
+                    </span>
+                    <span className="text-sm text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      Family Schedule
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Courses Grid */}
-              {Object.keys(groupedTimetableByDay).length > 0 ? (
-                <div className="space-y-8">
-                  {Object.entries(groupedTimetableByDay).map(([day, courses]) => (
-                    <div key={day} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                      <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                        <span className="w-2 h-6 bg-indigo-500 rounded-full mr-3"></span>
-                        {day}
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {courses.map((course) => (
-                          <div
-                            key={course.id}
-                            className="group p-5 rounded-xl border border-gray-100 hover:shadow-lg hover:border-indigo-100 transition-all duration-300 cursor-pointer bg-white hover:bg-gradient-to-br hover:from-indigo-50 hover:to-white"
-                            onClick={() => handleViewDetails(course)}
-                            role="button"
-                            tabIndex={0}
-                          >
-                            <div className="flex justify-between items-start mb-3">
-                              <h4 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                                {course.courseTitle}
-                              </h4>
-                              <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-600 rounded-full">
-                                {course.level}
-                              </span>
-                            </div>
-                            <div className="space-y-2">
-                              <p className="text-sm text-gray-600 flex items-center">
-                                <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                {course.timing}
-                              </p>
-                              <p className="text-sm text-gray-600 flex items-center">
-                                <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                </svg>
-                                {course.roomNumber}
-                              </p>
-                              <p className="text-sm text-gray-600 flex items-center">
-                                <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                {course.instructor}
-                              </p>
-                            </div>
-                            <button
-                              className="mt-4 w-full py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg font-medium transition-colors duration-200"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewDetails(course);
-                              }}
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12a4 4 0 100-8 4 4 0 000 8z" />
-                  </svg>
-                  <p className="mt-4 text-gray-500 text-lg">No courses match your current filters.</p>
-                </div>
-              )}
-            </>
-          ) : null}
-        </>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-          <p className="mt-4 text-gray-500 text-lg">No children found in the system.</p>
-        </div>
-      )}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={fetchClassData}
+                className="p-3 bg-blue-100 hover:bg-blue-200 rounded-xl transition-all duration-200 group"
+                title="Refresh timetable"
+              >
+                <RefreshCw className="w-5 h-5 text-blue-600 group-hover:rotate-180 transition-transform duration-500" />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
 
-      {isDetailModalOpen && (
-        <CourseDetailModal
-          course={selectedCourseForDetail}
-          onClose={handleCloseModal}
-        />
-      )}
+        {children.length > 0 ? (
+          <>
+            {/* Child Selector */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mb-8"
+            >
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                  <div className="flex items-center gap-3 mb-4 md:mb-0">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Select Child
+                    </h3>
+                  </div>
+
+                  <div className="relative flex-1 max-w-md w-full md:w-auto">
+                    <select
+                      value={selectedChildId}
+                      onChange={handleChildChange}
+                      className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none"
+                    >
+                      {children.map((child) => (
+                        <option key={child.id} value={child.id}>
+                          {child.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {selectedChildId && selectedChildTimetable.length > 0 ? (
+              <>
+                {/* Filters Section with Toggle */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mb-8"
+                >
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 overflow-hidden">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                          <Filter className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800">
+                          Filter Courses
+                        </h3>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-200"
+                      >
+                        <span className="font-medium">
+                          {showFilters ? "Hide" : "Show"} Filters
+                        </span>
+                        <motion.div
+                          animate={{ rotate: showFilters ? 180 : 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </motion.div>
+                      </motion.button>
+                    </div>
+
+                    <AnimatePresence>
+                      {showFilters && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+                        >
+                          {/* Category Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Category
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={selectedCategory}
+                                onChange={(e) =>
+                                  setSelectedCategory(e.target.value)
+                                }
+                                className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none"
+                                disabled={availableCategories.length <= 1}
+                              >
+                                {availableCategories.map((category) => (
+                                  <option key={category} value={category}>
+                                    {category === "all"
+                                      ? "All Categories"
+                                      : category}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <BookOpen className="w-5 h-5 text-gray-400" />
+                              </div>
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Level Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Level
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={selectedLevel}
+                                onChange={(e) =>
+                                  setSelectedLevel(e.target.value)
+                                }
+                                className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none"
+                                disabled={availableLevels.length <= 1}
+                              >
+                                {availableLevels.map((level) => (
+                                  <option key={level} value={level}>
+                                    {level === "all" ? "All Levels" : level}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Star className="w-5 h-5 text-gray-400" />
+                              </div>
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Course Status
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={selectedDayFilter}
+                                onChange={(e) =>
+                                  setSelectedDayFilter(e.target.value)
+                                }
+                                className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 appearance-none"
+                              >
+                                <option value="all">All Courses</option>
+                                <option value="upcoming">
+                                  Upcoming Courses
+                                </option>
+                                <option value="ongoing">Ongoing Courses</option>
+                              </select>
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Calendar className="w-5 h-5 text-gray-400" />
+                              </div>
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+
+                {/* Timetable Display */}
+                <AnimatePresence mode="wait">
+                  {Object.keys(groupedTimetableByDay).length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="text-center py-16"
+                    >
+                      <div className="relative mx-auto mb-6 w-24 h-24">
+                        <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                          <Calendar className="w-12 h-12 text-gray-400" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                          <Search className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                        No classes found
+                      </h3>
+                      <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                        No classes match your current filter criteria. Try
+                        adjusting the filters above.
+                      </p>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSelectedCategory("all");
+                          setSelectedLevel("all");
+                          setSelectedDayFilter("all");
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 font-medium transition-all duration-200"
+                      >
+                        Clear all filters
+                      </motion.button>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-8">
+                      {Object.entries(groupedTimetableByDay).map(
+                        ([day, courses], dayIndex) => (
+                          <motion.div
+                            key={day}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: dayIndex * 0.1 }}
+                            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50"
+                          >
+                            <div className="flex items-center gap-3 mb-6">
+                              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <Calendar className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="text-2xl font-bold text-gray-800">
+                                  {day}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {courses.length} classes scheduled
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                              {courses.map((course, courseIndex) => (
+                                <motion.div
+                                  key={course.id}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: courseIndex * 0.1 }}
+                                  className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
+                                >
+                                  {/* Course Header */}
+                                  <div
+                                    className={`h-2 bg-gradient-to-r ${getGradeColor(
+                                      courseIndex
+                                    )}`}
+                                  ></div>
+
+                                  <div className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                      <div className="flex-1">
+                                        <h4 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors mb-2">
+                                          {course.courseTitle}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mb-3">
+                                          <span
+                                            className={`px-3 py-1 rounded-full text-xs font-medium ${getLevelColor(
+                                              course.level
+                                            )}`}
+                                          >
+                                            {course.level}
+                                          </span>
+                                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                            {course.category}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Course Details */}
+                                    <div className="space-y-3 mb-6">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                          <User className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500 font-medium">
+                                            Instructor
+                                          </p>
+                                          <p className="text-sm font-semibold text-gray-800">
+                                            {course.instructor}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                          <Clock className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500 font-medium">
+                                            Time
+                                          </p>
+                                          <p className="text-sm font-semibold text-gray-800">
+                                            {course.timing}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                          <MapPin className="w-4 h-4 text-purple-600" />
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500 font-medium">
+                                            Room
+                                          </p>
+                                          <p className="text-sm font-semibold text-gray-800">
+                                            {course.roomNumber}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <motion.button
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                      onClick={() => handleViewDetails(course)}
+                                      className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                      View Details
+                                    </motion.button>
+                                  </div>
+
+                                  {/* Hover effect overlay */}
+                                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/5 to-purple-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )
+                      )}
+                    </div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : selectedChildId ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-16"
+              >
+                <div className="relative mx-auto mb-6 w-24 h-24">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                    <GraduationCap className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  No Classes Enrolled
+                </h3>
+                <p className="text-gray-500 max-w-md mx-auto">
+                  This child is not currently enrolled in any classes. Contact
+                  the administration to enroll in courses.
+                </p>
+              </motion.div>
+            ) : null}
+          </>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-16"
+          >
+            <div className="relative mx-auto mb-6 w-24 h-24">
+              <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                <Baby className="w-12 h-12 text-gray-400" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+            </div>
+
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              No Children Found
+            </h3>
+            <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              You don't have any children registered in the system yet. Please
+              contact support or register your children first.
+            </p>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={fetchClassData}
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 font-medium transition-all duration-200 flex items-center gap-2 mx-auto"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh Data
+            </motion.button>
+          </motion.div>
+        )}
+      </div>
+
+      <CourseDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseModal}
+        course={selectedCourseForDetail}
+      />
     </div>
   );
 };

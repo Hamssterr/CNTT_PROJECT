@@ -7,7 +7,7 @@ import TimeTableManagementForParent from "../../Components/Parent/TimeTable/Time
 
 export const HomeParent = () => {
   return (
-    <div className="flex flex-col min-h-screen mt-[90px]">
+    <div className="flex flex-col min-h-screen mt-[40px]">
       {/* Navbar cố định ở trên cùng */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <ParentNavbar />
@@ -20,9 +20,9 @@ export const HomeParent = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 p-5 md:ml-30">
+        <main className="flex-1 p-5 md:ml-20">
           {/* Ví dụ thêm nội dung */}
-          <div className=" mt-6">
+          <div className="mt-1">
             <TimeTableManagementForParent />
           </div>
         </main>

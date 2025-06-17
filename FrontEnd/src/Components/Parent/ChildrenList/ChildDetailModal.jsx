@@ -1,139 +1,373 @@
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  User,
+  BookOpen,
+  Calendar,
+  Clock,
+  MapPin,
+  GraduationCap,
+  Award,
+  Sparkles,
+  Baby,
+  Users,
+  CheckCircle,
+  Star,
+  Heart,
+} from "lucide-react";
 
 const ChildDetailModal = ({ isOpen, onClose, child, classes }) => {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden">
-        {/* Modal Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">
-              {child ? `${child.firstName} ${child.lastName}'s Details` : "Child Details"}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-white/80 hover:text-white transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
+  const getGradeColor = (index) => {
+    const colors = [
+      "from-blue-500 to-cyan-500",
+      "from-purple-500 to-pink-500",
+      "from-green-500 to-emerald-500",
+      "from-orange-500 to-red-500",
+      "from-indigo-500 to-purple-500",
+    ];
+    return colors[index % colors.length];
+  };
 
-        {/* Modal Content */}
-        <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
-          {child && (
-            <div className="bg-blue-50 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-blue-800 mb-4">Child Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <p className="flex items-center text-gray-700">
-                    <svg className="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span className="font-medium">Full Name:</span>
-                    <span className="ml-2">{`${child.firstName} ${child.lastName}`}</span>
-                  </p>
-                  <p className="flex items-center text-gray-700">
-                    <svg className="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                        d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                    </svg>
-                    <span className="font-medium">ID:</span>
-                    <span className="ml-2">{child.id}</span>
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex justify-center items-center p-2 sm:p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          transition={{
+            type: "spring",
+            damping: 25,
+            stiffness: 300,
+            duration: 0.3,
+          }}
+          className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full mx-4 overflow-hidden relative z-[10000] max-h-[95vh] flex flex-col border border-white/20"
+        >
+          {/* Enhanced Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-6 relative"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                    <Baby className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-pink-400 rounded-full flex items-center justify-center">
+                    <Heart className="w-2.5 h-2.5 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">
+                    {child
+                      ? `${child.firstName} ${child.lastName}'s Profile`
+                      : "Child Profile"}
+                  </h2>
+                  <p className="text-blue-100 text-sm">
+                    Academic journey overview
                   </p>
                 </div>
               </div>
-            </div>
-          )}
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Enrolled Classes</h3>
-            {classes.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded-xl">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-                <p className="mt-4 text-gray-500">This child is not enrolled in any classes.</p>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {classes.map((classItem) => (
-                  <div
-                    key={classItem._id}
-                    className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-blue-600">
-                        {classItem.className}
-                      </h4>
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                        Active
-                      </span>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={onClose}
+                className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-2xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+                style={{ zIndex: 10001 }}
+              >
+                <X className="w-5 h-5 text-white" />
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Enhanced Content */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="p-6 space-y-6">
+              {/* Child Information Card */}
+              {child && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 shadow-lg border border-blue-100"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <User className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <p className="flex items-center text-gray-600">
-                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                          </svg>
-                          <span className="font-medium">Course:</span>
-                          <span className="ml-2">{classItem.courseId?.title || "N/A"}</span>
-                        </p>
-                        <p className="flex items-center text-gray-600">
-                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="font-medium">Schedule:</span>
-                          <span className="ml-2">
-                            {classItem.schedule?.daysOfWeek.join(", ")} ({classItem.schedule?.shift})
-                          </span>
-                        </p>
+                    <h3 className="text-xl font-bold text-blue-800">
+                      Student Information
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-6">
+                    {/* Profile Image */}
+                    <div className="relative">
+                      <motion.img
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                        src={
+                          child.profileImage ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            `${child.firstName} ${child.lastName}`
+                          )}&background=random&color=fff&size=120&font-size=0.5&bold=true`
+                        }
+                        alt={`${child.firstName}'s profile`}
+                        className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-lg"
+                      />
+                      <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-white" />
                       </div>
-                      <div className="space-y-2">
-                        <p className="flex items-center text-gray-600">
-                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span className="font-medium">Instructor:</span>
-                          <span className="ml-2">{classItem.instructor?.name || "N/A"}</span>
-                        </p>
-                        <p className="flex items-center text-gray-600">
-                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                          <span className="font-medium">Room:</span>
-                          <span className="ml-2">{classItem.room || "N/A"}</span>
-                        </p>
+                    </div>
+
+                    {/* Student Details */}
+                    <div className="flex-1 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <User className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium">
+                                Full Name
+                              </p>
+                              <p className="text-sm font-bold text-gray-800">
+                                {`${child.firstName} ${child.lastName}`}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <Award className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium">
+                                Student ID
+                              </p>
+                              <p className="text-sm font-bold text-gray-800">
+                                {child.id}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="flex items-center gap-2">
+                        <span className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          Active Student
+                        </span>
+                        <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-2">
+                          <Star className="w-3 h-3" />
+                          {classes.length} Classes
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+                </motion.div>
+              )}
 
-        {/* Modal Footer */}
-        <div className="border-t border-gray-200 p-6 bg-gray-50">
-          <button
-            onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+              {/* Enrolled Classes Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 shadow-lg border border-gray-100"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">
+                        Enrolled Classes
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Current academic schedule
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200">
+                    <Users className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {classes.length} Classes
+                    </span>
+                  </div>
+                </div>
+
+                {classes.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-gray-200"
+                  >
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <BookOpen className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                      No Classes Enrolled
+                    </h4>
+                    <p className="text-gray-500 max-w-md mx-auto">
+                      This student is not currently enrolled in any classes.
+                      Contact the administration to enroll in courses.
+                    </p>
+                  </motion.div>
+                ) : (
+                  <div className="grid gap-4">
+                    {classes.map((classItem, index) => (
+                      <motion.div
+                        key={classItem._id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                        className="group bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 overflow-hidden relative"
+                      >
+                        {/* Class Header */}
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className={`w-12 h-12 bg-gradient-to-br ${getGradeColor(
+                                index
+                              )} rounded-xl flex items-center justify-center shadow-lg`}
+                            >
+                              <BookOpen className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                                {classItem.className}
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                {classItem.courseId?.title ||
+                                  "Course Information"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                              Active
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Class Details Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <Calendar className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Schedule
+                                </p>
+                                <p className="text-sm font-semibold text-gray-800">
+                                  {classItem.schedule?.daysOfWeek?.join(", ") ||
+                                    "N/A"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <Clock className="w-4 h-4 text-orange-600" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Time Shift
+                                </p>
+                                <p className="text-sm font-semibold text-gray-800">
+                                  {classItem.schedule?.shift || "N/A"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <User className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Instructor
+                                </p>
+                                <p className="text-sm font-semibold text-gray-800">
+                                  {classItem.instructor?.name || "N/A"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <MapPin className="w-4 h-4 text-green-600" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 font-medium">
+                                  Classroom
+                                </p>
+                                <p className="text-sm font-semibold text-gray-800">
+                                  {classItem.room || "N/A"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Hover effect overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/5 to-purple-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Enhanced Footer */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="border-t border-gray-200 bg-gray-50 p-6"
           >
-            <span>Close</span>
-          </button>
-        </div>
-      </div>
-    </div>
+            <div className="flex justify-end">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClose}
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Close
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
