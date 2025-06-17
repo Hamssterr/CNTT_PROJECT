@@ -11,8 +11,17 @@ const Navbar = () => {
   return (
     <nav className="bg-white py-4 px-6 flex items-center justify-between border-b border-gray-300 shadow-sm">
       {/* Logo */}
-      <div className="flex-shrink-0 flex">
-        <img className="h-12 w-12 rounded-sm" src={logo} alt="Logo" />
+      <div className="flex items-center gap-3">
+        <img src={logo} alt="TP Education Logo" className="h-8 md:h-10" />
+        <div className="hidden sm:block border-l border-gray-200 h-8 mx-2"></div>
+        <div className="hidden sm:flex flex-col">
+          <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Welcome to TP Education
+          </h1>
+          <p className="text-xs text-gray-500">
+            Where Knowledge Meets Excellence
+          </p>
+        </div>
       </div>
 
       {/* Search bar */}
