@@ -16,7 +16,6 @@ import {
 
 import NavbarAdmin from "../../Components/Admin/Navbar";
 import SidebarAdmin from "../../Components/Admin/Sidebar";
-import Loading from "../../Components/Loading";
 import AddEmployeeModal from "../../Components/Admin/userManagement/EmployeeModal/AddEmployeeModal";
 import AddUserModal from "../../Components/Admin/userManagement/UserModal/AddUserModal";
 import EditEmployeeModal from "../../Components/Admin/userManagement/EmployeeModal/EditEmployeeModal";
@@ -364,9 +363,6 @@ const UserManagement = () => {
             // }),
           };
         }
-
-        // Thêm logging để kiểm tra dữ liệu gửi đi
-        console.log("Data to submit for update:", dataToSubmit);
 
         response = await axios.put(
           `${backendUrl}/api/admin/updateUser/${selectedUser._id}`,

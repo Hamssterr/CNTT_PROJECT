@@ -529,7 +529,7 @@ export const createEmployeeAccount = async (req, res) => {
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "First Name, Last Name, Email and Password are required",
+        message: "First Name, Last Name, Email, and Password are required",
       });
     }
 
@@ -538,7 +538,7 @@ export const createEmployeeAccount = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists ",
+        message: "Email already exists",
       });
     }
 
@@ -558,31 +558,31 @@ export const createEmployeeAccount = async (req, res) => {
     if (!degree || degree.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Employee must have at least one degree.",
+        message: "Employee must have at least one degree",
       });
     }
     if (!experience || experience.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Employee must have at least one working experience.",
+        message: "Employee must have at least one working experience",
       });
     }
 
-    // validate for degree
+    // Validate for degree
     for (const deg of degree) {
       if (!deg.name || !deg.institution || !deg.year) {
         return res.status(400).json({
           success: false,
           message:
-            "Each degree must have the name, school of award, and year of graduation.",
+            "Each degree must have the name, institution, and year of graduation",
         });
       }
-      // Check valid graduation year (not older than current year)
+      // Check valid graduation year (not in the future)
       const currentYear = new Date().getFullYear();
       if (deg.year > currentYear) {
         return res.status(400).json({
           success: false,
-          message: "Graduation year cannot be older than current year",
+          message: "Graduation year cannot be in the future",
         });
       }
     }
@@ -593,25 +593,49 @@ export const createEmployeeAccount = async (req, res) => {
         return res.status(400).json({
           success: false,
           message:
-            "Each experience must have location, company, and start date.",
+            "Each experience must have position, company, and start date",
         });
       }
+
       // Check for valid start and end dates
       const startDate = new Date(exp.startDate);
       const endDate = exp.endDate ? new Date(exp.endDate) : null;
       const currentDate = new Date();
 
+      // Validate startDate
+      if (isNaN(startDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid start date format in experience",
+        });
+      }
       if (startDate > currentDate) {
         return res.status(400).json({
           success: false,
-          message: "Start date cannot be greater than current date",
+          message: "Start date cannot be in the future",
         });
       }
-      if (endDate && endDate < startDate) {
-        return res.status(400).json({
-          success: false,
-          message: "NEnd date cannot be less than start date",
-        });
+
+      // Validate endDate if provided
+      if (endDate) {
+        if (isNaN(endDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid end date format in experience",
+          });
+        }
+        if (endDate > currentDate) {
+          return res.status(400).json({
+            success: false,
+            message: "End date cannot be in the future",
+          });
+        }
+        if (endDate <= startDate) {
+          return res.status(400).json({
+            success: false,
+            message: "End date must be after start date",
+          });
+        }
       }
     }
 
@@ -620,7 +644,7 @@ export const createEmployeeAccount = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Email not acept",
+        message: "Invalid email format",
       });
     }
 
@@ -630,7 +654,7 @@ export const createEmployeeAccount = async (req, res) => {
       if (!phoneRegex.test(phoneNumber)) {
         return res.status(400).json({
           success: false,
-          message: "Phone number must be 10 number",
+          message: "Phone number must be 10 digits",
         });
       }
     }
@@ -656,7 +680,7 @@ export const createEmployeeAccount = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Create successfully",
+      message: "Employee created successfully",
       user: {
         _id: newUser._id,
         firstName: newUser.firstName,
@@ -671,9 +695,10 @@ export const createEmployeeAccount = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Error creating employee:", error);
     res.status(500).json({
       success: false,
-      message: "Error with create employee",
+      message: "Failed to create employee",
       error: error.message,
     });
   }
