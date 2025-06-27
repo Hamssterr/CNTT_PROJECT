@@ -138,20 +138,6 @@ const Navbar = () => {
       </div>
 
       {/* Enhanced Search Bar */}
-      <div className="flex-grow mx-6 min-w-0 max-w-md relative z-10">
-        <div className="relative w-full group">
-          <input
-            type="text"
-            placeholder="Search functions..."
-            className="w-full h-12 py-3 px-5 pl-12 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all duration-300 shadow-sm hover:shadow-md text-gray-700 placeholder-gray-400"
-          />
-          <Search
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-300"
-            size={20}
-          />
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400/10 to-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-        </div>
-      </div>
 
       {/* User Section */}
       <div className="flex items-center space-x-4 flex-shrink-0 relative z-10">
