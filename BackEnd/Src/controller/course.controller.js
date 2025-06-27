@@ -55,6 +55,62 @@ export const createCourse = async (req, res) => {
       profileImage: instructorDoc.profileImage || "",
     };
 
+    // Parse duration
+    let durationData = duration ? JSON.parse(duration) : {};
+
+   // Validate duration
+    if (
+      !durationData.totalHours ||
+      durationData.totalHours < 1 ||
+      durationData.totalHours > 3
+    ) {
+      return res.status(400).json({
+        message: "Total hours must be between 1 and 3",
+        success: false,
+      });
+    }
+
+    // Validate startDate
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Reset time to midnight for date comparison
+    const startDate = durationData.startDate ? new Date(durationData.startDate) : null;
+    if (!startDate || startDate < currentDate) {
+      return res.status(400).json({
+        message: "Start date must be today or in the future",
+        success: false,
+      });
+    }
+
+    // Validate endDate
+    const endDate = durationData.endDate ? new Date(durationData.endDate) : null;
+    if (!endDate || endDate <= startDate) {
+      return res.status(400).json({
+        message: "End date must be after start date",
+        success: false,
+      });
+    }
+
+    // Validate price
+    const coursePrice = Number(price) || 0;
+    if (coursePrice < 0) {
+      return res.status(400).json({
+        message: "Price cannot be negative",
+        success: false,
+      });
+    }
+
+    // Validate maxEnrollment
+    const maxEnrollmentValue = Number(maxEnrollment) || 0;
+    if (
+      maxEnrollmentValue < 1 ||
+      maxEnrollmentValue > 30
+    ) {
+      return res.status(400).json({
+        message: "Max enrollment must be between 1 and 30",
+        success: false,
+      });
+    }
+
     // Create new course
     const newCourse = new Course({
       title,
@@ -62,15 +118,19 @@ export const createCourse = async (req, res) => {
       instructor: instructorForCourse,
       category,
       level,
-      duration: duration ? JSON.parse(duration) : {},
-      price: Number(price) || 0,
+      duration: {
+        totalHours: durationData.totalHours,
+        startDate: startDate,
+        endDate: endDate,
+      },
+      price: coursePrice,
       currency,
       status,
       content: content ? JSON.parse(content) : [],
       schedule: schedule ? JSON.parse(schedule) : { daysOfWeek: [], shift: "" },
       target: target ? JSON.parse(target) : [],
       thumbnail: thumbnailUrl,
-      maxEnrollment: Number(maxEnrollment) || 0,
+      maxEnrollment: maxEnrollmentValue,
     });
 
     await newCourse.save();
@@ -304,6 +364,68 @@ export const updateCourseById = async (req, res) => {
         name: instructorDoc.name || updateData.instructor.name || "",
         profileImage: instructorDoc.profileImage || "",
       };
+    }
+
+      // Validate duration if provided
+    if (updateData.duration) {
+      // Validate totalHours
+      if (
+        updateData.duration.totalHours === undefined ||
+        updateData.duration.totalHours < 1 || updateData.duration.totalHours > 3
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Total hours must be between 1 and 3",
+        });
+      }
+
+      // Validate startDate
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Reset time to midnight for date comparison
+      const startDate = updateData.duration.startDate
+        ? new Date(updateData.duration.startDate)
+        : null;
+      if (!startDate || startDate < currentDate) {
+        return res.status(400).json({
+          success: false,
+          message: "Start date must be today or in the future",
+        });
+      }
+
+      // Validate endDate
+      const endDate = updateData.duration.endDate
+        ? new Date(updateData.duration.endDate)
+        : null;
+      if (!endDate || endDate <= startDate) {
+        return res.status(400).json({
+          success: false,
+          message: "End date must be after start date",
+        });
+      }
+    }
+
+    // Validate price if provided
+    if (updateData.price !== undefined) {
+      const coursePrice = Number(updateData.price);
+      if (coursePrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Price cannot be negative",
+        });
+      }
+      updateData.price = coursePrice;
+    }
+
+    // Validate maxEnrollment if provided
+    if (updateData.maxEnrollment !== undefined) {
+      const maxEnrollmentValue = Number(updateData.maxEnrollment);
+      if (maxEnrollmentValue < 1 || maxEnrollmentValue > 30) {
+        return res.status(400).json({
+          success: false,
+          message: "Max enrollment must be between 1 and 30",
+        });
+      }
+      updateData.maxEnrollment = maxEnrollmentValue;
     }
 
     //  Tiến hành cập nhật
